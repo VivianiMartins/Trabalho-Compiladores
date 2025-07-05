@@ -3,11 +3,11 @@
 
 int main()
 {
-    #carregar documento de entrada
+    /*carregar documento de entrada*/
 
-    #mémoria
+    /*mémoria*/
 
-    #verfificar cada linha
+    /*verificar cada linha*/
 
     printf("Hello world!\n");
     return 0;
