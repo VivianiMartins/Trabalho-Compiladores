@@ -55,7 +55,7 @@ dkms.conf
 *.dwo
 
 #others
-bin/
+bin/Debug/Trabalho Compiladores
 Trabalho-Compiladores.cbp
 Trabalho-Compiladores.layout
 Trabalho-Compiladores.depend
