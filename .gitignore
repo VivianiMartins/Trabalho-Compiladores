@@ -55,6 +55,7 @@ dkms.conf
 *.dwo
 
 #others
+.bin/
 Trabalho-Compiladores.cbp
 Trabalho-Compiladores.layout
 
