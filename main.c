@@ -5,7 +5,6 @@
 int main()
 {
     /*carregar documento de entrada*/
-<<<<<<< HEAD
     FILE *rtf_file = fopen("exemplo.txt", "r");
 
     if (!rtf_file) {
@@ -22,15 +21,9 @@ int main()
 
 
 
-    /*mémoria*/
+    /*memória*/
 
     /*verfificar cada linha*/
-=======
-
-    /*mémoria*/
-
-    /*verificar cada linha*/
->>>>>>> 6d0d9e4fa677beca512f7017e5205100816509a0
 
     printf("Hello world!\n");
     return 0;
