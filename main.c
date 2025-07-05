@@ -5,30 +5,30 @@
 /*Declaração de funções*/
 void extract_plain_text(FILE *rtf_file, char *output_buffer, int buffer_size);
 
-int main()
-{
+int main(){
     /*carregar documento de entrada*/
-    FILE *rtf_file = fopen("exemplo.txt", "r");
+    FILE *file = fopen("exemplo.txt", "r");
+    char line[256];
 
-    if (!rtf_file) {
-        perror("Error opening RTF file");
-        return 1;
+    if (file != NULL) {
+        while (fgets(line, sizeof(line), file)) {  /*Aqui só printa, mas podemos aproveitar se quiser*/
+            printf("%s", line); /*printa linha por linha*/
+        }
+
+        int Memory = 0; /*memória*/
+
+        while(Memory<1024){ /*Precisamos Definir qual o máximo*/
+            /*RESTANTE DO CODIGO*/
+            /*verificar cada linha*/
+
+            Memory++;
+        }
+
+        fclose(file);
+    } else {
+        fprintf(stderr, "Não foi possível abrir o arquivo!\n");
     }
 
-    char plain_text_buffer[1024];
-    extract_plain_text(rtf_file, plain_text_buffer, sizeof(plain_text_buffer));
-
-    printf("Extracted Plain Text:\n%s\n", plain_text_buffer);
-
-    fclose(rtf_file);
-
-
-
-    /*memória*/
-
-    /*verfificar cada linha*/
-
-    printf("Hello world!\n");
     return 0;
 }
 
