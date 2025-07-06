@@ -4,24 +4,24 @@
 
 /*Declaração de funções*/
 void extract_plain_text(FILE *rtf_file, char *output_buffer, int buffer_size);
+int carregarNaMemoria(int Memory, int MaxMemory, int size);
 
 int main(){
     /*carregar documento de entrada*/
     FILE *file = fopen("exemplo.txt", "r");
+    int Memory = 0;
+    int MaxMemory = 2048; /*memória precisa ser parametrizada, então acredito que seja isso*/
     char line[256];
+    Memory = carregarNaMemoria(Memory, MaxMemory, sizeof(file)); /*Exemplo de uso de memória*/
+    if (Memory == -1){
+        return 0;
+    }
 
     if (file != NULL) {
-        while (fgets(line, sizeof(line), file)) {  /*Aqui só printa, mas podemos aproveitar se quiser*/
-            printf("%s", line); /*printa linha por linha*/
-        }
-
-        int Memory = 0; /*memória*/
-
-        while(Memory<1024){ /*Precisamos Definir qual o máximo*/
+        while(fgets(line, sizeof(line), file)){ /*Precisamos Definir qual o máximo*/
             /*RESTANTE DO CODIGO*/
             /*verificar cada linha*/
-
-            Memory++;
+            printf("%s", line); /*Por enquanto, está apenas printando linha por linha*/
         }
 
         fclose(file);
@@ -32,6 +32,20 @@ int main(){
     return 0;
 }
 
+int carregarNaMemoria(int Memory, int MaxMemory, int size){
+    if (Memory+size <= 0.9*MaxMemory){
+        return (Memory += size);
+    } else {
+        if ((Memory)+size<(MaxMemory*0.99)){
+            printf("Alerta! Mais de 90% da Memória disponível foi utilizada");
+            return (Memory += size);
+        } else {
+            printf("Memória cheia!!! Não foi possível carregar os bits na memória");
+            return (-1);
+        }
+
+    }
+};
 
 /*função para extrair texto*/
 void extract_plain_text(FILE *rtf_file, char *output_buffer, int buffer_size) {
