@@ -1,0 +1,8 @@
+principal(){
+inteiro !n1, !n2; 
+
+escreva(“Escreva dois número ”);
+leia (!n1, !n2); 
+ __soma (!n1, !n2);
+
+}
