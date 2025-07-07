@@ -14,6 +14,8 @@
 #define TEXTO_EACH_CHAR_MEMORY_BYTES sizeof(char)   /* Sempre 1 byte */
 
 /*Declaração de funções*/
+
+int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int line_number); /*função para retorno de erro*/
 int rules_principal(char *line, int line_number); /*regras para principal()*/
 int rules_funcao(char *line, int line_number); /*regras para funcao __xxx()*/
@@ -21,7 +23,14 @@ int rules_funcao(char *line, int line_number); /*regras para funcao __xxx()*/
 int main(){
     /*carregar documento de entrada*/
     FILE *file = fopen("exemplo_correto.txt", "r");
+    int Memory = 0;
+    int MaxMemory = 2048; /*memória precisa ser parametrizada, então acredito que seja isso*/
+
     char line[256];
+    Memory = carregarNaMemoria(Memory, MaxMemory, sizeof(file)); /*Exemplo de uso de memória*/
+    if (Memory == -1){
+        return 0;
+    }
 
     if (file != NULL) {
         int line_number = 1; /*número da linha em questão*/
@@ -102,6 +111,21 @@ int main(){
     return 0;
 }
 
+int carregarNaMemoria(int Memory, int MaxMemory, int size){
+    if (Memory+size <= 0.9*MaxMemory){
+        return (Memory += size);
+    } else {
+        if ((Memory)+size<(MaxMemory*0.99)){
+            printf("Alerta! Mais de 90% da Memória disponível foi utilizada");
+            return (Memory += size);
+        } else {
+            printf("Memória cheia!!! Não foi possível carregar os bits na memória");
+            return (-1);
+        }
+
+    }
+};
+
 void message_error(const char *erro, int line_number) {
     printf("Erro na linha %d: %s\n", line_number, erro);
 }
@@ -124,6 +148,7 @@ int rules_principal(char *line, int line_number) {
      /* Verifica restante da linha */
     for(i = 9; line[i] != '\0'; i++) {
         char c = line[i];
+
 
         /* Ignora espaços antes dos parênteses */
         if (!found_parentheses && isspace(c)) {
