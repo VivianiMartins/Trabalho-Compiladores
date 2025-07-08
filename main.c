@@ -39,7 +39,7 @@ int main(){
         int control = 0;
         int cont_principal = 0;
 
-        if (fgets(line, sizeof(line), file)) {
+        while (fgets(line, sizeof(line), file) && control == 0) { /*Coloquei em loop pra ficar verificando*/
             /*estamos no inicio do arquivo, então tem que começar com principal ou uma função*/
             printf("Linha %d: %s", line_number, line); /*printa linha por linha*/
             /* Detecta e ignora BOM: Arquivos UTF-8 podem começar com um caractere especial invisível (BOM) que tem
@@ -54,45 +54,32 @@ int main(){
                 if (control == 0 ){
                     cont_principal++;
                 }
+                /*continua com as regras até sair da função principal*/
+                while (fgets(line, sizeof(line), file) && control == 0) {
+                    printf("Linha %d: %s", line_number, line);
+                    if (line[0] == '}'){ /*não necessariamente vai estar na posição 0*/
+                        break;
+                    }
+                    line_number++;
+                }
+
             } else if (line[0] == 'f') {
                 control = rules_funcao(line, line_number);
+                /*continua com as regras até sair da função*/
+                while (fgets(line, sizeof(line), file) && control == 0) {
+                    printf("Linha %d: %s", line_number, line);
+                    if (line[0] == '}'){ /*não necessariamente vai estar na posição 0*/
+                        break;
+                    }
+                    line_number++;
+                }
             } else {
                 printf("%c \n", line[0]);
                 message_error("Tem que iniciar com função ou principal", line_number);
                 control = 1;
-            }
-        }
 
-        while (fgets(line, sizeof(line), file) && control == 0) {  /*Aqui só printa, mas podemos aproveitar se quiser*/
+            }
             line_number++;
-            printf("Linha %d: %s", line_number, line); /*printa linha por linha*/
-
-            line_size = strlen(line) + 1; /*+1 para o terminador nulo*/
-
-            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, line_size); /*Exemplo de uso de memória*/
-
-            if(memory == -1){
-                break;
-            }
-
-            if (line[0] == 'p') {
-                control = rules_principal(line, line_number);
-                cont_principal++;
-                if (cont_principal > 1 ){
-                    message_error("Principal tem que ser único", line_number);
-                    break;
-                }
-            } else {
-                continue;
-            }
-
-
-            memory =- line_size; /*remove da memória o total da linha toda, após processá-la*/
-
-            if (control = 1) {
-                break;
-            }
-
         }
 
         /*Verificação final de arquivo*/
