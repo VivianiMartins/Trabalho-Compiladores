@@ -22,9 +22,7 @@ int rules_funcao(char *line, int line_number); /*regras para funcao __xxx()*/
 char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
 
 int main(){
-    /*carregar documento de entrada
-    FILE *file = fopen("exemplo_correto.txt", "r");*/
-
+    /*carregar documento de entrada e pré-processando*/
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt"); /* eliminar "leia;escreva;"*/
     if (exemploFormatado == NULL) {
         printf("Erro ao processar o arquivo de entrada!\n");
@@ -70,9 +68,8 @@ int main(){
             printf("Linha %d: %s", line_number, line); /*printa linha por linha*/
 
             line_size = strlen(line) + 1; /*+1 para o terminador nulo*/
-            /*memory =+ line_size;*/
+
             memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, line_size); /*Exemplo de uso de memória*/
-            printf("Memória usada: %zu/%zu bytes\n", memory, MAX_MEMORY_BYTES);
 
             if(memory == -1){
                 break;
@@ -164,9 +161,7 @@ int rules_principal(char *line, int line_number) {
                 message_error("Esperado '(' após 'principal'", line_number);
                 return 1;
             }
-        }
-        /* Já encontramos o '(' */
-        else {
+        } else {/* Já encontramos o '(' */
             /* Dentro dos parênteses: só permite espaços */
             if (parenteses_control_open == 1) {
                 if (c == ')') {
@@ -175,31 +170,22 @@ int rules_principal(char *line, int line_number) {
                     message_error("Parênteses deve conter apenas espaços", line_number);
                     return 1;
                 }
-            }
-            /* Após fechar parênteses */
-            else if (parenteses_control_open == 0) {
+            } else if (parenteses_control_open == 0) { /* Após fechar parênteses */
                 /* Se ainda não encontramos a chave */
                 if (!found_curly_brace) {
                     /* Permite espaços entre o ')' e a '{' */
                     if (isspace(c)) {
                         continue;
-                    }
-                    /* Encontrou a chave de abertura */
-                    else if (c == '{') {
+                    } else if (c == '{') {  /* Encontrou a chave de abertura */
                         found_curly_brace = 1;
-                    }
-                    /* Qualquer outro caractere é erro */
-                    else {
+                    } else { /* Qualquer outro caractere é erro */
                         message_error("Esperado '{' após parênteses", line_number);
                         return 1;
                     }
-                }
-                /* Após encontrar a chave */
-                else {
+                } else {  /* Após encontrar a chave */
                     /* Só permite espaços ou quebra de linha após a chave */
                     if (!isspace(c) && c != '\n') {
-                        message_error("Texto após '{' não permitido", line_number);
-                        return 1;
+                        return 0;
                     }
                 }
             }
