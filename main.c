@@ -55,6 +55,7 @@ int main(){
                     cont_principal++;
                 } else if (control == 2) {
                     /*caso tenha algo depois de {, que não esteja na linha abaixo*/
+                    cont_principal++;
 
                 }
 
