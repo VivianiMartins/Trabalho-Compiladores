@@ -39,6 +39,7 @@ int main(){
         /*palavras reservadas*/
         const char *principal = "principal";
         const char *funcao = "funcao";
+        const char *inteiro = "inteiro";
         int cont_principal = 0;
 
         while (fgets(line, sizeof(line), file)) { /*Coloquei em loop pra ficar verificando*/
@@ -63,7 +64,7 @@ int main(){
                 for(int i = 0; i < 9; i++) {
                     if (line[i] != principal[i]) {
                         message_error("Módulo principal escrito incorretamente", line_number);
-                        break;
+                        return 1; /*O código PARA quando encontra erro*/
                     }
                 }
 
@@ -82,7 +83,7 @@ int main(){
                             found_parentheses = 1;
                         } else {
                             message_error("Esperado '(' após 'principal'", line_number);
-                            break;
+                            return 1; /*O código PARA quando encontra erro*/
                         }
                     } else {/* Já encontramos o '(' */
                         /* Dentro dos parênteses: só permite espaços */
@@ -91,7 +92,7 @@ int main(){
                                 parenteses_control_open_principal--;
                             } else if (!isspace(c)) {
                                 message_error("Parênteses deve conter apenas espaços", line_number);
-                                break;
+                                return 1; /*O código PARA quando encontra erro*/
                             }
                         } else if (parenteses_control_open_principal == 0) { /* Após fechar parênteses */
                             /* Se ainda não encontramos a chave */
@@ -103,7 +104,7 @@ int main(){
                                     found_curly_brace = 1;
                                 } else { /* Qualquer outro caractere é erro */
                                     message_error("Esperado '{' após parênteses", line_number);
-                                    break;
+                                    return 1; /*O código PARA quando encontra erro*/
                                 }
                             } else {  /* Após encontrar a chave */
                                 /* Só permite espaços ou quebra de linha após a chave */
@@ -120,19 +121,19 @@ int main(){
                 /* Verificação final de parênteses */
                 if (parenteses_control_open_principal != 0) {
                     message_error("Parênteses não fechado corretamente", line_number);
-                    break;
+                    return 1; /*O código PARA quando encontra erro*/
                 }
 
                 /* Verificação da chave (opcional dependendo dos requisitos) */
                 if (!found_curly_brace) {
                     message_error("Esperado '{' após parênteses", line_number);
-                    break;
+                    return 1; /*O código PARA quando encontra erro*/
                 }
                 cont_principal++;
 
                 if (cont_principal > 1) {
                     message_error("Módulo principal tem que ser único", line_number);
-                    break;
+                    return 1; /*O código PARA quando encontra erro*/
                 }
                 printf("principal ok\n");
                 /*fim da checagem se é principal e sua regras*/
@@ -146,7 +147,7 @@ int main(){
                 for(int i = 0; line[i] != '\0'; i++) {
                     if (line[i] != funcao[i] && i < 6) {
                         message_error("Módulo funcao escrito incorretamente", line_number);
-                       break;
+                        return 1; /*O código PARA quando encontra erro*/
                     } else {
                         if (line[i] == ' ' || line[i] == '(') {
                             if(line[i] == '(') {
@@ -162,10 +163,38 @@ int main(){
                 if (line_number == 1) {
                     printf("%c \n", line);
                     message_error("Tem que iniciar com função ou principal", line_number);
-                    break;
+                    return 1; /*O código PARA quando encontra erro*/
                 }
                 /*aqui continua as verificações*/
-                continue;
+                if (line[0] == 'i'){
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != inteiro[i] && i < 6) {
+                            message_error("Inteiro escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+                    int declaracaoInteiro = 1;
+                    /* Verifica restante da linha */
+                    for(int i = 7; line[i] != '\0'; i++) {
+                        char c = line[i];
+                        if (c == ' ') {
+                            /* Ignora, não há nada a fazer */
+                        } else if (c=='!'){
+                            if (line[i+1] >= 'a' && line[i+1] <= 'z') {
+                                /* Continuar */
+                                break;/* Temporário */
+                            } else {
+                                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                                return 1;
+                            }
+
+                        } else {
+                                message_error("Falta '!' antes da variável.\n", line_number);
+                                return 1;
+                        }
+                    }
+                    printf("Inteiro ok\n");
+            }
             }
 
             line_number++;
