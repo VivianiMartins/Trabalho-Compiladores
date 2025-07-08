@@ -60,7 +60,7 @@ int main(){
                 for(int i = 0; i < 9; i++) {
                     if (line[i] != principal[i]) {
                         message_error("Módulo principal escrito incorretamente", line_number);
-                        break;
+                        return 1;
                     } else {
                         cont_principal++;
                     }
@@ -81,7 +81,7 @@ int main(){
                             found_parentheses = 1;
                         } else {
                             message_error("Esperado '(' após 'principal'", line_number);
-                            break;
+                            return 1;
                         }
                     } else {/* Já encontramos o '(' */
                         /* Dentro dos parênteses: só permite espaços */
@@ -90,7 +90,7 @@ int main(){
                                 parenteses_control_open--;
                             } else if (!isspace(c)) {
                                 message_error("Parênteses deve conter apenas espaços", line_number);
-                                break;
+                                return 1;
                             }
                         } else if (parenteses_control_open == 0) { /* Após fechar parênteses */
                             /* Se ainda não encontramos a chave */
@@ -102,7 +102,7 @@ int main(){
                                     found_curly_brace = 1;
                                 } else { /* Qualquer outro caractere é erro */
                                     message_error("Esperado '{' após parênteses", line_number);
-                                    break;
+                                    return 1;
                                 }
                             } else {  /* Após encontrar a chave */
                                 /* Só permite espaços ou quebra de linha após a chave */
@@ -119,20 +119,20 @@ int main(){
                 /* Verificação final de parênteses */
                 if (parenteses_control_open != 0) {
                     message_error("Parênteses não fechado corretamente", line_number);
-                    break;
+                    return 1;
                 }
 
                 /* Verificação da chave (opcional dependendo dos requisitos) */
                 if (!found_curly_brace) {
                     message_error("Esperado '{' após parênteses", line_number);
-                    break;
+                    return 1;
                 }
 
                 /*continua com as regras até sair da função principal*/
                 while (fgets(line, sizeof(line), file) ) {
                     printf("Linha %d: %s", line_number, line);
                     if (line[0] == '}'){ /*não necessariamente vai estar na posição 0*/
-                        break;
+                        return 1;
                     }
                     line_number++;
                 }
@@ -150,6 +150,7 @@ int main(){
             } else {
                 printf("%c \n", line[0]);
                 message_error("Tem que iniciar com função ou principal", line_number);
+                return 1;
             }
             line_number++;
         }
