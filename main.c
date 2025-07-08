@@ -23,12 +23,14 @@ char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
 
 int main(){
     /*carregar documento de entrada e pré-processando*/
-    char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt"); /* eliminar "leia;escreva;"*/
+    FILE *file = fopen("exemplo_correto.txt", "r");
+    /*
+    char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
         printf("Erro ao processar o arquivo de entrada!\n");
         return 1;
     }
-    FILE *file = fopen(exemploFormatado, "r");
+    FILE *file = fopen(exemploFormatado, "r");*/
 
     char line[256];
     if (file != NULL) {
