@@ -39,6 +39,7 @@ int main(){
         /*palavras reservadas*/
         const char *principal = "principal";
         const char *funcao = "funcao";
+        const char *inteiro = "inteiro";
         int cont_principal = 0;
 
         while (fgets(line, sizeof(line), file)) { /*Coloquei em loop pra ficar verificando*/
@@ -165,6 +166,35 @@ int main(){
                     return 1; /*O código PARA quando encontra erro*/
                 }
                 /*aqui continua as verificações*/
+                if (line[0] == 'i'){
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != inteiro[i] && i < 6) {
+                            message_error("Inteiro escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+                    int declaracaoInteiro = 1;
+                    /* Verifica restante da linha */
+                    for(int i = 7; line[i] != '\0'; i++) {
+                        char c = line[i];
+                        if (c == ' ') {
+                            /* Ignora, não há nada a fazer */
+                        } else if (c=='!'){
+                            if (line[i+1] >= 'a' && line[i+1] <= 'z') {
+                                /* Continuar */
+                                break;/* Temporário */
+                            } else {
+                                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                                return 1;
+                            }
+
+                        } else {
+                                message_error("Falta '!' antes da variável.\n", line_number);
+                                return 1;
+                        }
+                    }
+                    printf("Inteiro ok\n");
+            }
             }
 
             line_number++;
