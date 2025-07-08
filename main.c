@@ -19,19 +19,20 @@ int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int line_number); /*função para retorno de erro*/
 int rules_principal(char *line, int line_number); /*regras para principal()*/
 int rules_funcao(char *line, int line_number); /*regras para funcao __xxx()*/
+char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
 
 int main(){
-    /*carregar documento de entrada*/
-    FILE *file = fopen("exemplo_correto.txt", "r");
-    int Memory = 0;
-    int MaxMemory = 2048; /*memória precisa ser parametrizada, então acredito que seja isso*/
+    /*carregar documento de entrada
+    FILE *file = fopen("exemplo_correto.txt", "r");*/
+
+    char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt"); /* eliminar "leia;escreva;"*/
+    if (exemploFormatado == NULL) {
+        printf("Erro ao processar o arquivo de entrada!\n");
+        return 1;
+    }
+    FILE *file = fopen(exemploFormatado, "r");
 
     char line[256];
-    Memory = carregarNaMemoria(Memory, MaxMemory, sizeof(file)); /*Exemplo de uso de memória*/
-    if (Memory == -1){
-        return 0;
-    }
-
     if (file != NULL) {
         int line_number = 1; /*número da linha em questão*/
         long start_pos = ftell(file);  /*Posição inicial (0)*/
@@ -69,12 +70,11 @@ int main(){
             printf("Linha %d: %s", line_number, line); /*printa linha por linha*/
 
             line_size = strlen(line) + 1; /*+1 para o terminador nulo*/
-            memory =+ line_size;
+            /*memory =+ line_size;*/
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, line_size); /*Exemplo de uso de memória*/
             printf("Memória usada: %zu/%zu bytes\n", memory, MAX_MEMORY_BYTES);
 
-            /*Verifica se ultrapassa o limite*/
-            if (memory > MAX_MEMORY_BYTES) {
-                printf("Erro: Memória excedida! Limite é %d KB\n", MAX_MEMORY_KB);
+            if(memory == -1){
                 break;
             }
 
@@ -120,7 +120,7 @@ int carregarNaMemoria(int Memory, int MaxMemory, int size){
             return (Memory += size);
         } else {
             printf("Memória cheia!!! Não foi possível carregar os bits na memória");
-            return (-1);
+            return -1;
         }
 
     }
@@ -241,4 +241,63 @@ int rules_funcao(char *line, int line_number) {
 
     printf("Funcao ok\n");
     return 0;
+}
+
+/* Função que garante que todo ';' seja seguido por '\n' e retorna o nome do arquivo de saída*/
+char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada) {
+    FILE *entrada = fopen(arquivo_entrada, "r");
+    if (entrada == NULL) {
+        perror("Erro ao abrir arquivo de entrada");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Criar nome do arquivo de saída baseado no nome de entrada*/
+    char *arquivo_saida = malloc(strlen(arquivo_entrada) + 5); // +5 para "_out" e null terminator*/
+    strcpy(arquivo_saida, arquivo_entrada);
+
+    /* Adicionar "_out" antes da extensão (se houver)*/
+    char *ponto = strrchr(arquivo_saida, '.');
+    if (ponto != NULL) {
+        /* Tem extensão, insere "_out" antes do ponto*/
+        memmove(ponto + 4, ponto, strlen(ponto) + 1);
+        memcpy(ponto, "_out", 4);
+    } else {
+        /* Sem extensão, apenas adiciona "_out" no final*/
+        strcat(arquivo_saida, "_out");
+    }
+
+    FILE *saida = fopen(arquivo_saida, "w");
+    if (saida == NULL) {
+        perror("Erro ao criar arquivo de saída");
+        fclose(entrada);
+        free(arquivo_saida);
+        exit(EXIT_FAILURE);
+    }
+
+    int caractere_atual;
+    int proximo_caractere;
+
+    while ((caractere_atual = fgetc(entrada)) != EOF) {
+        if (caractere_atual == ';') {
+            fputc(';', saida);
+
+            /* Verifica o próximo caractere sem consumi-lo*/
+            proximo_caractere = fgetc(entrada);
+
+            if (proximo_caractere != '\n' && proximo_caractere != EOF) {
+                fputc('\n', saida);
+                fputc(proximo_caractere, saida);
+            } else {
+                /* Já tem '\n', apenas escreve*/
+                fputc(proximo_caractere, saida);
+            }
+        } else {
+            fputc(caractere_atual, saida);
+        }
+    }
+
+    fclose(entrada);
+    fclose(saida);
+
+    return arquivo_saida;
 }
