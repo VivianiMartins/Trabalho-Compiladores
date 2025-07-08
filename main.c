@@ -16,11 +16,11 @@
 /*Declaração de funções*/
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int line_number); /*função para retorno de erro*/
-int rules_funcao(char *line, int line_number); /*regras para funcao __xxx()*/
 char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
 
 int main(){
     /*carregar documento de entrada e pré-processando*/
+     /*carregar documento de entrada e pré-processando*/
     FILE *file = fopen("exemplo_correto.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
@@ -36,7 +36,9 @@ int main(){
         long start_pos = ftell(file);  /*Posição inicial (0)*/
         size_t memory = 0; /*memória*/
         size_t line_size = 0; /*tamanho de cada linha que irei ler*/
+        /*palavras reservadas*/
         const char *principal = "principal";
+        const char *funcao = "funcao";
         int cont_principal = 0;
 
         while (fgets(line, sizeof(line), file)) { /*Coloquei em loop pra ficar verificando*/
@@ -50,9 +52,10 @@ int main(){
                 memmove(line, line + 3, strlen(line) - 2);
             }
 
+            /*sempre irá iniciar com principal ou uma função*/
             if (line[0] == 'p') {
                 /*Checando se é principal e sua regras*/
-                int parenteses_control_open = 0; /*controle do parênteses*/
+                int parenteses_control_open_principal = 0; /*controle do parênteses*/
                 int found_parentheses = 0;
                 int found_curly_brace = 0;  /*Controla a chave { */
 
@@ -60,9 +63,7 @@ int main(){
                 for(int i = 0; i < 9; i++) {
                     if (line[i] != principal[i]) {
                         message_error("Módulo principal escrito incorretamente", line_number);
-                        return 1;
-                    } else {
-                        cont_principal++;
+                        break;
                     }
                 }
 
@@ -77,22 +78,22 @@ int main(){
                     /* Primeiro não-espaço após "principal" deve ser '(' */
                     if (!found_parentheses) {
                         if (c == '(') {
-                            parenteses_control_open++;
+                            parenteses_control_open_principal++;
                             found_parentheses = 1;
                         } else {
                             message_error("Esperado '(' após 'principal'", line_number);
-                            return 1;
+                            break;
                         }
                     } else {/* Já encontramos o '(' */
                         /* Dentro dos parênteses: só permite espaços */
-                        if (parenteses_control_open == 1) {
+                        if (parenteses_control_open_principal == 1) {
                             if (c == ')') {
-                                parenteses_control_open--;
+                                parenteses_control_open_principal--;
                             } else if (!isspace(c)) {
                                 message_error("Parênteses deve conter apenas espaços", line_number);
-                                return 1;
+                                break;
                             }
-                        } else if (parenteses_control_open == 0) { /* Após fechar parênteses */
+                        } else if (parenteses_control_open_principal == 0) { /* Após fechar parênteses */
                             /* Se ainda não encontramos a chave */
                             if (!found_curly_brace) {
                                 /* Permite espaços entre o ')' e a '{' */
@@ -102,7 +103,7 @@ int main(){
                                     found_curly_brace = 1;
                                 } else { /* Qualquer outro caractere é erro */
                                     message_error("Esperado '{' após parênteses", line_number);
-                                    return 1;
+                                    break;
                                 }
                             } else {  /* Após encontrar a chave */
                                 /* Só permite espaços ou quebra de linha após a chave */
@@ -117,41 +118,56 @@ int main(){
                 }
 
                 /* Verificação final de parênteses */
-                if (parenteses_control_open != 0) {
+                if (parenteses_control_open_principal != 0) {
                     message_error("Parênteses não fechado corretamente", line_number);
-                    return 1;
+                    break;
                 }
 
                 /* Verificação da chave (opcional dependendo dos requisitos) */
                 if (!found_curly_brace) {
                     message_error("Esperado '{' após parênteses", line_number);
-                    return 1;
+                    break;
                 }
+                cont_principal++;
 
-                /*continua com as regras até sair da função principal*/
-                while (fgets(line, sizeof(line), file) ) {
-                    printf("Linha %d: %s", line_number, line);
-                    if (line[0] == '}'){ /*não necessariamente vai estar na posição 0*/
-                        return 1;
-                    }
-                    line_number++;
+                if (cont_principal > 1) {
+                    message_error("Módulo principal tem que ser único", line_number);
+                    break;
                 }
+                printf("principal ok\n");
+                /*fim da checagem se é principal e sua regras*/
+
+
 
             } else if (line[0] == 'f') {
-                int control = rules_funcao(line, line_number);
-                /*continua com as regras até sair da função*/
-                while (fgets(line, sizeof(line), file) && control == 0) {
-                    printf("Linha %d: %s", line_number, line);
-                    if (line[0] == '}'){ /*não necessariamente vai estar na posição 0*/
-                        break;
+                /*Checando se é funcao __xxx(){retorna} e sua regras*/
+                int parenteses_control_open_funcao = 0;
+
+                for(int i = 0; line[i] != '\0'; i++) {
+                    if (line[i] != funcao[i] && i < 6) {
+                        message_error("Módulo funcao escrito incorretamente", line_number);
+                       break;
+                    } else {
+                        if (line[i] == ' ' || line[i] == '(') {
+                            if(line[i] == '(') {
+                                parenteses_control_open_funcao++;
+                            }
+                        }
                     }
-                    line_number++;
                 }
+
+                printf("Funcao ok\n");
+                /*Fim da checagem se é funcao __xxx(){retorna} e sua regras*/
             } else {
-                printf("%c \n", line[0]);
-                message_error("Tem que iniciar com função ou principal", line_number);
-                return 1;
+                if (line_number == 1) {
+                    printf("%c \n", line);
+                    message_error("Tem que iniciar com função ou principal", line_number);
+                    break;
+                }
+                /*aqui continua as verificações*/
+                continue;
             }
+
             line_number++;
         }
 
@@ -185,27 +201,6 @@ int carregarNaMemoria(int Memory, int MaxMemory, int size){
 
 void message_error(const char *erro, int line_number) {
     printf("Erro na linha %d: %s\n", line_number, erro);
-}
-
-int rules_funcao(char *line, int line_number) {
-    const char *expected = "funcao";
-    int parenteses_control_open = 0;
-
-    for(int i = 0; line[i] != '\0'; i++) {
-        if (line[i] != expected[i] && i < 6) {
-            message_error("Módulo funcao escrito incorretamente", line_number);
-            return 1;
-        } else {
-            if (line[i] == ' ' || line[i] == '(') {
-                if(line[i] == '(') {
-                    parenteses_control_open++;
-                }
-            }
-        }
-    }
-
-    printf("Funcao ok\n");
-    return 0;
 }
 
 /* Função que garante que todo ';' seja seguido por '\n' e retorna o nome do arquivo de saída*/
