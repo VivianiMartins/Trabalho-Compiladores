@@ -53,7 +53,12 @@ int main(){
                 control = rules_principal(line, line_number);
                 if (control == 0 ){
                     cont_principal++;
+                } else if (control == 2) {
+                    /*caso tenha algo depois de {, que não esteja na linha abaixo*/
+                    cont_principal++;
+
                 }
+              
                 /*continua com as regras até sair da função principal*/
                 while (fgets(line, sizeof(line), file) && control == 0) {
                     printf("Linha %d: %s", line_number, line);
@@ -173,6 +178,8 @@ int rules_principal(char *line, int line_number) {
                     /* Só permite espaços ou quebra de linha após a chave */
                     if (!isspace(c) && c != '\n') {
                         return 0;
+                    } else {
+                        return 2; /*tem algo na mesma linha*/
                     }
                 }
             }
@@ -191,7 +198,6 @@ int rules_principal(char *line, int line_number) {
         return 1;
     }
 
-    printf("Principal ok\n");
     return 0;
 }
 
