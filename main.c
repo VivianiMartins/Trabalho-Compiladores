@@ -14,7 +14,6 @@
 #define TEXTO_EACH_CHAR_MEMORY_BYTES sizeof(char)   /* Sempre 1 byte */
 
 /*Declaração de funções*/
-
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int line_number); /*função para retorno de erro*/
 int rules_principal(char *line, int line_number); /*regras para principal()*/
@@ -23,7 +22,7 @@ char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
 
 int main(){
     /*carregar documento de entrada e pré-processando*/
-    char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt"); /* eliminar "leia;escreva;"*/
+    char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto_funcao.txt"); /* eliminar "leia;escreva;"*/
     if (exemploFormatado == NULL) {
         printf("Erro ao processar o arquivo de entrada!\n");
         return 1;
