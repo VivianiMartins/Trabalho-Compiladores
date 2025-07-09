@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 /*Tamanho total de memória*/
 #define MAX_MEMORY_KB 2048
@@ -21,7 +22,7 @@ char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
 int main(){
     /*carregar documento de entrada e pré-processando*/
      /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_correto.txt", "r");
+    FILE *file = fopen("exemplo_correto_funcao.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -36,11 +37,11 @@ int main(){
         long start_pos = ftell(file);  /*Posição inicial (0)*/
         size_t memory = 0; /*memória*/
         size_t line_size = 0; /*tamanho de cada linha que irei ler*/
+        int cont_principal = 0;
         /*palavras reservadas*/
         const char *principal = "principal";
         const char *funcao = "funcao";
         const char *inteiro = "inteiro";
-        int cont_principal = 0;
 
         while (fgets(line, sizeof(line), file)) { /*Coloquei em loop pra ficar verificando*/
             /*estamos no inicio do arquivo, então tem que começar com principal ou uma função*/
@@ -143,16 +144,87 @@ int main(){
             } else if (line[0] == 'f') {
                 /*Checando se é funcao __xxx(){retorna} e sua regras*/
                 int parenteses_control_open_funcao = 0;
+                const char *retorno = "retorno";
+                bool underscore_name_control = false;
+                bool after_underscore_name_control = false;
+                bool parameter_control = false;
+                bool parenteses_parameter_control = false;
 
-                for(int i = 0; line[i] != '\0'; i++) {
+                /* Verifica se começa com "funcao" */
+                for(int i = 0; i < 6; i++) {
                     if (line[i] != funcao[i] && i < 6) {
                         message_error("Módulo funcao escrito incorretamente", line_number);
                         return 1; /*O código PARA quando encontra erro*/
-                    } else {
-                        if (line[i] == ' ' || line[i] == '(') {
+                    }
+                }
+
+                /* Verifica restante da linha */
+                for(int i = 6; line[i] != '\0'; i++) {
+                     /*verificar __*/
+                     if ((line[i] == ' ' || line[i] == '_') && !underscore_name_control && !after_underscore_name_control) {
+                        if (line[i] == '_' && line[i+1] == '_') {
+                            underscore_name_control = true;
+                            i++;
+                            continue;
+                        } else{
+                            if (line[i] != ' ' && !underscore_name_control) {
+                                message_error("Nome da função tem que iniciar com __", line_number);
+                                return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+
+                     }
+                     /* Verificar nome após __ */
+                     if (underscore_name_control && !after_underscore_name_control) {
+                        if (line[i] >= 'a' && line[i] <= 'z') { /*verifica se está entre a...z*/
+                            do{
+                                i++;
+                            }while (isalnum((unsigned char)line[i])); /*Verifica se é um caractere alfanumérico (letra maiúscula/minúscula ou dígito decimal).*/
+                                i--; /*volta um*/
+                                after_underscore_name_control = true;
+                            continue;
+                        } else {
+                            message_error("Nome da função tem que iniciar com __alfanumérico", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                        }
+                     }
+
+                    if (parenteses_control_open_funcao == 0 && after_underscore_name_control && !parenteses_parameter_control) {
+                        if (line[i] == ' ' || line[i] == '(') { /*nome ok, abre parênteses*/
                             if(line[i] == '(') {
                                 parenteses_control_open_funcao++;
                             }
+                        }
+                    } else { /*pode ou não ter parâmetros*/
+                        if (line[i] == ' ' || line[i] == '!') {
+                            if (line[i] == '!') {
+                                if (line[i+1] >= 'a' && line[i+1] <= 'z') { /*verifica se está entre a...z*/
+                                    do{
+                                        i++;
+                                    }while (isalnum((unsigned char)line[i])); /*verifica se o restante é alfanumerico*/
+
+                                    if (line[i] == ',' || line[i-1] == ',') { /*tem mais parâmetros*/
+                                        printf("tem mais parâmetros\n");
+                                    } else {
+                                         i--; /*volta um*/
+                                        continue;
+                                    }
+
+
+                                } else {
+                                    message_error("Parâmetro da função tem que iniciar com !a..z", line_number);
+                                    return 1; /*O código PARA quando encontra erro*/
+                                }
+                            }
+                            /*1.4.2.Após o nome deve-se conter necessariamente o “(“ e “)” (abre e fecha parênteses);
+                            1.4.2.1. Dentro dos parênteses pode conter parâmetros;
+                            1.4.2.1.1. Se ocorrerem, devem ser informados tipo de dados e nome da variável;
+                            1.4.2.1.1.1. Para os tipos e nome de variáveis ver item 2;
+                            1.4.2.1.2. Os parâmetros não devem ser declarados dentro da funçao;
+                            1.4.3.Não existe limitação de quantidade de parâmetros na funcao(), porém se houver mais de 01 (um) deverão ser separados por vírgula (somente
+                            uma);*/
+                        } else if (line[i] == ')') {
+                            printf("fechou parênteses\n");
                         }
                     }
                 }
