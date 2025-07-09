@@ -248,34 +248,8 @@ int main(){
                         }
                     int declaracaoInteiro = 1; /* EU preciso usar depois, pra ver se aconteceu a declaração de fato */
                     /* Verifica restante da linha */
-                    for(int i = 7; line[i] != '\0'; i++) {
-                        char c = line[i];
-                        if (isspace(c)) {
-                            /* Ignora, não há nada a fazer */
-                        } else if (c=='!'){
-                            i++;
-                            if (line[i] >= 'a' && line[i] <= 'z') {
-                                    do{
-                                        i++;
-                                    }while (isalnum((unsigned char)line[i])); /*verifica se o restante é alfanumerico*/
-
-                                    if (line[i] == ',') { /*tem mais parâmetros*/
-                                        if(verificarVariavel(line, i+1, line_number) == 1){
-                                            return 1;
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                            } else {
-                                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
-                                return 1;
-                            }
-
-                        } else {
-                                message_error("Falta '!' antes da variável.\n", line_number);
-                                printf("%c", c);
-                                return 1;
-                        }
+                    if(verificarVariavel(line, 7, line_number) == 1){
+                        return 1;
                     }
                     printf("Inteiro ok\n");
             }
@@ -384,14 +358,17 @@ int verificarVariavel(char line[], int posicao, int line_number) {
             } else if (c=='!'){
                 i++;
                 if (line[i] >= 'a' && line[i] <= 'z') {
-                    do{
+                    while (isalnum((unsigned char)line[i]))
+                    {
                         i++;
-                    }while (isalnum((unsigned char)line[i])); /*verifica se o restante é alfanumerico*/
+                    }; /*verifica se o restante é alfanumerico*/
                     if (line[i] == ',' && (isspace(line[i+1]))) { /*tem mais parâmetros que precisam ser verificados*/
                         return verificarVariavel(line, i+1, line_number);
                     } else if (line[i] == ';' && line[i+1] == '\0'){
                         return 0;
                     } else if (line[i] == ';' && line[i+1] == '\n'){
+                        return 0;
+                    } else if (line[i] == ';' && isspace(line[i+1])){ /*tô ignorando espaços que aparecem depois*/
                         return 0;
                     } else if (isspace(line[i])){
                         do{
@@ -414,12 +391,8 @@ int verificarVariavel(char line[], int posicao, int line_number) {
                             }
 
                         }
-                    }{
+                    } else {
                         message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
-                        printf(line[i]);
-                        printf(line[i]);
-                        printf(line[i]);
-                        printf("\n\n");
                         return 1;
                     }
                 } else {
