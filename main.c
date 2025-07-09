@@ -20,6 +20,7 @@ void message_error(const char *erro, int line_number); /*função para retorno d
 char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
 int verificarVariavelInteira(char line[], int posicao, int line_number);
 int verificarVariavelTexto(char line[], int posicao, int line_number);
+int verificarVariavelDecimal(char line[], int posicao, int line_number);
 
 int main(){
     /*carregar documento de entrada e pré-processando*/
@@ -265,6 +266,17 @@ int main(){
                         return 1;
                     }
                     printf("texto ok\n");
+                } else if (line[0] == 'd'){
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != decimal[i] && i < 7) {
+                            message_error("Decimal escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+                    if(verificarVariavelDecimal(line, 7, line_number) == 1){
+                        return 1;
+                    }
+                    printf("decimal ok\n");
                 }
             }
 
@@ -438,7 +450,7 @@ int verificarVariavelTexto(char line[], int posicao, int line_number) {
                     if(line[i]=='['){
                         i++;
                         if(line[i]=='0' || !isdigit(line[i])){
-                            message_error("O tamanho de um texto precisa ser um número e maior que zero", line_number);
+                            message_error("O tamanho de um texto precisa ser um número e maior que zero\n", line_number);
                             return 1;
                         }
 
@@ -479,6 +491,9 @@ int verificarVariavelTexto(char line[], int posicao, int line_number) {
                                 }
 
                             }
+                        } else {
+                            message_error("Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
+                            return 1;
                         }
                     } else {
                         message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
@@ -497,3 +512,97 @@ int verificarVariavelTexto(char line[], int posicao, int line_number) {
     message_error("Declaração de variável não encontrada.\n", line_number);
     return 1;
 }
+
+/* Função para declaração de variável de decimais*/
+int verificarVariavelDecimal(char line[], int posicao, int line_number) {
+    for(int i = posicao; line[i] != '\0'; i++) {
+            char c = line[i];
+            if (isspace(c)) {
+                    /* Ignora, não há nada a fazer */
+            } else if (c=='!'){
+                i++;
+                if (line[i] >= 'a' && line[i] <= 'z') {
+                    while (isalnum((unsigned char)line[i]))
+                    {
+                        i++;
+                    }; /*verifica se o restante é alfanumerico*/
+                    if(line[i]=='['){
+                        i++;
+                        if(line[i]=='0' || !isdigit(line[i])){
+                            message_error("O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
+                            return 1;
+                        }
+
+                        while (isdigit(line[i])){
+                            i++;
+                        }
+                        if(line[i]!='.'){
+                            message_error("Não foi encontrado '.' após na variável decimal. O tamanho foi escrito incorretamente. \n", line_number);
+                            return 1;
+                        }
+                        i++;
+                        if(line[i]=='0' || !isdigit(line[i])){
+                            message_error("O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
+                            return 1;
+                        }
+
+                        while (isdigit(line[i])){
+                            i++;
+                        }
+                        if(line[i]!=']'){
+                            message_error("Não foi encontrado ']' após na variável decimal. O tamanho foi escrito incorretamente. Só são permitidos números e pontos entre '[' e ']'. \n", line_number);
+                            return 1;
+                        }
+                        i++;
+                        if (line[i] == ',' && (isspace(line[i+1]))) { /*tem mais parâmetros que precisam ser verificados*/
+                            return verificarVariavelDecimal(line, i+1, line_number);
+
+                        } else if (line[i] == ';' && line[i+1] == '\0'){
+                            return 0;
+                        } else if (line[i] == ';' && line[i+1] == '\n'){
+                            return 0;
+                        } else if (line[i] == ';' && isspace(line[i+1])){ /*tô ignorando espaços que aparecem depois*/
+                            return 0;
+                        } else if (isspace(line[i])){
+                            do{
+                            i++;
+                            }while (isspace(line[i])); /*pula espaços*/
+                            if (line[i] == '='){
+                                i++;
+                                do{
+                                    i++;
+                                }while (line[i]!=';'&&line[i]!='\0'&&line[i]!='\n'); /*pula atribuição até encontra ';'*/
+                                if (line[i] != ';'){
+                                    i++;
+                                    message_error("Não foi encontrado ';' \n", line_number);
+                                    return 1;
+                                } else if (isspace(line[i-1])){
+                                    message_error("Falta algo depois de '=' \n", line_number);
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+
+                            }
+                        } else {
+                            message_error("Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
+                            return 1;
+                        }
+                    } else {
+                        message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
+                        return 1;
+                    }
+                } else {
+                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                    return 1;
+                }
+
+            } else {
+                message_error("Falta '!' antes da variável.\n", line_number);
+                return 1;
+            }
+    }
+    message_error("Declaração de variável não encontrada.\n", line_number);
+    return 1;
+}
+
