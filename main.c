@@ -18,7 +18,8 @@
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int line_number); /*função para retorno de erro*/
 char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
-int verificarVariavel(char line[], int posicao, int line_number);
+int verificarVariavelInteira(char line[], int posicao, int line_number);
+int verificarVariavelTexto(char line[], int posicao, int line_number);
 
 int main(){
     /*carregar documento de entrada e pré-processando*/
@@ -43,6 +44,8 @@ int main(){
         const char *principal = "principal";
         const char *funcao = "funcao";
         const char *inteiro = "inteiro";
+        const char *texto = "texto";
+        const char *decimal = "decimal";
 
         while (fgets(line, sizeof(line), file)) { /*Coloquei em loop pra ficar verificando*/
             /*estamos no inicio do arquivo, então tem que começar com principal ou uma função*/
@@ -241,18 +244,28 @@ int main(){
                 /*aqui continua as verificações*/
                 if (line[0] == 'i'){
                     for(int i = 0; line[i] != '\0'; i++) {
-                        if (line[i] != inteiro[i] && i < 6) {
+                        if (line[i] != inteiro[i] && i < 7) {
                             message_error("Inteiro escrito incorretamente", line_number);
                             return 1; /*O código PARA quando encontra erro*/
                             }
                         }
-                    int declaracaoInteiro = 1; /* EU preciso usar depois, pra ver se aconteceu a declaração de fato */
                     /* Verifica restante da linha */
-                    if(verificarVariavel(line, 7, line_number) == 1){
+                    if(verificarVariavelInteira(line, 7, line_number) == 1){
                         return 1;
                     }
                     printf("Inteiro ok\n");
-            }
+                } else if (line[0] == 't'){
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != texto[i] && i < 5) {
+                            message_error("Texto escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+                    if(verificarVariavelTexto(line, 5, line_number) == 1){
+                        return 1;
+                    }
+                    printf("texto ok\n");
+                }
             }
 
             line_number++;
@@ -350,7 +363,7 @@ char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada) {
 }
 
 /* Função para declaração de variável*/
-int verificarVariavel(char line[], int posicao, int line_number) {
+int verificarVariavelInteira(char line[], int posicao, int line_number) {
     for(int i = posicao; line[i] != '\0'; i++) {
             char c = line[i];
             if (isspace(c)) {
@@ -363,7 +376,7 @@ int verificarVariavel(char line[], int posicao, int line_number) {
                         i++;
                     }; /*verifica se o restante é alfanumerico*/
                     if (line[i] == ',' && (isspace(line[i+1]))) { /*tem mais parâmetros que precisam ser verificados*/
-                        return verificarVariavel(line, i+1, line_number);
+                        return verificarVariavelInteira(line, i+1, line_number);
                     } else if (line[i] == ';' && line[i+1] == '\0'){
                         return 0;
                     } else if (line[i] == ';' && line[i+1] == '\n'){
@@ -393,6 +406,82 @@ int verificarVariavel(char line[], int posicao, int line_number) {
                         }
                     } else {
                         message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
+                        return 1;
+                    }
+                } else {
+                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                    return 1;
+                }
+
+            } else {
+                message_error("Falta '!' antes da variável.\n", line_number);
+                return 1;
+            }
+    }
+    message_error("Declaração de variável não encontrada.\n", line_number);
+    return 1;
+}
+
+/* Função para declaração de variável de texto*/
+int verificarVariavelTexto(char line[], int posicao, int line_number) {
+    for(int i = posicao; line[i] != '\0'; i++) {
+            char c = line[i];
+            if (isspace(c)) {
+                    /* Ignora, não há nada a fazer */
+            } else if (c=='!'){
+                i++;
+                if (line[i] >= 'a' && line[i] <= 'z') {
+                    while (isalnum((unsigned char)line[i]))
+                    {
+                        i++;
+                    }; /*verifica se o restante é alfanumerico*/
+                    if(line[i]=='['){
+                        i++;
+                        if(line[i]=='0' || !isdigit(line[i])){
+                            message_error("O tamanho de um texto precisa ser um número e maior que zero", line_number);
+                            return 1;
+                        }
+
+                        while (isdigit(line[i])){
+                            i++;
+                        }
+                        if(line[i]!=']'){
+                            message_error("Não foi encontrado ']' após a variável de texto. O tamanho foi escrito incorretamente. Só são permitidos números inteiros entre '[' e ']' \n", line_number);
+                            return 1;
+                        }
+                        i++;
+                        if (line[i] == ',' && (isspace(line[i+1]))) { /*tem mais parâmetros que precisam ser verificados*/
+                            return verificarVariavelTexto(line, i+1, line_number);
+                        } else if (line[i] == ';' && line[i+1] == '\0'){
+                            return 0;
+                        } else if (line[i] == ';' && line[i+1] == '\n'){
+                            return 0;
+                        } else if (line[i] == ';' && isspace(line[i+1])){ /*tô ignorando espaços que aparecem depois*/
+                            return 0;
+                        } else if (isspace(line[i])){
+                            do{
+                            i++;
+                            }while (isspace(line[i])); /*pula espaços*/
+                            if (line[i] == '='){
+                                i++;
+                                do{
+                                    i++;
+                                }while (line[i]!=';'&&line[i]!='\0'&&line[i]!='\n'); /*pula atribuição até encontra ';'*/
+                                if (line[i] != ';'){
+                                    i++;
+                                    message_error("Não foi encontrado ';' \n", line_number);
+                                    return 1;
+                                } else if (isspace(line[i-1])){
+                                    message_error("Falta algo depois de '=' \n", line_number);
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+
+                            }
+                        }
+                    } else {
+                        message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
                         return 1;
                     }
                 } else {
