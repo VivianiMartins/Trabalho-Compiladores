@@ -18,6 +18,7 @@
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int line_number); /*função para retorno de erro*/
 char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
+int verificarVariavel(char line[], int posicao, int line_number);
 
 int main(){
     /*carregar documento de entrada e pré-processando*/
@@ -245,16 +246,26 @@ int main(){
                             return 1; /*O código PARA quando encontra erro*/
                             }
                         }
-                    int declaracaoInteiro = 1;
+                    int declaracaoInteiro = 1; /* EU preciso usar depois, pra ver se aconteceu a declaração de fato */
                     /* Verifica restante da linha */
                     for(int i = 7; line[i] != '\0'; i++) {
                         char c = line[i];
-                        if (c == ' ') {
+                        if (isspace(c)) {
                             /* Ignora, não há nada a fazer */
                         } else if (c=='!'){
-                            if (line[i+1] >= 'a' && line[i+1] <= 'z') {
-                                /* Continuar */
-                                break;/* Temporário */
+                            i++;
+                            if (line[i] >= 'a' && line[i] <= 'z') {
+                                    do{
+                                        i++;
+                                    }while (isalnum((unsigned char)line[i])); /*verifica se o restante é alfanumerico*/
+
+                                    if (line[i] == ',') { /*tem mais parâmetros*/
+                                        if(verificarVariavel(line, i+1, line_number) == 1){
+                                            return 1;
+                                        } else {
+                                            break;
+                                        }
+                                    }
                             } else {
                                 message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
                                 return 1;
@@ -262,6 +273,7 @@ int main(){
 
                         } else {
                                 message_error("Falta '!' antes da variável.\n", line_number);
+                                printf("%c", c);
                                 return 1;
                         }
                     }
@@ -361,4 +373,65 @@ char* garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada) {
     fclose(saida);
 
     return arquivo_saida;
+}
+
+/* Função para declaração de variável*/
+int verificarVariavel(char line[], int posicao, int line_number) {
+    for(int i = posicao; line[i] != '\0'; i++) {
+            char c = line[i];
+            if (isspace(c)) {
+            /* Ignora, não há nada a fazer */
+            } else if (c=='!'){
+                i++;
+                if (line[i] >= 'a' && line[i] <= 'z') {
+                    do{
+                        i++;
+                    }while (isalnum((unsigned char)line[i])); /*verifica se o restante é alfanumerico*/
+                    if (line[i] == ',' && (isspace(line[i+1]))) { /*tem mais parâmetros que precisam ser verificados*/
+                        return verificarVariavel(line, i+1, line_number);
+                    } else if (line[i] == ';' && line[i+1] == '\0'){
+                        return 0;
+                    } else if (line[i] == ';' && line[i+1] == '\n'){
+                        return 0;
+                    } else if (isspace(line[i])){
+                        do{
+                        i++;
+                        }while (isspace(line[i])); /*pula espaços*/
+                        if (line[i] == '='){
+                            i++;
+                            do{
+                                i++;
+                            }while (line[i]!=';'&&line[i]!='\0'&&line[i]!='\n'); /*pula atribuição até encontra ';'*/
+                            if (line[i] != ';'){
+                                i++;
+                                message_error("Não foi encontrado ';' \n", line_number);
+                                return 1;
+                            } else if (isspace(line[i-1])){
+                                message_error("Falta algo depois de '=' \n", line_number);
+                                return 1;
+                            } else {
+                                return 0;
+                            }
+
+                        }
+                    }{
+                        message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
+                        printf(line[i]);
+                        printf(line[i]);
+                        printf(line[i]);
+                        printf("\n\n");
+                        return 1;
+                    }
+                } else {
+                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                    return 1;
+                }
+
+            } else {
+                message_error("Falta '!' antes da variável.\n", line_number);
+                return 1;
+            }
+    }
+    message_error("Declaração de variável não encontrada.\n", line_number);
+    return 1;
 }
