@@ -491,6 +491,9 @@ int verificarVariavelTexto(char line[], int posicao, int line_number) {
                                 }
 
                             }
+                        } else {
+                            message_error("Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
+                            return 1;
                         }
                     } else {
                         message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
@@ -553,6 +556,7 @@ int verificarVariavelDecimal(char line[], int posicao, int line_number) {
                         i++;
                         if (line[i] == ',' && (isspace(line[i+1]))) { /*tem mais parâmetros que precisam ser verificados*/
                             return verificarVariavelDecimal(line, i+1, line_number);
+
                         } else if (line[i] == ';' && line[i+1] == '\0'){
                             return 0;
                         } else if (line[i] == ';' && line[i+1] == '\n'){
@@ -580,6 +584,9 @@ int verificarVariavelDecimal(char line[], int posicao, int line_number) {
                                 }
 
                             }
+                        } else {
+                            message_error("Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
+                            return 1;
                         }
                     } else {
                         message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
