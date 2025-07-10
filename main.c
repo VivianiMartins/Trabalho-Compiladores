@@ -682,21 +682,22 @@ int main()
                             while(isspace((unsigned char)line[i])) i++;
 
                             if (isspace((unsigned char)line[i]) || line[i] == '!')
-                        {
-                            if (line[i] == '!')
                             {
-                                Resultado res = verificarParametroFuncao(line, i, line_number);
-                                i = res.posicao;
-                                if (res.sucesso == 1)
+                                if (line[i] == '!')
                                 {
-                                    return 1;
-                                }
-                                else
-                                {
-                                    continue;
+                                    Resultado res = verificarParametroFuncao(line, i, line_number);
+                                    i = res.posicao;
+                                    if (res.sucesso == 1)
+                                    {
+                                        return 1;
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
                                 }
                             }
-                        }
+
                         }
                         else if (line[i] == ')')
                         {
