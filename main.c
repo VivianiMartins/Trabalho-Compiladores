@@ -1392,13 +1392,6 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
         if (line[i] == '!')
         {
             /*regra para variáveis*/
-            char c = line[i];
-            if (isspace(c))
-            {
-                /* Ignora, não há nada a fazer */
-            }
-            else if (c == '!')
-            {
                 i++;
                 if (line[i] >= 'a' && line[i] <= 'z')
                 {
@@ -1413,6 +1406,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                                 i++;
                         }
                     }
+                    /*Terminar espaços*/
                         i++;
                         if (line[i] == '+' && line[i+1] == '+')
                         { /*verificar se tem apenas uma variável de fato*/
@@ -1420,7 +1414,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                                 message_error("Falta ponto e virgula após a contração. \n", line_number);
                                 return 1;
                             }
-                            i--
+                            i--;
                             while (isalnum((unsigned char)line[i])){
                                 i--;
                             }
@@ -1449,7 +1443,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                                 message_error("Falta ponto e virgula após a contração. \n", line_number);
                                 return 1;
                             }
-                            i--
+                            i--;
                             while (isalnum((unsigned char)line[i])){
                                 i--;
                             }
@@ -1493,19 +1487,19 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                             }
                         }
                         else if (line[i] == ';' && isspace(line[i + 1]))
-                        { 
+                        {
                             while(isspace(line[i+1])){
                                 i++;
                             }
                             if(line[i+1]!='\n'&&line[i+1]!='\0'){
-                                message_error("Depois de ';' foi encontrado algo além de espaços", line_number)
+                                message_error("Depois de ';' foi encontrado algo além de espaços", line_number);
                             }
                             if(flagTemPonto==0){
                                 return 0;
                             } else {
                                 return (-1);
                             }
-                        }
+                        }/*PAREI AQUI*/
                         else if (isspace(line[i]))
                         {
                             do
@@ -1542,23 +1536,11 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                             return 1;
                         }
                     }
-                    else
-                    {
-                        message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
-                        return 1;
-                    }
-                }
                 else
                 {
                     message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
                     return 1;
                 }
-            }
-            else
-            {
-                message_error("Falta '!' antes da variável.\n", line_number);
-                return 1;
-            }
         }
         else if (isdigit(line[i]))
         {
@@ -1622,7 +1604,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
         }
         else if (line[i] == '[')
         {
-            return verificarOperacaoMatematica(line, i + 1, line_number);
+            return verificarOperacaoMatematica(line, i + 1, line_number, flagTemPonto);
         }
         else if (line[i] == '\0' || line[i] == '\n')
         {
