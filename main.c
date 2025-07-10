@@ -9,7 +9,6 @@
 #define MAX_MEMORY_BYTES (MAX_MEMORY_KB * 1024)
 
 /*Tamanho das variáveis aceitáveis*/
-/*Luiz isso era para ser assim? Não sei se entendi corretamente*/
 #define INTEIRO_MEMORY_BYTES sizeof(int)    /* Normalmente 4 bytes */
 #define DECIMAL_MEMORY_BYTES  sizeof(float)  /* Normalmente 4 bytes */
 #define TEXTO_EACH_CHAR_MEMORY_BYTES sizeof(char)   /* Sempre 1 byte */
@@ -336,64 +335,64 @@ int main(){
                 printf("Funcao ok\n");
                 /*Fim da checagem se é funcao __xxx(){*/
             } else if (line[0] == 'i'){
-                for(int i = 0; line[i] != '\0'; i++) {
-                    if (line[i] != inteiro[i] && i < 7) {
-                        message_error("Inteiro escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != inteiro[i] && i < 7) {
+                            message_error("Inteiro escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
                         }
+                    /* Verifica restante da linha */
+                    if(verificarVariavelInteira(line, 7, line_number) == 1){
+                        return 1;
                     }
-                /* Verifica restante da linha */
-                if(verificarVariavelInteira(line, 7, line_number) == 1){
-                    return 1;
-                }
-                printf("Inteiro ok\n");
-            } else if (line[0] == 't'){
-                for(int i = 0; line[i] != '\0'; i++) {
-                    if (line[i] != texto[i] && i < 5) {
-                        message_error("Texto escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                    printf("Inteiro ok\n");
+                } else if (line[0] == 't'){
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != texto[i] && i < 5) {
+                            message_error("Texto escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
                         }
+                    if(verificarVariavelTexto(line, 5, line_number) == 1){
+                        return 1;
                     }
-                if(verificarVariavelTexto(line, 5, line_number) == 1){
-                    return 1;
-                }
-                printf("texto ok\n");
-            } else if (line[0] == 'd'){
-                for(int i = 0; line[i] != '\0'; i++) {
-                    if (line[i] != decimal[i] && i < 7) {
-                        message_error("Decimal escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                    printf("texto ok\n");
+                } else if (line[0] == 'd'){
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != decimal[i] && i < 7) {
+                            message_error("Decimal escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
                         }
+                    if(verificarVariavelDecimal(line, 7, line_number) == 1){
+                        return 1;
                     }
-                if(verificarVariavelDecimal(line, 7, line_number) == 1){
-                    return 1;
-                }
-                printf("decimal ok\n");
-            } else if (line[0] == 'l'){
-                for(int i = 0; line[i] != '\0'; i++) {
-                    if (line[i] != leia[i] && i < 4) {
-                        message_error("Leia escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                    printf("decimal ok\n");
+                } else if (line[0] == 'l'){
+                    for(int i = 0; line[i] != '\0'; i++) {
+                        if (line[i] != leia[i] && i < 4) {
+                            message_error("Leia escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
                         }
+                    int aux = 0;
+                    while(isspace(line[4+aux])){
+                        aux++;
                     }
-                int aux = 0;
-                while(isspace(line[4+aux])){
-                    aux++;
-                }
-                if(line[4+aux]!='('){
-                    message_error("Falta '(' depois de leia", line_number);
+                    if(line[4+aux]!='('){
+                        message_error("Falta '(' depois de leia", line_number);
+                       }
+                    if(verificarLeia(line, 5+aux, line_number) == 1){ /*Funciona, mas deixa = passar*/
+                        return 1;
                     }
-                if(verificarLeia(line, 5+aux, line_number) == 1){ /*Funciona, mas deixa = passar*/
-                    return 1;
-                }
-                for(int i = 4; line[i] != '\0'; i++) {
-                    if (line[i] == '=') {
-                        message_error("Não é permitido atribuições no leia", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                printf("leia ok\n");
-            } else if (line[0] == 'r') {
+                    for(int i = 4; line[i] != '\0'; i++) {
+                        if (line[i] == '=') {
+                            message_error("Não é permitido atribuições no leia", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+                    printf("leia ok\n");
+                } else if (line[0] == 'r') {
                 /* Verifica se retorno !variavel;*/
                 int i = 0;
                 bool has_variable = false;
@@ -783,72 +782,63 @@ int verificarVariavelDecimal(char line[], int posicao, int line_number) {
 
 /* Função para verificação de variável dentro de leia*/
 int verificarLeia(char line[], int posicao, int line_number) {
-    for(int i = posicao; line[i] != '\0'; i++) {
-            char c = line[i];
-            if (isspace(c)) {
-            /* Ignora, não há nada a fazer */
-            } else if (c=='!'){
-                i++;
-                if (line[i] >= 'a' && line[i] <= 'z') {
-                    while (isalnum((unsigned char)line[i]))
-                    {
-                        i++;
-                    }; /*verifica se o restante é alfanumerico*/
-                    if (line[i] != ')'){
-                        message_error("Falta ')' após no leia.\n", line_number);
-                    }
-                    i++;
-                    if (line[i] == ',' && (isspace(line[i+1]))) { /*tem mais parâmetros que precisam ser verificados*/
-                        if (line[i] == ',') {
-                            i++;
-                            while (isspace(line[i])) i++;
+    int i = posicao;
+    int len = strlen(line);
+    int variaveis = 0;
 
-                            if (line[i] != '!') {
-                                message_error("Falta '!' antes da variável.\n", line_number);
-                                return 1;
-                            }
-                            return verificarLeia(line, i, line_number);
-                        }
+    while (1) {
+        while (i < len && isspace(line[i])) i++; /* ignora espaços*/
+        if (i >= len) break;
 
-                    } else if (line[i] == ';' && line[i+1] == '\0'){
-                        return 0;
-                    } else if (line[i] == ';' && line[i+1] == '\n'){
-                        return 0;
-                    } else if (line[i] == ';' && isspace(line[i+1])){ /*tô ignorando espaços que aparecem depois*/
-                        return 0;
-                    } else if (isspace(line[i])){
-                        do{
-                        i++;
-                        }while (isspace(line[i])); /*pula espaços*/
-                        if (line[i] == '='){
-                            message_error("Não é permitido atribuições no leia \n", line_number);
-                        }
-                        if (line[i] == ',') {
-                            i++;
-                            while (isspace(line[i])) i++;
+        if (line[i] != '!') {
+            if (variaveis > 0 && line[i] == ')') break;
+            message_error("Esperado '!' antes da variável que deveria aparecer depois de ',' ou '('.\n", line_number);
+            return 1;
+        }
+        i++;
 
-                            if (line[i] != '!') {
-                                message_error("Falta '!' antes da variável.\n", line_number);
-                                return 1;
-                            }
-                            return verificarLeia(line, i, line_number);
-                        }
-                    } else {
-                        message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
-                        return 1;
-                    }
-                } else {
-                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
-                    return 1;
-                }
+        if (i >= len || !(line[i] >= 'a' && line[i] <= 'z')) {
+            message_error("Variáveis devem começar com letra minúscula.\n", line_number);
+            return 1;
+        }
+        i++;
 
-            } else {
-                message_error("Falta '!' antes da variável.\n", line_number);
-                return 1;
-            }
+        while (i < len && isalnum(line[i])) i++;
+        variaveis++;
+
+        while (i < len && isspace(line[i])) i++;
+        if (i >= len) break;
+
+        if (line[i] == ')') break;
+        if (line[i] != ',') {
+            message_error("Esperado ',' ou ')' após variável.\n", line_number);
+            return 1;
+        }
+        i++;
     }
-    message_error("'Leia' vazio.\n", line_number);
-    return 1;
+
+    if (i >= len || line[i] != ')') {
+        message_error("Esperado ')' após variáveis.\n", line_number);
+        return 1;
+    }
+    i++;
+
+    while (i < len && isspace(line[i])) i++;
+
+    if (i >= len || line[i] != ';') {
+        message_error("Esperado ';' após comando.\n", line_number);
+        return 1;
+    }
+    i++;
+
+    while (i < len && isspace(line[i]) && line[i] != '\n') i++;
+
+    if (i < len && line[i] != '\0' && line[i] != '\n') {
+        message_error("Caracteres extras após ';'.\n", line_number);
+        return 1;
+    }
+
+    return 0;
 }
 
 /*função para tratar parametro das funcoes*/
@@ -966,4 +956,3 @@ Resultado verificarParametrosPara(char line[], int posicao, int line_number){
         return (Resultado){i, 1};
      }
 }
-
