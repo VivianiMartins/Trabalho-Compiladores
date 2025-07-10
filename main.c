@@ -649,7 +649,8 @@ int main()
                                 aspas_control_open_escreva ++;
                                 printf("aspas");
                             }
-                        }else if (line[i] == ',' && parenteses_control_open_escreva == 1)
+                        }
+                        else if (line[i] == ',' && parenteses_control_open_escreva == 1)
                         { /* Tem parâmetro */
                             if (isspace((unsigned char)line[i]) || line[i] == '!')
                             {
