@@ -50,7 +50,7 @@ int main(){
         int cont_principal = 0;
         /*palavras reservadas*/
         const char *principal = "principal";
-         const char *para = "para";
+        const char *para = "para";
         const char *funcao = "funcao";
         const char *inteiro = "inteiro";
         const char *texto = "texto";
@@ -71,6 +71,26 @@ int main(){
             if (strlen(line) >= 3 && (unsigned char)line[0] == 0xEF &&
             (unsigned char)line[1] == 0xBB && (unsigned char)line[2] == 0xBF) {
                 memmove(line, line + 3, strlen(line) - 2);
+            }
+
+            if (isspace((unsigned char)line[0])) { /*Verifica se  uma linha apenas com espaço ou vazia*/
+                int i = 0;
+                 while (line[i] != '\0' && isspace((unsigned char)line[i])) {
+                    i++;
+                }
+                /* Se encontrou conteúdo, remove espaços iniciais */
+                if (line[i] != '\0') {
+                    /* Move o conteúdo para o início da string */
+                    int j = 0;
+                    while (line[i] != '\0') {
+                        line[j++] = line[i++];
+                    }
+                    line[j] = '\0';  // Termina a string corretamente
+                }
+                /* Se linha é totalmente vazia (só espaços), limpa a string */
+                else {
+                    line[0] = '\0';
+                }
             }
 
             if (line[0] == 'p') {
@@ -257,14 +277,20 @@ int main(){
                      /* Verificar nome após __ */
                      if (underscore_name_control && !after_underscore_name_control) {
                         if (line[i] >= 'a' && line[i] <= 'z') { /*verifica se está entre a...z*/
-                            do{
+                            while (isalnum((unsigned char)line[i])) {
                                 i++;
-                            }while (isalnum((unsigned char)line[i])); /*Verifica se é um caractere alfanumérico (letra maiúscula/minúscula ou dígito decimal).*/
-                                i--; /*volta um*/
-                                after_underscore_name_control = true;
+                            } /*Verifica se é um caractere alfanumérico (letra maiúscula/minúscula ou dígito decimal).*/
+
+                            if(!(isspace((unsigned char)line[i]) || line[i] == '(')){
+                                message_error("Nome da função escrito com caracter inválido", line_number);
+                                return 1; /*O código PARA quando encontra erro*/
+                            }
+
+                            i--; /*volta um*/
+                            after_underscore_name_control = true;
                             continue;
                         } else {
-                            message_error("Nome da função tem que iniciar com __", line_number);
+                            message_error("Nome da função tem que iniciar com __letra minscula", line_number);
                             return 1; /*O código PARA quando encontra erro*/
                         }
                      }
@@ -754,4 +780,120 @@ int verificarLeia(char line[], int posicao, int line_number) {
     }
 
     return 0;
+}
+
+/*função para tratar parametro das funcoes*/
+Resultado verificarParametroFuncao(char line[], int posicao, int line_number) {
+    int i = posicao;
+
+    while (isspace((unsigned char)line[i])) i++;/* Ignorar espaços iniciais */
+
+    /* Verificar marcador obrigatório '!' */
+    if (line[i] != '!') {
+        message_error("Esperado '!' antes da variável\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após o '!' */
+
+    /* Verificar primeiro caractere (obrigatoriamente a-z) */
+    if (line[i] < 'a' || line[i] > 'z') {
+        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após a primeira letra */
+
+    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+    while (isalnum((unsigned char)line[i])) {
+        i++;
+    }
+
+    if(!(isalnum((unsigned char)line[i]) || line[i] == '(' || line[i] == ')' || line[i] == ',')) {
+        message_error("Nome do parâmetro escrito com caracter inválido", line_number);
+        (Resultado){i, 1};
+    }
+
+    /* Ignorar espaços após variável */
+    while (isspace((unsigned char)line[i])) i++;
+
+    /* Verificar se há próximo parâmetro */
+    if (line[i] == ',') {
+        i++; /* Avançar a vírgula */
+        return verificarParametroFuncao(line, i, line_number); /* Chamada recursiva */
+    }
+
+    return (Resultado){i, 0}; /* Sucesso */
+}
+
+/*função para tratar parametros de para*/
+Resultado verificarParametrosPara(char line[], int posicao, int line_number){
+    int i = posicao;
+
+    while (isspace((unsigned char)line[i])) i++;/* Ignorar espaços iniciais */
+
+    /* Verificar marcador obrigatório '!' */
+    if (line[i] != '!') {
+        message_error("Esperado '!' antes da variável\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após o '!' */
+
+    /* Verificar primeiro caractere (obrigatoriamente a-z) */
+    if (line[i] < 'a' || line[i] > 'z') {
+        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após a primeira letra */
+
+    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+    while (isalnum((unsigned char)line[i])) {
+        i++;
+    }
+
+     while (isspace((unsigned char)line[i])) i++;/* Ignorar espaços iniciais */
+
+     /* Verificar operadores (=, +, -, <=, ==, >=, etc) */
+     int has_operator = 0;
+
+     /* Operadores de 2 caracteres (<=, ==, >=, !=) */
+     if ((line[i] == '<' && line[i+1] == '=') ||
+        (line[i] == '>' && line[i+1] == '=') ||
+        (line[i] == '=' && line[i+1] == '=') ||
+        (line[i] == '!' && line[i+1] == '=')) {
+        i += 2;  // Avança ambos caracteres
+        has_operator = 1;
+     } else if (line[i] == '=' || line[i] == '+' || line[i] == '-' ||
+             line[i] == '<' || line[i] == '>') {  /* Operadores de 1 caractere (=, +, -, <, >) */
+        i++;
+        has_operator = 1;
+     }
+
+    /* Se encontrou operador, verificar valor */
+     if (has_operator) {
+        while (isspace((unsigned char)line[i])) i++; /* Ignorar espaços */
+
+        /* Verificar se é número */
+        if (isdigit((unsigned char)line[i])) {
+            while (isdigit((unsigned char)line[i])) i++;
+        }
+        /* Verificar se é outra variável */
+        else if (line[i] == '!') {
+            /* Chamada recursiva para verificar próxima variável */
+            Resultado res = verificarParametrosPara(line, i, line_number);
+            if (res.sucesso != 0) return res;
+            i = res.posicao;
+        }
+        else {
+            message_error("Valor inválido após operador\n", line_number);
+            return (Resultado){i, 1};
+        }
+     }
+
+     while (isspace((unsigned char)line[i])) i++; /* Ignorar espaços finais */
+
+     if (line[i] == ';' || line[i] == ')' || line[i] == '\0') {
+        return (Resultado){i, 0}; /* Sucesso */
+     } else {
+        message_error("Caractere inválido no parâmetro\n", line_number);
+        return (Resultado){i, 1};
+     }
 }
