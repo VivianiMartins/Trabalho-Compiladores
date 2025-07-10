@@ -1380,11 +1380,260 @@ Resultado verificarParametrosPara(char line[], int posicao, int line_number)
     }
 }
 
-int verificarOperacaoMatematica(char line[], int posicao, int line_number)
+
+int verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto) /*verifica depois de =*/
 {
     for (int i = posicao; line[i] != '\0'; i++)
     {
+        do
+        {
+            i++;
+        } while (isspace(line[i]));
+        if (line[i] == '!')
+        {
+            /*regra para variáveis*/
+            char c = line[i];
+            if (isspace(c))
+            {
+                /* Ignora, não há nada a fazer */
+            }
+            else if (c == '!')
+            {
+                i++;
+                if (line[i] >= 'a' && line[i] <= 'z')
+                {
+                    while (isalnum((unsigned char)line[i]))
+                    {
+                        i++;
+                    }; /*verifica se o restante é alfanumerico*/
+                    if(line[i]=='.'){
+                        flagTemPonto = 1;
+                        i++;
+                        while (isalnum((unsigned char)line[i])){
+                                i++;
+                        }
+                    }
+                        i++;
+                        if (line[i] == '+' && line[i+1] == '+')
+                        { /*verificar se tem apenas uma variável de fato*/
+                            if (line[i+1]!=';'){
+                                message_error("Falta ponto e virgula após a contração. \n", line_number);
+                                return 1;
+                            }
+                            i--
+                            while (isalnum((unsigned char)line[i])){
+                                i--;
+                            }
+                            while (isspace(line[i])){
+                                i--;
+                            }
+                            if(line[i]!='!'){
+                                message_error("Contrações só são permitidas para variáveis. \n", line_number);
+                                return 1;
+                            } else {
+                                i--;
+                                while (isspace(line[i])){
+                                    i--;
+                                }
+                                if(line[i]=='='){
+                                    if(flagTemPonto==0){
+                                        return 0;
+                                    } else {
+                                        return (-1);
+                                    }
+                                }
+                            }
+                        } else if (line[i] == '-' && line[i+1] == '-')
+                        { /*verificar se tem apenas uma variável de fato*/
+                            if (line[i+1]!=';'){
+                                message_error("Falta ponto e virgula após a contração. \n", line_number);
+                                return 1;
+                            }
+                            i--
+                            while (isalnum((unsigned char)line[i])){
+                                i--;
+                            }
+                            while (isspace(line[i])){
+                                i--;
+                            }
+                            if(line[i]!='!'){
+                                message_error("Contrações só são permitidas para variáveis. \n", line_number);
+                                return 1;
+                            } else {
+                                i--;
+                                while (isspace(line[i])){
+                                    i--;
+                                }
+                                if(line[i]=='='){
+                                    if(flagTemPonto==0){
+                                        return 0;
+                                    } else {
+                                        return (-1);
+                                    }
+                                }
+                            }
+                        } else if(line[i]=='+'||line[i]=='-'||line[i]=='['||line[i]==']')
+                        {
+                            return verificarOperacaoMatematica(line,i,line_number,flagTemPonto);
+                        }
+                        else if (line[i] == ';' && line[i + 1] == '\0')
+                        {
+                            if(flagTemPonto==0){
+                                return 0;
+                            } else {
+                                return (-1);
+                            }
+                        }
+                        else if (line[i] == ';' && line[i + 1] == '\n')
+                        {
+                            if(flagTemPonto==0){
+                                return 0;
+                            } else {
+                                return (-1);
+                            }
+                        }
+                        else if (line[i] == ';' && isspace(line[i + 1]))
+                        { 
+                            while(isspace(line[i+1])){
+                                i++;
+                            }
+                            if(line[i+1]!='\n'&&line[i+1]!='\0'){
+                                message_error("Depois de ';' foi encontrado algo além de espaços", line_number)
+                            }
+                            if(flagTemPonto==0){
+                                return 0;
+                            } else {
+                                return (-1);
+                            }
+                        }
+                        else if (isspace(line[i]))
+                        {
+                            do
+                            {
+                                i++;
+                            } while (isspace(line[i])); /*pula espaços*/
+                            if (line[i] == '=')
+                            {
+                                i++;
+                                do
+                                {
+                                    i++;
+                                } while (line[i] != ';' && line[i] != '\0' && line[i] != '\n'); /*pula atribuição até encontra ';'*/
+                                if (line[i] != ';')
+                                {
+                                    i++;
+                                    message_error("Não foi encontrado ';' \n", line_number);
+                                    return 1;
+                                }
+                                else if (isspace(line[i - 1]))
+                                {
+                                    message_error("Falta algo depois de '=' \n", line_number);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    return 0;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            message_error("Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
+                            return 1;
+                        }
+                    }
+                    else
+                    {
+                        message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
+                        return 1;
+                    }
+                }
+                else
+                {
+                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                    return 1;
+                }
+            }
+            else
+            {
+                message_error("Falta '!' antes da variável.\n", line_number);
+                return 1;
+            }
+        }
+        else if (isdigit(line[i]))
+        {
+            do
+            {
+                i++;
+                if (!isdigit(line[i]))
+                {
+                    message_error("Número escrito incorretamente\n", line_number);
+                    return 1;
+                }
+            } while (line[i] != ';' && line[i] != '\0' && line[i] != '\n');
+            if (line[i] == ';')
+            {
+                do
+                {
+                    i++;
+                } while (isspace(line[i + 1]));
+                if (line[i + 1] == '\n' || line[i + 1] == '\0')
+                {
+                    message_error("É necessário que a declaração termine com ';', sem nada após", line_number);
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+        else if (line[i] == '-')
+        {
+            i++;
+            if (line[i] == '-')
+            {
+                i++;
+                if (line[i] == '!')
+                {
+                    /*Só pode conter uma variável*/
+                }
+                else
+                {
+                    message_error("Contração feita de forma incorreta\n", line_number);
+                }
+            }
+        }
+        else if (line[i] == '+')
+        {
+            i++;
+            if (line[i] == '+')
+            {
+                i++;
+                if (line[i] == '!')
+                {
+                    /*Só pode conter uma variável*/
+                }
+                else
+                {
+                    message_error("Contração feita de forma incorreta\n", line_number);
+                }
+            }
+        }
+        else if (line[i] == '[')
+        {
+            return verificarOperacaoMatematica(line, i + 1, line_number);
+        }
+        else if (line[i] == '\0' || line[i] == '\n')
+        {
+            message_error("Falta algo depois de '='. Você pode ter esquecido o ponto e vírgula ou alguma parte da atribuição \n", line_number);
+            return 1;
+        }
+        else
+        {
+            message_error("Variaveis ou numeros depois de '=' escritos de forma incorreta \n", line_number);
+            return 1;
+        }
     }
     return 1;
-
 }
