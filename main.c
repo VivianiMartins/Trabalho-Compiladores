@@ -691,7 +691,12 @@ int main()
             }
             else if (line[0] == '}' || line[0] == '\0')
             { /*Aqui tudo que pode estar sozinho na linha - condição final, que se não for atendida retorna erro*/
-                printf(" } ou vazio ok\n");
+                printf("Fechamento de chaves ou vazio ok\n"); /* mudei pq achei confuso*/
+                /*Luiz: Se ela não for atendida, ela não retorna erro. A gente não escreveu nenhum print pra isso.*/
+                /*Luiz: Você só está aceitando tudo que tenha } no ínicio ou fim de txt*/
+            } else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
+            { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
+
             }
 
             line_number++;
@@ -852,21 +857,42 @@ int verificarVariavelInteira(char line[], int posicao, int line_number)
                         do
                         {
                             i++;
-                        } while (line[i] != ';' && line[i] != '\0' && line[i] != '\n'); /*pula atribuição até encontra ';'*/
-                        if (line[i] != ';')
+                        } while (isspace(line[i]));
+                        if(line[i]=='!')
                         {
-                            i++;
-                            message_error("Não foi encontrado ';' \n", line_number);
-                            return 1;
-                        }
-                        else if (isspace(line[i - 1]))
+                            /*regra para variáveis*/
+                        } else if(isdigit(line[i])||line[i]=='-'){
+                            do{
+                                i++;
+                                if(!isdigit(line[i]))
+                                {
+                                   message_error("Número escrito incorretamente\n", line_number);
+                                   return 1;
+                                }
+                            }while(line[i]!=';'&&line[i]!='\0'&&line[i]!='\n');
+                            if(line[i]==';')
+                            {
+                                do
+                                {
+                                    i++;
+                                }while (isspace(line[i+1]));
+                                if(line[i+1]=='\n'||line[i+1]=='\0')
+                                {
+                                    message_error("É necessário que a declaração termine com ';', sem nada após", line_number);
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            }
+                        } else if (line[i] == '\0' || line[i] == '\n')
                         {
                             message_error("Falta algo depois de '=' \n", line_number);
                             return 1;
                         }
                         else
                         {
-                            return 0;
+                            message_error("Variaveis ou numeros depois de '=' escritos de forma incorreta \n", line_number);
+                            return 1;
                         }
                     }
                 }
@@ -952,7 +978,7 @@ int verificarVariavelTexto(char line[], int posicao, int line_number)
                         {
                             i++;
                         } while (isspace(line[i])); /*pula espaços*/
-                        if (line[i] == '=')
+                        if (line[i] == '=') /*vou daar a responsabilidade pra uma função*/
                         {
                             i++;
                             do
@@ -1352,4 +1378,13 @@ Resultado verificarParametrosPara(char line[], int posicao, int line_number)
         message_error("Caractere inválido no parâmetro\n", line_number);
         return (Resultado){i, 1};
     }
+}
+
+int verificarOperacaoMatematica(char line[], int posicao, int line_number)
+{
+    for (int i = posicao; line[i] != '\0'; i++)
+    {
+    }
+    return 1;
+
 }
