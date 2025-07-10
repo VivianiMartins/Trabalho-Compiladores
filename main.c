@@ -21,6 +21,7 @@ int verificarVariavelInteira(char line[], int posicao, int line_number); /*funç
 int verificarVariavelTexto(char line[], int posicao, int line_number);   /*função para tratar parte de texto*/
 int verificarVariavelDecimal(char line[], int posicao, int line_number); /*função para tratar parte de decimal*/
 int verificarLeia(char line[], int posicao, int line_number);            /*função para tratar parte de leia*/
+int is_smart_quote(const char *str, int pos, int length);               /*Função para verificar tipos de aspas duplas diferentes*/
 /* Estrutura para retornar dois valores em verificarParametro*/
 typedef struct
 {
@@ -78,7 +79,8 @@ int main()
             }
 
             if (isspace((unsigned char)line[0]))
-            { /*Verifica se  uma linha apenas com espaço ou vazia*/
+            {
+                /*Verifica se  uma linha apenas com espaço ou vazia*/
                 int i = 0;
                 while (line[i] != '\0' && isspace((unsigned char)line[i]))
                 {
@@ -119,9 +121,6 @@ int main()
                 if (is_principal)
                 {
                     /*Checando se é principal*/
-                    int parenteses_control_open_principal = 0; /*controle do parênteses*/
-                    int found_parentheses_principal = 0;
-                    int found_curly_brace_principal = 0; /*Controla a chave { */
                     int i = 0;
                     /* Verifica se principal(){ */
                     for (i; i < 9; i++)
@@ -132,6 +131,9 @@ int main()
                             return 1; /*O código PARA quando encontra erro*/
                         }
                     }
+                    int parenteses_control_open_principal = 0; /*controle do parênteses*/
+                    int found_parentheses_principal = 0;
+                    int found_curly_brace_principal = 0; /*Controla a chave { */
                     /* Verifica restante da linha */
                     for (i; line[i] != '\0'; i++)
                     {
@@ -223,11 +225,6 @@ int main()
                 } else if (is_para)
                 {
                     /*Checando se é para*/
-                    int parenteses_control_open_para = 0; /*controle do parênteses*/
-                    bool found_parentheses_para = false;
-                    bool found_curly_brace_para = false; /*Controla a chave { */
-                    bool parameter_control_para = false;
-                    bool parenteses_parameter_control_para = false;
                     int i = 0;
                     /* Verifica para(){ */
                     for (i; i < 4; i++)
@@ -238,7 +235,11 @@ int main()
                             return 1; /*O código PARA quando encontra erro*/
                         }
                     }
-
+                    int parenteses_control_open_para = 0; /*controle do parênteses*/
+                    bool found_parentheses_para = false;
+                    bool found_curly_brace_para = false; /*Controla a chave { */
+                    bool parameter_control_para = false;
+                    bool parenteses_parameter_control_para = false;
                     /* Verifica restante da linha */
                     for (i; line[i] != '\0'; i++)
                     {
@@ -314,14 +315,7 @@ int main()
             else if (line[0] == 'f')
             {
                 /*Checando se é funcao __xxx(){*/
-                int parenteses_control_open_funcao = 0;
-                bool underscore_name_control = false;
-                bool after_underscore_name_control = false;
-                bool parameter_control = false;
-                bool parenteses_parameter_control = false;
-                bool funcao_found_curly_brace = false; /*Controla a chave { */
                 int i = 0;
-
                 /* Verifica se começa com "funcao" */
                 for (i; i < 6; i++)
                 {
@@ -331,7 +325,12 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
-
+                int parenteses_control_open_funcao = 0;
+                bool underscore_name_control = false;
+                bool after_underscore_name_control = false;
+                bool parameter_control = false;
+                bool parenteses_parameter_control = false;
+                bool funcao_found_curly_brace = false; /*Controla a chave { */
                 /* Verifica restante da linha */
                 for (i; line[i] != '\0'; i++)
                 {
@@ -401,7 +400,6 @@ int main()
                                 i = res.posicao;
                                 if (res.sucesso == 1)
                                 {
-                                    message_error("Parâmetro da função tem que iniciar com !a..z", line_number);
                                     return 1;
                                 }
                                 else
@@ -529,8 +527,6 @@ int main()
             {
                 /* Verifica se retorno !variavel;*/
                 int i = 0;
-                bool has_variable = false;
-
                 for (i; i < 7; i++)
                 {
                     if (line[i] != retorno[i])
@@ -539,6 +535,7 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
+                bool has_variable = false;
                 /*verificar !variavel ou espaços*/
                 for (i; line[i] != '\0'; i++)
                 {
@@ -607,14 +604,11 @@ int main()
                 }
                 printf("retorno ok\n");
                 /*Fim da verificação de retorno !variavel;*/
-            } else if (line[0] == 'e')
+            }
+            else if (line[0] == 'e')
             {
                 /*Checando se é escreva("texto")*/
-                int parenteses_control_open_escreva = 0;
-                int aspas_control_open_escreva = 0;
-                bool parameter_control = false;
                 int i = 0;
-
                 /* Verifica se começa com "escreva" */
                 for (i; i < 7; i++)
                 {
@@ -624,77 +618,160 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
-
+                int parenteses_control_open_escreva = 0;
+                int aspas_control_open_escreva = 0;
+                int len = strlen(line);
+                bool aspas_control = false;
                 /* Verifica restante da linha */
                 for (i; line[i] != '\0'; i++)
                 {
-                    /* Verificar parênteses após nome*/
+                    /* Verificar parênteses*/
                     if (parenteses_control_open_escreva == 0)
                     {
                         if (isspace((unsigned char)line[i]) || line[i] == '(')
-                        { /*nome ok, abre parênteses*/
+                        { /*abre parênteses*/
                             if (line[i] == '(')
                             {
                                 parenteses_control_open_escreva++;
                             }
                         }
                     }
-                    else if (parenteses_control_open_escreva == 1)
+                    else if (parenteses_control_open_escreva >= 1)
                     { /*tem que ter aspas*/
-                        if (isspace((unsigned char)line[i]) || line[i] == '"')
+                        int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+
+                        if (isspace((unsigned char)line[i]) || line[i] == '"' || quote_bytes > 0 && !aspas_control)
                         {
-                            if (line[i] == '"')
+                            if (line[i] == '"' || quote_bytes > 0)
                             {
-                                /*tenho que ir até achar o fim das aspas*/
+                                 if (quote_bytes == 3) {
+                                    i = i + 3;
+                                 } else {
+                                    i++;
+                                 }
                                 aspas_control_open_escreva ++;
-                                printf("aspas");
-                            }
-                        }
-                        else if (line[i] == ',' && parenteses_control_open_escreva == 1)
-                        { /* Tem parâmetro */
-                            if (isspace((unsigned char)line[i]) || line[i] == '!')
-                            {
-                                if (line[i] == '!')
+                                while (!aspas_control)
                                 {
-                                    Resultado res = verificarParametroFuncao(line, i, line_number);
-                                    i = res.posicao;
-                                    if (res.sucesso == 1)
+                                    quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+
+                                    if (line[i] == '"' || quote_bytes > 0)
                                     {
-                                        message_error("Parâmetro da função tem que iniciar com !a..z", line_number);
+                                        aspas_control = true;
+                                        aspas_control_open_escreva ++;
+
+                                        if (aspas_control_open_escreva > 2)
+                                        {
+                                            message_error("Use apenas duas aspas", line_number);
+                                            return 1;
+                                        }
+                                    }
+                                    else if(line[i] == '/0' || line[i] == ')')
+                                    {
+                                        message_error("Precisa fechar as aspas\n", line_number);
                                         return 1;
                                     }
-                                    else
-                                    {
-                                        continue;
-                                    }
+                                    i++;
+                                }
+                                continue;
+                            }
+                        }
+
+                        else if (line[i] == ',' && aspas_control)
+                        { /* Tem parâmetro */
+                            i++;
+                            while(isspace((unsigned char)line[i])) i++;
+
+                            if (isspace((unsigned char)line[i]) || line[i] == '!')
+                        {
+                            if (line[i] == '!')
+                            {
+                                Resultado res = verificarParametroFuncao(line, i, line_number);
+                                i = res.posicao;
+                                if (res.sucesso == 1)
+                                {
+                                    return 1;
+                                }
+                                else
+                                {
+                                    continue;
                                 }
                             }
+                        }
                         }
                         else if (line[i] == ')')
                         {
                             parenteses_control_open_escreva--;
                         }
-                        if (isspace((unsigned char)line[i]))
+                        else if (isspace((unsigned char)line[i]))
                         {
                             continue;
                         }
                         else if (line[i] == ';')
                         { /* Encontrou a chave de abertura */
-                            printf(";");
-                        } else {
-                            break;
+                            printf("; ok\n");
                         }
                     }
                 }
                 printf("escreva ok\n");
                 /*Fim da checagem escreva("texto") */
             }
+            if (line[0] == 's')
+            {
+                bool is_se = false;
+                bool is_senao = false;
+                /* Verifica se começa com "se" ou "senao" */
+                if (line[1] == se[1])
+                {
+                    is_se = true;
+                }
+                else if (line[2] == senao[2])
+                {
+                    is_senao = true;
+                }
+
+                if (is_se)
+                {
+                    /*Checando se é se*/
+                    int i = 0;
+                    /* Verifica se se(){ */
+                    for (i; i < 2; i++)
+                    {
+                        if (line[i] != se[i])
+                        {
+                            message_error("Módulo se escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                        }
+                    }
+
+                    printf("se ok\n");
+                    /*fim da checagem se é se*/
+                } else if (is_senao)
+                {
+                    /*Checando se é senao*/
+                    int i = 0;
+                    for (i; i < 5; i++)
+                    {
+                        if (line[i] != senao[i])
+                        {
+                            message_error("Módulo senao escrito incorretamente", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                        }
+                    }
+
+                    printf("senao ok\n");
+                    /*fim da checagem se é senao*/
+                } else {
+                    message_error("Se ou senao incorreto", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
             else if (line[0] == '}' || line[0] == '\0')
             { /*Aqui tudo que pode estar sozinho na linha - condição final, que se não for atendida retorna erro*/
                 printf("Fechamento de chaves ou vazio ok\n"); /* mudei pq achei confuso*/
                 /*Luiz: Se ela não for atendida, ela não retorna erro. A gente não escreveu nenhum print pra isso.*/
                 /*Luiz: Você só está aceitando tudo que tenha } no ínicio ou fim de txt*/
-            } else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
+            }
+            else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
             { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
 
             }
@@ -1269,7 +1346,7 @@ Resultado verificarParametroFuncao(char line[], int posicao, int line_number)
     if (!(isalnum((unsigned char)line[i]) || line[i] == '(' || line[i] == ')' || line[i] == ','))
     {
         message_error("Nome do parâmetro escrito com caracter inválido", line_number);
-        (Resultado){i, 1};
+        return (Resultado){i, 1};
     }
 
     /* Ignorar espaços após variável */
@@ -1618,4 +1695,22 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
         }
     }
     return 1;
+}
+
+/*Função para verificar tipos de aspas duplas diferentes*/
+int is_smart_quote(const char *str, int pos, int length)
+{
+    /* Verifica se há pelo menos 3 bytes disponíveis */
+    if (pos + 2 >= length) {
+        return 0;
+    }
+
+    /* Verifica usando comparação de strings segura */
+    if (strncmp(str + pos, "\xE2\x80\x9C", 3) == 0) {  // “
+        return 3;
+    }
+    if (strncmp(str + pos, "\xE2\x80\x9D", 3) == 0) {  // ”
+        return 3;
+    }
+    return 0;
 }

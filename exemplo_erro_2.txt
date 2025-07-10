@@ -1,0 +1,13 @@
+﻿funao __soma ( !e, !aa){ 
+inteiro !num;
+!num = !e + !aa; 
+retorno !num; 
+}
+
+principal(){
+ inteiro !a, !b2 = 7; 
+inteiro !d; 
+escreva(“Escreva um número ”);
+leia (!a); 
+d = __soma (!a, !b2) 
+}
