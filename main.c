@@ -34,7 +34,7 @@ Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_correto.txt", "r");
+    FILE *file = fopen("exemplo_erro.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -61,7 +61,6 @@ int main()
         const char *leia = "leia";
         const char *retorno = "retorno";
         const char *escreva = "escreva";
-        /*palavras reservadas ainda não trabalhadas:*/
         const char *se = "se";
         const char *senao = "senao";
 
@@ -95,7 +94,7 @@ int main()
                     {
                         line[j++] = line[i++];
                     }
-                    line[j] = '\0'; // Termina a string corretamente
+                    line[j] = '\0';
                 }
                 /* Se linha é totalmente vazia (só espaços), limpa a string */
                 else
@@ -697,19 +696,14 @@ int main()
                                     }
                                 }
                             }
-
                         }
                         else if (line[i] == ')')
                         {
                             parenteses_control_open_escreva--;
                         }
-                        else if (isspace((unsigned char)line[i]))
+                        else if (isspace((unsigned char)line[i]) || line[i] == ';')
                         {
                             continue;
-                        }
-                        else if (line[i] == ';')
-                        { /* Encontrou a chave de abertura */
-                            printf("; ok\n");
                         }
                     }
                 }
@@ -720,51 +714,153 @@ int main()
             {
                 bool is_se = false;
                 bool is_senao = false;
+                int len = strlen(line);
                 /* Verifica se começa com "se" ou "senao" */
-                if (line[1] == se[1])
-                {
-                    is_se = true;
+                if (strncmp(line, se, 2) == 0) {
+                    /* Verificar se é senao (5 caracteres) */
+                    if (len >= 3 && strncmp(line, senao, 3) == 0) {
+                        is_senao = true;
+                    } else {
+                        is_se = true;
+                    }
                 }
-                else if (line[2] == senao[2])
-                {
-                    is_senao = true;
-                }
+
 
                 if (is_se)
                 {
                     /*Checando se é se*/
-                    int i = 0;
+                    int i = 2;
                     /* Verifica se se(){ */
-                    for (i; i < 2; i++)
+                    if (!strncmp(line, se, 2) == 0) {
+                        message_error("Módulo se incorretamente", line_number);
+                        return 1; /*O código PARA quando encontra erro*/
+                    }
+
+                    int parenteses_control_open_se = 0;
+                    int aspas_control_open_se= 0;
+                    bool aspas_control = false;
+                    /* Verifica restante da linha */
+                    for (i; line[i] != '\0'; i++)
                     {
-                        if (line[i] != se[i])
+                        /* Verificar parênteses*/
+                        if (parenteses_control_open_se == 0)
                         {
-                            message_error("Módulo se escrito incorretamente", line_number);
-                            return 1; /*O código PARA quando encontra erro*/
+                            if (isspace((unsigned char)line[i]) || line[i] == '(')
+                            { /*abre parênteses*/
+                                if (line[i] == '(')
+                                {
+                                    parenteses_control_open_se++;
+                                }
+                            }
+                        }
+                        else if (parenteses_control_open_se >= 1)
+                        {
+                            while(isspace((unsigned char)line[i]))i++;
+
+                            int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+                            /*Se que ter aspas, comparação é texto*/
+                            if (line[i] == '"' || quote_bytes > 0 && !aspas_control)
+                            {
+                                if (line[i] == '"' || quote_bytes > 0)
+                                {
+                                     if (quote_bytes == 3) {
+                                        i = i + 3;
+                                     } else {
+                                        i++;
+                                     }
+                                    aspas_control_open_se ++;
+                                    while (!aspas_control)
+                                    {
+                                        quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+
+                                        if (line[i] == '"' || quote_bytes > 0)
+                                        {
+                                            aspas_control = true;
+                                            aspas_control_open_se ++;
+
+                                            if (aspas_control_open_se > 2)
+                                            {
+                                                message_error("Use apenas duas aspas", line_number);
+                                                return 1;
+                                            }
+                                        }
+                                        else if(line[i] == '/0' || line[i] == ')')
+                                        {
+                                            message_error("Precisa fechar as aspas\n", line_number);
+                                            return 1;
+                                        }
+                                        i++;
+                                    }
+                                    continue;
+                                }
+                            }
+
+                            else if (line[i] == ',' && aspas_control)
+                            { /* Tem parâmetro */
+                                i++;
+                                while(isspace((unsigned char)line[i])) i++;
+
+                                if (isspace((unsigned char)line[i]) || line[i] == '!')
+                                {
+                                    if (line[i] == '!')
+                                    {
+                                        Resultado res = verificarParametroFuncao(line, i, line_number);
+                                        i = res.posicao;
+                                        if (res.sucesso == 1)
+                                        {
+                                            return 1;
+                                        }
+                                        else
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                            else if (line[i] == ')')
+                            {
+                                parenteses_control_open_se--;
+                            }
+                            else if (isspace((unsigned char)line[i]))
+                            {
+                                continue;
+                            }
+                            else if (line[i] == ';')
+                            { /* Encontrou a chave de abertura */
+                                printf("; ok\n");
+                            }
                         }
                     }
 
                     printf("se ok\n");
                     /*fim da checagem se é se*/
-                } else if (is_senao)
+                }
+                else if (is_senao)
                 {
                     /*Checando se é senao*/
-                    int i = 0;
-                    for (i; i < 5; i++)
-                    {
-                        if (line[i] != senao[i])
-                        {
-                            message_error("Módulo senao escrito incorretamente", line_number);
-                            return 1; /*O código PARA quando encontra erro*/
-                        }
+                    int i = 5;
+                    if (strncmp(line, senao, 5) != 0) {
+                        message_error("Módulo senao incorretamente", line_number);
+                        return 1; /*O código PARA quando encontra erro*/
+                    }
+                    while (isspace((unsigned char)line[i])){i++;}
+
+
+                     /* Se houver conteúdo após "senao", preparar para próxima linha */
+                    if (line[i] != '\0') {
+
                     }
 
                     printf("senao ok\n");
                     /*fim da checagem se é senao*/
-                } else {
-                    message_error("Se ou senao incorreto", line_number);
-                    return 1; /*O código PARA quando encontra erro*/
                 }
+                else
+                {
+                    message_error("Comando deve ser 'se' ou 'senao'", line_number);
+                    return 1;
+                }
+
+
             }
             else if (line[0] == '}' || line[0] == '\0')
             { /*Aqui tudo que pode estar sozinho na linha - condição final, que se não for atendida retorna erro*/
