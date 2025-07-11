@@ -30,7 +30,7 @@ typedef struct
 } Resultado;
 Resultado verificarParametroFuncao(char line[], int posicao, int line_number); /*função para tratar parametro das funcoes*/
 Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /*função para tratar parametros de para*/
-
+Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len);    /*função para tratar parametros de se*/
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
@@ -221,7 +221,8 @@ int main()
                     }
                     printf("principal ok\n");
                     /*fim da checagem se é principal*/
-                } else if (is_para)
+                }
+                else if (is_para)
                 {
                     /*Checando se é para*/
                     int i = 0;
@@ -725,7 +726,6 @@ int main()
                     }
                 }
 
-
                 if (is_se)
                 {
                     /*Checando se é se*/
@@ -737,8 +737,7 @@ int main()
                     }
 
                     int parenteses_control_open_se = 0;
-                    int aspas_control_open_se= 0;
-                    bool aspas_control = false;
+
                     /* Verifica restante da linha */
                     for (i; line[i] != '\0'; i++)
                     {
@@ -758,62 +757,38 @@ int main()
                             while(isspace((unsigned char)line[i]))i++;
 
                             int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-                            /*Se que ter aspas, comparação é texto*/
-                            if (line[i] == '"' || quote_bytes > 0 && !aspas_control)
+
+                            if (line[i] == '!' || line[i] == '"' || quote_bytes>0)
                             {
-                                if (line[i] == '"' || quote_bytes > 0)
+                                Resultado res = verificarParametrosSe(line, i, line_number, len);
+                                i = res.posicao;
+                                if (res.sucesso == 1)
                                 {
-                                     if (quote_bytes == 3) {
-                                        i = i + 3;
-                                     } else {
-                                        i++;
-                                     }
-                                    aspas_control_open_se ++;
-                                    while (!aspas_control)
-                                    {
-                                        quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-
-                                        if (line[i] == '"' || quote_bytes > 0)
-                                        {
-                                            aspas_control = true;
-                                            aspas_control_open_se ++;
-
-                                            if (aspas_control_open_se > 2)
-                                            {
-                                                message_error("Use apenas duas aspas", line_number);
-                                                return 1;
-                                            }
-                                        }
-                                        else if(line[i] == '/0' || line[i] == ')')
-                                        {
-                                            message_error("Precisa fechar as aspas\n", line_number);
-                                            return 1;
-                                        }
-                                        i++;
-                                    }
+                                    return 1;
+                                }
+                                else
+                                {
                                     continue;
                                 }
                             }
-
-                            else if (line[i] == ',' && aspas_control)
-                            { /* Tem parâmetro */
+                            else if ((line[i] == '|' && line[i+i] == '|') || (line[i] == '&' && line[i] == '&'))
+                            {
                                 i++;
-                                while(isspace((unsigned char)line[i])) i++;
+                                while(isspace((unsigned char)line[i]))i++;
 
-                                if (isspace((unsigned char)line[i]) || line[i] == '!')
+                                int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+
+                                if (line[i] == '!' || line[i] == '"' || quote_bytes>0)
                                 {
-                                    if (line[i] == '!')
+                                    Resultado res = verificarParametrosSe(line, i, line_number, len);
+                                    i = res.posicao;
+                                    if (res.sucesso == 1)
                                     {
-                                        Resultado res = verificarParametroFuncao(line, i, line_number);
-                                        i = res.posicao;
-                                        if (res.sucesso == 1)
-                                        {
-                                            return 1;
-                                        }
-                                        else
-                                        {
-                                            continue;
-                                        }
+                                        return 1;
+                                    }
+                                    else
+                                    {
+                                        continue;
                                     }
                                 }
                             }
@@ -821,13 +796,9 @@ int main()
                             {
                                 parenteses_control_open_se--;
                             }
-                            else if (isspace((unsigned char)line[i]))
+                            else if (isspace((unsigned char)line[i]) || line[i] == '{')
                             {
                                 continue;
-                            }
-                            else if (line[i] == ';')
-                            { /* Encontrou a chave de abertura */
-                                printf("; ok\n");
                             }
                         }
                     }
@@ -846,9 +817,10 @@ int main()
                     while (isspace((unsigned char)line[i])){i++;}
 
 
-                     /* Se houver conteúdo após "senao", preparar para próxima linha */
+                     /* Se houver conteúdo após "senao" */
                     if (line[i] != '\0') {
-
+                        /*criar função para tratar todos os casos*/
+                        /*enviar a linha e a posição i*/
                     }
 
                     printf("senao ok\n");
@@ -1460,7 +1432,7 @@ Resultado verificarParametrosPara(char line[], int posicao, int line_number)
     if ((line[i] == '<' && line[i + 1] == '=') ||
         (line[i] == '>' && line[i + 1] == '=') ||
         (line[i] == '=' && line[i + 1] == '=') ||
-        (line[i] == '!' && line[i + 1] == '='))
+        (line[i] == '<' && line[i + 1] == '>'))
     {
         i += 2; // Avança ambos caracteres
         has_operator = 1;
@@ -1513,7 +1485,6 @@ Resultado verificarParametrosPara(char line[], int posicao, int line_number)
         return (Resultado){i, 1};
     }
 }
-
 
 
 int verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto) /*verifica depois de =*/
@@ -1883,3 +1854,133 @@ int is_smart_quote(const char *str, int pos, int length)
     return 0;
 }
 
+/*função para tratar parametros de se*/
+Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len)
+{
+    int i = posicao;
+    int aspas_control_open_se= 0;
+    bool aspas_control = false;
+
+    while (isspace((unsigned char)line[i]))
+        i++; /* Ignorar espaços iniciais */
+
+    /* Verificar iniício */
+    int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+    /*Se tem aspas, comparação é texto*/
+    if (line[i] == '"' || quote_bytes > 0 && !aspas_control)
+    {
+        if (line[i] == '"' || quote_bytes > 0)
+        {
+            if (quote_bytes == 3)
+            {
+                i = i + 3;
+            }
+            else
+            {
+                i++;
+            }
+            aspas_control_open_se ++;
+            while (!aspas_control)
+            {
+                quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+
+                if (line[i] == '"' || quote_bytes > 0)
+                {
+                    aspas_control = true;
+                    aspas_control_open_se ++;
+
+                    if (aspas_control_open_se > 2)
+                    {
+                        message_error("Use apenas duas aspas", line_number);
+                        return (Resultado){i, 1};
+                    }
+                }
+                else if(line[i] == '/0' || line[i] == ')')
+                {
+                    message_error("Precisa fechar as aspas\n", line_number);
+                    return (Resultado){i, 1};
+                }
+                i++;
+             }
+        }
+    }
+    else if (line[i] == '!')
+    {
+        i++;
+        /* Verificar primeiro caractere (obrigatoriamente a-z) */
+        if (line[i] < 'a' || line[i] > 'z')
+        {
+            message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+            return (Resultado){i, 1};
+        }
+        i++; /* Avançar após a primeira letra */
+
+        /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+        while (isalnum((unsigned char)line[i])){i++;}
+    }
+    else {
+        message_error("Esperado variável ou texto\n", line_number);
+        return (Resultado){i, 1};
+    }
+
+    while (isspace((unsigned char)line[i])){i++;} /* Ignorar espaços iniciais */
+
+    /* Verificar operadores */
+    int has_operator = 0;
+
+    /* Operadores de 2 caracteres (==, <>, <=, >=) */
+    if ((line[i] == '<' && line[i + 1] == '=') ||
+        (line[i] == '>' && line[i + 1] == '=') ||
+        (line[i] == '=' && line[i + 1] == '=') ||
+        (line[i] == '<' && line[i + 1] == '>'))
+    {
+        i += 2; // Avança ambos caracteres
+        has_operator = 1;
+    }
+    else if (line[i] == '<' || line[i] == '>')
+    { /* Operadores de 1 caractere (<, >) */
+        i++;
+        has_operator = 1;
+    }
+
+    /* Se encontrou operador, verificar valor */
+    if (has_operator)
+    {
+        while (isspace((unsigned char)line[i])){i++;} /* Ignorar espaços */
+
+        /* Verificar se é número */
+        if (isdigit((unsigned char)line[i]))
+        {
+            while (isdigit((unsigned char)line[i]))
+                i++;
+        }
+        /* Verificar se é outra variável ou texto */
+        int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+        if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
+        {
+            /* Chamada recursiva para verificar próxima variável */
+            Resultado res = verificarParametrosPara(line, i, line_number);
+            if (res.sucesso != 0)
+                return res;
+            i = res.posicao;
+        }
+        else
+        {
+            message_error("Valor inválido após operador\n", line_number);
+            return (Resultado){i, 1};
+        }
+    }
+
+    while (isspace((unsigned char)line[i]))
+        i++; /* Ignorar espaços finais */
+
+    if (line[i] == '&' || line[i] == '|' || line[i] == ')' || line[i] == '\0')
+    {
+        return (Resultado){i, 0}; /* Sucesso */
+    }
+    else
+    {
+        message_error("Caractere inválido no parâmetro\n", line_number);
+        return (Resultado){i, 1};
+    }
+}
