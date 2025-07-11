@@ -1032,14 +1032,40 @@ int verificarVariavelInteira(char line[], int posicao, int line_number)
                         {
                             i++;
                         } while (isspace(line[i]));
-                        int result = verificarOperacaoMatematica(line, i, line_number, 0);
-                        if(result == 1)
+                        if(line[i]=='!')
                         {
+                            /*regra para variáveis*/
+                        } else if(isdigit(line[i])||line[i]=='-'){
+                            do{
+                                i++;
+                                if(!isdigit(line[i]))
+                                {
+                                   message_error("Número escrito incorretamente\n", line_number);
+                                   return 1;
+                                }
+                            }while(line[i]!=';'&&line[i]!='\0'&&line[i]!='\n');
+                            if(line[i]==';')
+                            {
+                                do
+                                {
+                                    i++;
+                                }while (isspace(line[i+1]));
+                                if(line[i+1]=='\n'||line[i+1]=='\0')
+                                {
+                                    message_error("É necessário que a declaração termine com ';', sem nada após", line_number);
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            }
+                        } else if (line[i] == '\0' || line[i] == '\n')
+                        {
+                            message_error("Falta algo depois de '=' \n", line_number);
                             return 1;
-                        } else if (result ==0){
-                            return 0;
-                        } else {
-                            message_error("Não pode atribuir um valor decimal a uma variável inteira. \n", line_number);
+                        }
+                        else
+                        {
+                            message_error("Variaveis ou numeros depois de '=' escritos de forma incorreta \n", line_number);
                             return 1;
                         }
                     }
@@ -1257,9 +1283,23 @@ int verificarVariavelDecimal(char line[], int posicao, int line_number)
                         if (line[i] == '=')
                         {
                             i++;
-                            if (verificarOperacaoMatematica(line,i,line_number,0)==1){
+                            do
+                            {
+                                i++;
+                            } while (line[i] != ';' && line[i] != '\0' && line[i] != '\n'); /*pula atribuição até encontra ';'*/
+                            if (line[i] != ';')
+                            {
+                                i++;
+                                message_error("Não foi encontrado ';' \n", line_number);
                                 return 1;
-                            } else {
+                            }
+                            else if (isspace(line[i - 1]))
+                            {
+                                message_error("Falta algo depois de '=' \n", line_number);
+                                return 1;
+                            }
+                            else
+                            {
                                 return 0;
                             }
                         }
@@ -1520,9 +1560,10 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
 {
     for (int i = posicao; line[i] != '\0'; i++)
     {
-        while (isspace(line[i])){
+        do
+        {
             i++;
-        };
+        } while (isspace(line[i]));
         if (line[i] == '!')
         {
             /*regra para variáveis*/
@@ -1539,14 +1580,18 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                                 i++;
                         }
                     }
+                        i++;
                         if (line[i] == '+' && line[i+1] == '+')
                         { /*verificar se tem apenas uma variável de fato*/
-                            if (line[i+2]!=';'){
+                            if (line[i+1]!=';'){
                                 message_error("Falta ponto e virgula após a contração. \n", line_number);
                                 return 1;
                             }
                             i--;
                             while (isalnum((unsigned char)line[i])){
+                                i--;
+                            }
+                            while (isspace(line[i])){
                                 i--;
                             }
                             if(line[i]!='!'){
@@ -1567,7 +1612,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                             }
                         } else if (line[i] == '-' && line[i+1] == '-')
                         { /*verificar se tem apenas uma variável de fato*/
-                            if (line[i+2]!=';'){
+                            if (line[i+1]!=';'){
                                 message_error("Falta ponto e virgula após a contração. \n", line_number);
                                 return 1;
                             }
@@ -1648,37 +1693,35 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                 return 1;
             }
 
-            while (line[i] != ';' && line[i] != '\0' && line[i] != '\n')
+            do
             {
+                i++;
                 if (!isdigit(line[i]))
                 {
                     if(line[i]=='.'){
                         flagTemPonto = 1;
                         i++;
                         if(isdigit(line[i])){
-                            while (line[i] != ';' && line[i] != '\0' && line[i] != '\n'){
+                            do{
                                 i++;
-                            };
-                            break;
-                        }else if (line[i] == ']'||line[i] == '['||line[i] == '+'||line[i] == '-'){
-                            return verificarOperacaoMatematica(line, i+1, line_number, flagTemPonto);
+                            }while (line[i] != ';' && line[i] != '\0' && line[i] != '\n');
                         }else{
                             message_error("Falta um número depois do ponto", line_number);
                             return 1;
                         }
-                    }else if (line[i] == ']'||line[i] == '['||line[i] == '+'||line[i] == '-'){
-                        return verificarOperacaoMatematica(line, i+1, line_number, flagTemPonto);
+                    }else {
+                    message_error("Número escrito incorretamente\n", line_number);
+                    return 1;
                     }
                 }
-                i++;
-            };
+            } while (line[i] != ';' && line[i] != '\0' && line[i] != '\n');
             if (line[i] == ';')
             {
                 do
                 {
                     i++;
                 } while (isspace(line[i + 1]));
-                if (!line[i + 1] == '\n' && !line[i + 1] == '\0')
+                if (line[i + 1] == '\n' || line[i + 1] == '\0')
                 {
                     message_error("É necessário que a declaração termine com ';', sem nada após\n", line_number);
                     return 1;
@@ -1717,6 +1760,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                                 i++;
                         }
                     }
+                        i++;
                         if (line[i] == ';' && line[i + 1] == '\0')
                         {
                             if(flagTemPonto==0){
@@ -1789,6 +1833,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
                                 i++;
                         }
                     }
+                        i++;
                         if (line[i] == ';' && line[i + 1] == '\0')
                         {
                             if(flagTemPonto==0){
@@ -1858,7 +1903,6 @@ int verificarOperacaoMatematica(char line[], int posicao, int line_number, int f
         else
         {
             message_error("Variaveis ou numeros depois de '=' escritos de forma incorreta \n", line_number);
-            printf("%c %c %c", line[i-2], line[i-1], line[i]);
             return 1;
         }
     }
