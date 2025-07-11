@@ -31,10 +31,12 @@ typedef struct
 Resultado verificarParametroFuncao(char line[], int posicao, int line_number); /*função para tratar parametro das funcoes*/
 Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /*função para tratar parametros de para*/
 Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len);    /*função para tratar parametros de se*/
+verificarOperacaoMatematicaMain(char line[], int posicao, int line_number);/*função para operacoes em geral no main*/
+verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_erro.txt", "r");
+    FILE *file = fopen("exemplo_correto.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -842,7 +844,11 @@ int main()
             }
             else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
             { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
-
+                if(verificarOperacaoMatematicaMain==1){
+                    return 1;
+                } else{
+                    printf("Operação com variável ok\n");
+                }
             }
 
             line_number++;
@@ -1100,25 +1106,40 @@ int verificarVariavelTexto(char line[], int posicao, int line_number)
                         } while (isspace(line[i])); /*pula espaços*/
                         if (line[i] == '=') /*vou daar a responsabilidade pra uma função*/
                         {
-                            i++;
-                            do
+                            do{
+                                i++;
+                            }while(isspace(line[i]));
+
+                            if (line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0))
                             {
                                 i++;
-                            } while (line[i] != ';' && line[i] != '\0' && line[i] != '\n'); /*pula atribuição até encontra ';'*/
-                            if (line[i] != ';')
-                            {
-                                i++;
-                                message_error("Não foi encontrado ';' \n", line_number);
-                                return 1;
-                            }
-                            else if (isspace(line[i - 1]))
-                            {
-                                message_error("Falta algo depois de '=' \n", line_number);
+                                while(line[i]!='\0'||line[i]!='\n'){
+                                    i++;
+                                    if(line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0)){
+                                        i++;
+                                        if(line[i]==';')
+                                        {
+                                            i++;
+                                            while(isspace(line[i]))
+                                            {
+                                            i++;
+                                            }
+                                            if(line[i]!='\0'&&line[i]!='\n'){
+                                                message_error("Só podem conter espaços depois de ponto e vírgula\n", line_number);
+                                                return 1;
+                                            } else {
+                                                return 0;
+                                            }
+                                        }
+                                    }
+                                }
+                                message_error("Erro: falta fechar aspas e/ou ponto e vírgula\n", line_number);
                                 return 1;
                             }
                             else
                             {
-                                return 0;
+                                message_error("Não foi encontrada aspas no texto\n", line_number);
+                                return 1;
                             }
                         }
                     }
@@ -1983,4 +2004,107 @@ Resultado verificarParametrosSe(char line[], int posicao, int line_number, int l
         message_error("Caractere inválido no parâmetro\n", line_number);
         return (Resultado){i, 1};
     }
+}
+
+int verificarOperacaoMatematicaMain(char line[], int posicao, int line_number)
+{
+    for (int i = posicao; line[i] != '\0'; i++)
+    {
+        char c = line[i];
+        if (isspace(c))
+        {
+            /* Ignora, não há nada a fazer */
+        }
+        else if (c == '!')
+        {
+            i++;
+            if (line[i] >= 'a' && line[i] <= 'z')
+            {
+                while (isalnum((unsigned char)line[i]))
+                {
+                    i++;
+                }; /*verifica se o restante é alfanumerico*/
+                if (line[i] == ',' && (isspace(line[i + 1])))
+                { /*tem mais parâmetros que precisam ser verificados*/
+                    return verificarOperacaoMatematicaMain(line, i + 1, line_number);
+                }
+                else if (line[i] == ';' && line[i + 1] == '\0')
+                {
+                    return 0;
+                }
+                else if (line[i] == ';' && line[i + 1] == '\n')
+                {
+                    return 0;
+                }
+                else if (line[i] == ';' && isspace(line[i + 1]))
+                { /*tô ignorando espaços que aparecem depois*/
+                    return 0;
+                }
+                else if (isspace(line[i]))
+                {
+                    do
+                    {
+                        i++;
+                    } while (isspace(line[i])); /*pula espaços*/
+                    if (line[i] == '=')
+                    {
+                        i++;
+                        do
+                        {
+                            i++;
+                        } while (isspace(line[i]));
+                        if (line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0))
+                        {
+                            i++;
+                            while(line[i]!='\0'||line[i]!='\n'){
+                                i++;
+                                if(line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0)){
+                                    i++;
+                                    if(line[i]==';')
+                                    {
+                                        i++;
+                                        while(isspace(line[i]))
+                                        {
+                                        i++;
+                                        }
+                                        if(line[i]!='\0'||line[i]!='\n'){
+                                            message_error("Só podem conter espaços depois de ponto e vírgula\n", line_number);
+                                            return 1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    }
+                                }
+                            }
+                            message_error("Erro: falta fechar aspas e/ou ponto e vírgula\n", line_number);
+                            return 1;
+                        }
+                        else if(verificarOperacaoMatematica(line, i, line_number, 0) == 1)
+                        {
+                            return 1;
+                        } else{
+                            return 0;
+                        }
+                    }
+                }
+                else
+                {
+                    message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
+                    return 1;
+                }
+            }
+            else
+            {
+                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                return 1;
+            }
+        }
+        else
+        {
+            message_error("Falta '!' antes da variável.\n", line_number);
+            return 1;
+        }
+    }
+    message_error("Declaração de variável não encontrada.\n", line_number);
+    return 1;
 }
