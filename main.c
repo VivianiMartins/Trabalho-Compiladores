@@ -31,8 +31,8 @@ typedef struct
 Resultado verificarParametroFuncao(char line[], int posicao, int line_number); /*função para tratar parametro das funcoes*/
 Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /*função para tratar parametros de para*/
 Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len);    /*função para tratar parametros de se*/
-verificarOperacaoMatematicaMain(char line[], int posicao, int line_number);/*função para operacoes em geral no main*/
-verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
+int verificarOperacaoMatematicaMain(char line[], int posicao, int line_number);/*função para operacoes em geral no main*/
+int verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
