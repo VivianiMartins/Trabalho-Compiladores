@@ -844,7 +844,7 @@ int main()
             }
             else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
             { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
-                if(verificarOperacaoMatematicaMain==1){
+                if(verificarOperacaoMatematicaMain(line, 0, line_number)==1){
                     return 1;
                 } else{
                     printf("Operação com variável ok\n");
