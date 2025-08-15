@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+/*----------------------------------------------------------------------------------------------------------*/
 /*Tamanho total de memória*/
 #define MAX_MEMORY_KB 2048
 #define MAX_MEMORY_BYTES (MAX_MEMORY_KB * 1024)
@@ -13,6 +14,24 @@
 #define DECIMAL_MEMORY_BYTES sizeof(float)        /* Normalmente 4 bytes */
 #define TEXTO_EACH_CHAR_MEMORY_BYTES sizeof(char) /* Sempre 1 byte */
 
+/*----------------------------------------------------------------------------------------------------------*/
+/*Structs*/
+/* Estrutura para retornar dois valores em funções*/
+typedef struct
+{
+    int posicao;
+    int sucesso;
+} Resultado;
+
+/*Estrutura para representar um elemento na pilha de balanceamento*/
+typedef struct No
+{
+    char delimitador; /* Caractere do delimitador ('{', '(', '[', '"') */
+    int linha, pos;   /* Linha onde foi encontrado, Posição na linha */
+    struct No* next;  /* Próximo elemento */
+} No;
+
+/*----------------------------------------------------------------------------------------------------------*/
 /*Declaração de funções*/
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int line_number); /*função para retorno de erro*/
@@ -22,17 +41,16 @@ int verificarVariavelTexto(char line[], int posicao, int line_number);   /*funç
 int verificarVariavelDecimal(char line[], int posicao, int line_number); /*função para tratar parte de decimal*/
 int verificarLeia(char line[], int posicao, int line_number);            /*função para tratar parte de leia*/
 int is_smart_quote(const char *str, int pos, int length);               /*Função para verificar tipos de aspas duplas diferentes*/
-/* Estrutura para retornar dois valores em verificarParametro*/
-typedef struct
-{
-    int posicao;
-    int sucesso;
-} Resultado;
-Resultado verificarParametroFuncao(char line[], int posicao, int line_number); /*função para tratar parametro das funcoes*/
-Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /*função para tratar parametros de para*/
-Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len);    /*função para tratar parametros de se*/
 int verificarOperacaoMatematicaMain(char line[], int posicao, int line_number);/*função para operacoes em geral no main*/
 int verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
+int verificarBalanceamento(FILE* file); /*função para verificar duplo balanceamento*/
+
+/*funções que utilizam a struct Resultado*/
+Resultado verificarParametroFuncao(char line[], int posicao, int line_number); /*função para tratar parametro das funcoes*/
+Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /*função para tratar parametros de para*/
+Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len); /*função para tratar parametros de se*/
+
+
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
@@ -48,11 +66,19 @@ int main()
     char line[256];
     if (file != NULL)
     {
+        int balanceado = verificarBalanceamento(file);  /*verificação do duplo balanceamento*/
+        if (balanceado != 0) {
+            return 1;
+        }
+        printf("Duplo balanceamento ok\n\n");
+        rewind(file); /* Volta para o início do arquivo para reprocessar*/
+
         int line_number = 1;          /*número da linha em questão*/
         long start_pos = ftell(file); /*Posição inicial (0)*/
         size_t memory = 0;            /*memória*/
         size_t line_size = 0;         /*tamanho de cada linha que irei ler*/
         int cont_principal = 0;
+
         /*palavras reservadas*/
         const char *principal = "principal";
         const char *para = "para";
@@ -200,21 +226,7 @@ int main()
                             }
                         }
                     }
-
-                    /* Verificação final de parênteses */
-                    if (parenteses_control_open_principal != 0)
-                    {
-                        message_error("Parênteses não fechado corretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
-                    }
-
-                    /* Verificação da chave (opcional dependendo dos requisitos) */
-                    if (!found_curly_brace_principal)
-                    {
-                        message_error("Esperado '{' após parênteses", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
-                    }
-                    cont_principal++;
+                    cont_principal++; /*encontrou um principal*/
 
                     if (cont_principal > 1)
                     {
@@ -310,12 +322,12 @@ int main()
                     printf("para ok\n");
                     /*fim da checagem se é para*/
                 } else {
-                    message_error("Principal ou para incorreto", line_number);
+                    message_error("Esperado: Principal ou Para", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
-            else if (line[0] == 'f')
-            {
+            else if (line[0] == 'f') /*Isso será feito antes e separado, para que já fique salvo o nome da função?*/
+            {/*percorrer novamente verificando as funções, se estiverem ok, salvar o nome delas, qual linha está*/
                 /*Checando se é funcao __xxx(){*/
                 int i = 0;
                 /* Verifica se começa com "funcao" */
@@ -372,6 +384,7 @@ int main()
 
                             i--; /*volta um*/
                             after_underscore_name_control = true;
+
                             continue;
                         }
                         else
@@ -525,7 +538,7 @@ int main()
                 }
                 printf("leia ok\n");
             }
-            else if (line[0] == 'r')
+            else if (line[0] == 'r') /*talvez colocar junto com função separado*/
             {
                 /* Verifica se retorno !variavel;*/
                 int i = 0;
@@ -642,9 +655,9 @@ int main()
                     { /*tem que ter aspas*/
                         int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
 
-                        if (isspace((unsigned char)line[i]) || line[i] == '"' || quote_bytes > 0 && !aspas_control)
+                        if (isspace((unsigned char)line[i]) ||  quote_bytes > 0 && !aspas_control)
                         {
-                            if (line[i] == '"' || quote_bytes > 0)
+                            if (quote_bytes > 0)
                             {
                                  if (quote_bytes == 3) {
                                     i = i + 3;
@@ -656,7 +669,7 @@ int main()
                                 {
                                     quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
 
-                                    if (line[i] == '"' || quote_bytes > 0)
+                                    if (quote_bytes > 0)
                                     {
                                         aspas_control = true;
                                         aspas_control_open_escreva ++;
@@ -713,7 +726,7 @@ int main()
                 printf("escreva ok\n");
                 /*Fim da checagem escreva("texto") */
             }
-            if (line[0] == 's')
+            else if (line[0] == 's')
             {
                 bool is_se = false;
                 bool is_senao = false;
@@ -780,7 +793,7 @@ int main()
 
                                 int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
 
-                                if (line[i] == '!' || line[i] == '"' || quote_bytes>0)
+                                if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
                                 {
                                     Resultado res = verificarParametrosSe(line, i, line_number, len);
                                     i = res.posicao;
@@ -836,12 +849,6 @@ int main()
 
 
             }
-            else if (line[0] == '}' || line[0] == '\0')
-            { /*Aqui tudo que pode estar sozinho na linha - condição final, que se não for atendida retorna erro*/
-                printf("Fechamento de chaves ou vazio ok\n"); /* mudei pq achei confuso*/
-                /*Luiz: Se ela não for atendida, ela não retorna erro. A gente não escreveu nenhum print pra isso.*/
-                /*Luiz: Você só está aceitando tudo que tenha } no ínicio ou fim de txt*/
-            }
             else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
             { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
                 if(verificarOperacaoMatematicaMain(line, 0, line_number)==1){
@@ -849,6 +856,18 @@ int main()
                 } else{
                     printf("Operação com variável ok\n");
                 }
+            }
+            else if (line[0] == '_') /*chamada de função*/
+            {
+                /*aqui tem que pegar se a função foi declarada previamente*/
+            }
+            else if (line[0] == '}' || line[0] == '\0' )
+            { /*Aqui tudo que pode estar sozinho na linha - condição final*/
+                printf("Conteúdo ok\n");
+            } else
+            { /*aqui tudo que não poderia estar solto no conteúdo*/
+                printf("Conteúdo não reconhecido na linha %i: %c\n",line_number, line[0]);
+                return 1;
             }
 
             line_number++;
@@ -864,6 +883,8 @@ int main()
     return 0;
 }
 
+/*----------------------------------------------------------------------------------------------------------*/
+/*funções*/
 int carregarNaMemoria(int Memory, int MaxMemory, int size)
 {
     if (Memory + size <= 0.9 * MaxMemory)
@@ -1363,151 +1384,6 @@ int verificarLeia(char line[], int posicao, int line_number)
     return 0;
 }
 
-/*função para tratar parametro das funcoes*/
-Resultado verificarParametroFuncao(char line[], int posicao, int line_number)
-{
-    int i = posicao;
-
-    while (isspace((unsigned char)line[i]))
-        i++; /* Ignorar espaços iniciais */
-
-    /* Verificar marcador obrigatório '!' */
-    if (line[i] != '!')
-    {
-        message_error("Esperado '!' antes da variável\n", line_number);
-        return (Resultado){i, 1};
-    }
-    i++; /* Avançar após o '!' */
-
-    /* Verificar primeiro caractere (obrigatoriamente a-z) */
-    if (line[i] < 'a' || line[i] > 'z')
-    {
-        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
-        return (Resultado){i, 1};
-    }
-    i++; /* Avançar após a primeira letra */
-
-    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
-    while (isalnum((unsigned char)line[i]))
-    {
-        i++;
-    }
-
-    if (!(isalnum((unsigned char)line[i]) || line[i] == '(' || line[i] == ')' || line[i] == ','))
-    {
-        message_error("Nome do parâmetro escrito com caracter inválido", line_number);
-        return (Resultado){i, 1};
-    }
-
-    /* Ignorar espaços após variável */
-    while (isspace((unsigned char)line[i]))
-        i++;
-
-    /* Verificar se há próximo parâmetro */
-    if (line[i] == ',')
-    {
-        i++;                                                   /* Avançar a vírgula */
-        return verificarParametroFuncao(line, i, line_number); /* Chamada recursiva */
-    }
-
-    return (Resultado){i, 0}; /* Sucesso */
-}
-
-/*função para tratar parametros de para*/
-Resultado verificarParametrosPara(char line[], int posicao, int line_number)
-{
-    int i = posicao;
-
-    while (isspace((unsigned char)line[i]))
-        i++; /* Ignorar espaços iniciais */
-
-    /* Verificar marcador obrigatório '!' */
-    if (line[i] != '!')
-    {
-        message_error("Esperado '!' antes da variável\n", line_number);
-        return (Resultado){i, 1};
-    }
-    i++; /* Avançar após o '!' */
-
-    /* Verificar primeiro caractere (obrigatoriamente a-z) */
-    if (line[i] < 'a' || line[i] > 'z')
-    {
-        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
-        return (Resultado){i, 1};
-    }
-    i++; /* Avançar após a primeira letra */
-
-    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
-    while (isalnum((unsigned char)line[i]))
-    {
-        i++;
-    }
-
-    while (isspace((unsigned char)line[i]))
-        i++; /* Ignorar espaços iniciais */
-
-    /* Verificar operadores (=, +, -, <=, ==, >=, etc) */
-    int has_operator = 0;
-
-    /* Operadores de 2 caracteres (<=, ==, >=, !=) */
-    if ((line[i] == '<' && line[i + 1] == '=') ||
-        (line[i] == '>' && line[i + 1] == '=') ||
-        (line[i] == '=' && line[i + 1] == '=') ||
-        (line[i] == '<' && line[i + 1] == '>'))
-    {
-        i += 2; // Avança ambos caracteres
-        has_operator = 1;
-    }
-    else if (line[i] == '=' || line[i] == '+' || line[i] == '-' ||
-             line[i] == '<' || line[i] == '>')
-    { /* Operadores de 1 caractere (=, +, -, <, >) */
-        i++;
-        has_operator = 1;
-    }
-
-    /* Se encontrou operador, verificar valor */
-    if (has_operator)
-    {
-        while (isspace((unsigned char)line[i]))
-            i++; /* Ignorar espaços */
-
-        /* Verificar se é número */
-        if (isdigit((unsigned char)line[i]))
-        {
-            while (isdigit((unsigned char)line[i]))
-                i++;
-        }
-        /* Verificar se é outra variável */
-        else if (line[i] == '!')
-        {
-            /* Chamada recursiva para verificar próxima variável */
-            Resultado res = verificarParametrosPara(line, i, line_number);
-            if (res.sucesso != 0)
-                return res;
-            i = res.posicao;
-        }
-        else
-        {
-            message_error("Valor inválido após operador\n", line_number);
-            return (Resultado){i, 1};
-        }
-    }
-
-    while (isspace((unsigned char)line[i]))
-        i++; /* Ignorar espaços finais */
-
-    if (line[i] == ';' || line[i] == ')' || line[i] == '\0')
-    {
-        return (Resultado){i, 0}; /* Sucesso */
-    }
-    else
-    {
-        message_error("Caractere inválido no parâmetro\n", line_number);
-        return (Resultado){i, 1};
-    }
-}
-
-
 int verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto) /*verifica depois de =*/
 {
     for (int i = posicao; line[i] != '\0'; i++)
@@ -1866,13 +1742,415 @@ int is_smart_quote(const char *str, int pos, int length)
     }
 
     /* Verifica usando comparação de strings segura */
-    if (strncmp(str + pos, "\xE2\x80\x9C", 3) == 0) {  // “
-        return 3;
+    if (strncmp(str + pos, "\xE2\x80\x9C", 3) == 0) {  /* “ */
+        return 1;
     }
-    if (strncmp(str + pos, "\xE2\x80\x9D", 3) == 0) {  // ”
-        return 3;
+    if (strncmp(str + pos, "\xE2\x80\x9D", 3) == 0) {  /* ” */
+        return 1;
     }
+
+    if (str[pos] == '"') {  /* Verifica aspas normais*/
+        return 1;
+    }
+
     return 0;
+}
+
+int verificarOperacaoMatematicaMain(char line[], int posicao, int line_number)
+{
+    for (int i = posicao; line[i] != '\0'; i++)
+    {
+        char c = line[i];
+        if (isspace(c))
+        {
+            /* Ignora, não há nada a fazer */
+        }
+        else if (c == '!')
+        {
+            i++;
+            if (line[i] >= 'a' && line[i] <= 'z')
+            {
+                while (isalnum((unsigned char)line[i]))
+                {
+                    i++;
+                }; /*verifica se o restante é alfanumerico*/
+                if (line[i] == ',' && (isspace(line[i + 1])))
+                { /*tem mais parâmetros que precisam ser verificados*/
+                    return verificarOperacaoMatematicaMain(line, i + 1, line_number);
+                }
+                else if (line[i] == ';' && line[i + 1] == '\0')
+                {
+                    return 0;
+                }
+                else if (line[i] == ';' && line[i + 1] == '\n')
+                {
+                    return 0;
+                }
+                else if (line[i] == ';' && isspace(line[i + 1]))
+                { /*tô ignorando espaços que aparecem depois*/
+                    return 0;
+                }
+                else if (isspace(line[i]))
+                {
+                    do
+                    {
+                        i++;
+                    } while (isspace(line[i])); /*pula espaços*/
+                    if (line[i] == '=')
+                    {
+                        i++;
+                        do
+                        {
+                            i++;
+                        } while (isspace(line[i]));
+                        if (line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0))
+                        {
+                            i++;
+                            while(line[i]!='\0'||line[i]!='\n'){
+                                i++;
+                                if(line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0)){
+                                    i++;
+                                    if(line[i]==';')
+                                    {
+                                        i++;
+                                        while(isspace(line[i]))
+                                        {
+                                        i++;
+                                        }
+                                        if(line[i]!='\0'||line[i]!='\n'){
+                                            message_error("Só podem conter espaços depois de ponto e vírgula\n", line_number);
+                                            return 1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    }
+                                }
+                            }
+                            message_error("Erro: falta fechar aspas e/ou ponto e vírgula\n", line_number);
+                            return 1;
+                        }
+                        else if(verificarOperacaoMatematica(line, i, line_number, 0) == 1)
+                        {
+                            return 1;
+                        } else{
+                            return 0;
+                        }
+                    }
+                }
+                else
+                {
+                    message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
+                    return 1;
+                }
+            }
+            else
+            {
+                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                return 1;
+            }
+        }
+        else
+        {
+            message_error("Falta '!' antes da variável.\n", line_number);
+            return 1;
+        }
+    }
+    message_error("Declaração de variável não encontrada.\n", line_number);
+    return 1;
+}
+
+/*Função corrigida para verificar duplo balanceamento*/
+int verificarBalanceamento(FILE* file) {
+    char linha[1024];
+    int numLinha = 1;
+    No* pilha = NULL;  /* Inicializa pilha vazia */
+
+    while (fgets(linha, sizeof(linha), file)) {
+        /* Remove BOM se presente na primeira linha */
+        if (numLinha == 1 && strlen(linha) >= 3 &&
+            (unsigned char)linha[0] == 0xEF &&
+            (unsigned char)linha[1] == 0xBB &&
+            (unsigned char)linha[2] == 0xBF) {
+            memmove(linha, linha + 3, strlen(linha) - 2);
+        }
+
+        int dentroDeAspas = 0;  /* Flag para controlar se estamos dentro de aspas */
+
+        for (int i = 0; linha[i]; i++) {
+            char c = linha[i];
+
+            /* Verifica se é uma aspas (normal ou inteligente) */
+            int eAspas = (c == '"') || is_smart_quote(linha, i, strlen(linha));
+
+            if (eAspas) {
+                /* Se encontrou aspas */
+                if (pilha != NULL && pilha->delimitador == '"') {
+                    /* Já temos aspas abertas - esta deve fechar */
+                    No* temp = pilha;
+                    pilha = pilha->next;
+                    free(temp);
+                    dentroDeAspas = 0;  /* Saímos das aspas */
+                } else {
+                    /* Não temos aspas abertas - esta deve abrir */
+                    No* novo = malloc(sizeof(No));
+                    if (novo == NULL) {
+                        printf("Erro de memória\n");
+                        return -1;
+                    }
+                    novo->delimitador = '"';
+                    novo->linha = numLinha;
+                    novo->pos = i + 1;  /* Posição legível (começando em 1)*/
+                    novo->next = pilha;
+                    pilha = novo;
+                    dentroDeAspas = 1;  /* Entramos nas aspas*/
+                }
+
+                /* Pula bytes extras se for aspas inteligentes*/
+                if (c != '"') {
+                    i += 2;  // Avança os bytes extras do UTF-8
+                }
+                continue;
+            }
+
+            /* Se estamos dentro de aspas, ignora outros delimitadores*/
+            if (dentroDeAspas) {
+                continue;
+            }
+
+            /* Tratamento de outros delimitadores (apenas quando fora de aspas)*/
+            if (c == '{' || c == '(' || c == '[') {
+                No* novo = malloc(sizeof(No));
+                if (novo == NULL) {
+                    printf("Erro de memória\n");
+                    return -1;
+                }
+                novo->delimitador = c;
+                novo->linha = numLinha;
+                novo->pos = i + 1;  /* Posição legível*/
+                novo->next = pilha;
+                pilha = novo;
+
+            } else if (c == '}' || c == ')' || c == ']') {
+                if (pilha == NULL) {
+                    printf("ERRO linha %d, posição %d: '%c' fechamento sem abertura correspondente\n",
+                           numLinha, i + 1, c);
+                    return 1;
+                }
+
+                /* Determina qual deveria ser o delimitador de abertura*/
+                char esperado;
+                if (c == '}') esperado = '{';
+                else if (c == ')') esperado = '(';
+                else esperado = '[';
+
+                if (pilha->delimitador != esperado) {
+                    printf("ERRO '%c' aberto na linha %d, posição %d. Não foi fechado adequadamente\n",
+                           pilha->delimitador, pilha->linha, pilha->pos);
+                    return 1;
+                }
+
+                /* Remove da pilha */
+                No* temp = pilha;
+                pilha = pilha->next;
+                free(temp);
+            }
+        }
+
+        /* Verifica se há aspas não fechadas ao final da linha */
+        if (pilha != NULL && pilha->delimitador == '"') {
+            /* Verifica se a linha termina adequadamente (com ponto e vírgula)*/
+            int ultimoCharSignificativo = strlen(linha) - 1;
+            while (ultimoCharSignificativo >= 0 &&
+                   (linha[ultimoCharSignificativo] == '\n' ||
+                    linha[ultimoCharSignificativo] == '\r' ||
+                    isspace(linha[ultimoCharSignificativo]))) {
+                ultimoCharSignificativo--;
+            }
+
+            /* Se não termina com ponto e vírgula ou outros caracteres válidos após aspas */
+            if (ultimoCharSignificativo >= 0 && linha[ultimoCharSignificativo] != ';') {
+                printf("ERRO linha %d: Aspas abertas na posição %d não foram fechadas\n",
+                       pilha->linha, pilha->pos);
+                // Limpa a pilha antes de retornar
+                while (pilha != NULL) {
+                    No* temp = pilha;
+                    pilha = pilha->next;
+                    free(temp);
+                }
+                return 1;
+            }
+        }
+
+        numLinha++;
+    }
+
+    /* Verifica se sobrou algo não foi fechado ao final do arquivo*/
+    if (pilha != NULL) {
+        if (pilha->delimitador == '"') {
+            printf("ERRO: Aspas abertas na linha %d, posição %d não foram fechadas\n",
+                   pilha->linha, pilha->pos);
+        } else {
+            printf("ERRO: '%c' aberto na linha %d, posição %d não foi fechado\n",
+                   pilha->delimitador, pilha->linha, pilha->pos);
+        }
+
+        /* Limpa toda a pilha */
+        while (pilha != NULL) {
+            No* temp = pilha;
+            pilha = pilha->next;
+            free(temp);
+        }
+        return 1;
+    }
+
+    return 0;
+}
+
+
+/*----------------------------------------------------------------------------------------------------------*/
+/*funções que retornam Resultado*/
+/*função para tratar parametro das funcoes*/
+Resultado verificarParametroFuncao(char line[], int posicao, int line_number)
+{
+    int i = posicao;
+
+    while (isspace((unsigned char)line[i]))
+        i++; /* Ignorar espaços iniciais */
+
+    /* Verificar marcador obrigatório '!' */
+    if (line[i] != '!')
+    {
+        message_error("Esperado '!' antes da variável\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após o '!' */
+
+    /* Verificar primeiro caractere (obrigatoriamente a-z) */
+    if (line[i] < 'a' || line[i] > 'z')
+    {
+        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após a primeira letra */
+
+    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+    while (isalnum((unsigned char)line[i]))
+    {
+        i++;
+    }
+
+    if (!(isalnum((unsigned char)line[i]) || line[i] == '(' || line[i] == ')' || line[i] == ','))
+    {
+        message_error("Nome do parâmetro escrito com caracter inválido", line_number);
+        return (Resultado){i, 1};
+    }
+
+    /* Ignorar espaços após variável */
+    while (isspace((unsigned char)line[i]))
+        i++;
+
+    /* Verificar se há próximo parâmetro */
+    if (line[i] == ',')
+    {
+        i++;                                                   /* Avançar a vírgula */
+        return verificarParametroFuncao(line, i, line_number); /* Chamada recursiva */
+    }
+
+    return (Resultado){i, 0}; /* Sucesso */
+}
+
+/*função para tratar parametros de para*/
+Resultado verificarParametrosPara(char line[], int posicao, int line_number)
+{
+    int i = posicao;
+
+    while (isspace((unsigned char)line[i]))
+        i++; /* Ignorar espaços iniciais */
+
+    /* Verificar marcador obrigatório '!' */
+    if (line[i] != '!')
+    {
+        message_error("Esperado '!' antes da variável\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após o '!' */
+
+    /* Verificar primeiro caractere (obrigatoriamente a-z) */
+    if (line[i] < 'a' || line[i] > 'z')
+    {
+        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após a primeira letra */
+
+    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+    while (isalnum((unsigned char)line[i]))
+    {
+        i++;
+    }
+
+    while (isspace((unsigned char)line[i]))
+        i++; /* Ignorar espaços iniciais */
+
+    /* Verificar operadores (=, +, -, <=, ==, >=, etc) */
+    int has_operator = 0;
+
+    /* Operadores de 2 caracteres (<=, ==, >=, !=) */
+    if ((line[i] == '<' && line[i + 1] == '=') ||
+        (line[i] == '>' && line[i + 1] == '=') ||
+        (line[i] == '=' && line[i + 1] == '=') ||
+        (line[i] == '<' && line[i + 1] == '>'))
+    {
+        i += 2; // Avança ambos caracteres
+        has_operator = 1;
+    }
+    else if (line[i] == '=' || line[i] == '+' || line[i] == '-' ||
+             line[i] == '<' || line[i] == '>')
+    { /* Operadores de 1 caractere (=, +, -, <, >) */
+        i++;
+        has_operator = 1;
+    }
+
+    /* Se encontrou operador, verificar valor */
+    if (has_operator)
+    {
+        while (isspace((unsigned char)line[i]))
+            i++; /* Ignorar espaços */
+
+        /* Verificar se é número */
+        if (isdigit((unsigned char)line[i]))
+        {
+            while (isdigit((unsigned char)line[i]))
+                i++;
+        }
+        /* Verificar se é outra variável */
+        else if (line[i] == '!')
+        {
+            /* Chamada recursiva para verificar próxima variável */
+            Resultado res = verificarParametrosPara(line, i, line_number);
+            if (res.sucesso != 0)
+                return res;
+            i = res.posicao;
+        }
+        else
+        {
+            message_error("Valor inválido após operador\n", line_number);
+            return (Resultado){i, 1};
+        }
+    }
+
+    while (isspace((unsigned char)line[i]))
+        i++; /* Ignorar espaços finais */
+
+    if (line[i] == ';' || line[i] == ')' || line[i] == '\0')
+    {
+        return (Resultado){i, 0}; /* Sucesso */
+    }
+    else
+    {
+        message_error("Caractere inválido no parâmetro\n", line_number);
+        return (Resultado){i, 1};
+    }
 }
 
 /*função para tratar parametros de se*/
@@ -2004,107 +2282,4 @@ Resultado verificarParametrosSe(char line[], int posicao, int line_number, int l
         message_error("Caractere inválido no parâmetro\n", line_number);
         return (Resultado){i, 1};
     }
-}
-
-int verificarOperacaoMatematicaMain(char line[], int posicao, int line_number)
-{
-    for (int i = posicao; line[i] != '\0'; i++)
-    {
-        char c = line[i];
-        if (isspace(c))
-        {
-            /* Ignora, não há nada a fazer */
-        }
-        else if (c == '!')
-        {
-            i++;
-            if (line[i] >= 'a' && line[i] <= 'z')
-            {
-                while (isalnum((unsigned char)line[i]))
-                {
-                    i++;
-                }; /*verifica se o restante é alfanumerico*/
-                if (line[i] == ',' && (isspace(line[i + 1])))
-                { /*tem mais parâmetros que precisam ser verificados*/
-                    return verificarOperacaoMatematicaMain(line, i + 1, line_number);
-                }
-                else if (line[i] == ';' && line[i + 1] == '\0')
-                {
-                    return 0;
-                }
-                else if (line[i] == ';' && line[i + 1] == '\n')
-                {
-                    return 0;
-                }
-                else if (line[i] == ';' && isspace(line[i + 1]))
-                { /*tô ignorando espaços que aparecem depois*/
-                    return 0;
-                }
-                else if (isspace(line[i]))
-                {
-                    do
-                    {
-                        i++;
-                    } while (isspace(line[i])); /*pula espaços*/
-                    if (line[i] == '=')
-                    {
-                        i++;
-                        do
-                        {
-                            i++;
-                        } while (isspace(line[i]));
-                        if (line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0))
-                        {
-                            i++;
-                            while(line[i]!='\0'||line[i]!='\n'){
-                                i++;
-                                if(line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0)){
-                                    i++;
-                                    if(line[i]==';')
-                                    {
-                                        i++;
-                                        while(isspace(line[i]))
-                                        {
-                                        i++;
-                                        }
-                                        if(line[i]!='\0'||line[i]!='\n'){
-                                            message_error("Só podem conter espaços depois de ponto e vírgula\n", line_number);
-                                            return 1;
-                                        } else {
-                                            return 0;
-                                        }
-                                    }
-                                }
-                            }
-                            message_error("Erro: falta fechar aspas e/ou ponto e vírgula\n", line_number);
-                            return 1;
-                        }
-                        else if(verificarOperacaoMatematica(line, i, line_number, 0) == 1)
-                        {
-                            return 1;
-                        } else{
-                            return 0;
-                        }
-                    }
-                }
-                else
-                {
-                    message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
-                    return 1;
-                }
-            }
-            else
-            {
-                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
-                return 1;
-            }
-        }
-        else
-        {
-            message_error("Falta '!' antes da variável.\n", line_number);
-            return 1;
-        }
-    }
-    message_error("Declaração de variável não encontrada.\n", line_number);
-    return 1;
 }
