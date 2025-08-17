@@ -77,7 +77,7 @@ int main()
     {
         int balanceado = verificarBalanceamento(file);  /*verificação do duplo balanceamento - SINTÁTICO*/
         if (balanceado != 0) {
-            return 1;
+            fclose(file); return 1;
         }
         printf("Duplo balanceamento ok\n\n");
         rewind(file); /* Volta para o início do arquivo para reprocessar*/
@@ -164,7 +164,7 @@ int main()
                         if (line[i] != principal[i])
                         {
                             message_error("Módulo principal escrito incorretamente", line_number);
-                            return 1; /*O código PARA quando encontra erro*/
+                            fclose(file); return 1; /*O código PARA quando encontra erro*/
                         }
                     }
 
@@ -192,7 +192,7 @@ int main()
                             else
                             {
                                 message_error("Esperado '(' após 'principal'", line_number);
-                                return 1; /*O código PARA quando encontra erro*/
+                                fclose(file); return 1; /*O código PARA quando encontra erro*/
                             }
                         }
                         else
@@ -207,7 +207,7 @@ int main()
                                 else if (!isspace(c))
                                 {
                                     message_error("Parênteses deve conter apenas espaços", line_number);
-                                    return 1; /*O código PARA quando encontra erro*/
+                                    fclose(file); return 1; /*O código PARA quando encontra erro*/
                                 }
                             }
                             else if (parenteses_control_open_principal == 0)
@@ -227,7 +227,7 @@ int main()
                                     else
                                     { /* Qualquer outro caractere é erro */
                                         message_error("Esperado '{' após parênteses", line_number);
-                                        return 1; /*O código PARA quando encontra erro*/
+                                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                                     }
                                 }
                                 else
@@ -242,7 +242,7 @@ int main()
                     if (cont_principal > 1)
                     {
                         message_error("Módulo principal tem que ser único", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                     printf("principal ok\n");
                     /*fim da checagem se é principal*/
@@ -257,7 +257,7 @@ int main()
                         if (line[i] != para[i])
                         {
                             message_error("Módulo para escrito incorretamente", line_number);
-                            return 1; /*O código PARA quando encontra erro*/
+                            fclose(file); return 1; /*O código PARA quando encontra erro*/
                         }
                     }
 
@@ -293,7 +293,7 @@ int main()
                                     if (res.sucesso == 1)
                                     {
                                         message_error("Parâmetros de para tem que iniciar com !a..z", line_number);
-                                        return 1;
+                                        fclose(file); return 1;
                                     }
                                     else
                                     {
@@ -321,7 +321,7 @@ int main()
                                     else
                                     { /* Qualquer outro caractere é erro */
                                         message_error("Esperado '{' após parênteses", line_number);
-                                        return 1; /*O código PARA quando encontra erro*/
+                                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                                     }
                                 }
                                 else
@@ -336,7 +336,7 @@ int main()
                     /*fim da checagem se é para*/
                 } else {
                     message_error("Esperado: Principal ou Para", line_number);
-                    return 1; /*O código PARA quando encontra erro*/
+                    fclose(file); return 1; /*O código PARA quando encontra erro*/
                 }
             }
             else if (line[0] == 'f') /*Isso será feito antes e separado, para que já fique salvo o nome da função?*/
@@ -349,7 +349,7 @@ int main()
                     if (line[i] != funcao[i])
                     {
                         message_error("Módulo funcao escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
 
@@ -377,7 +377,7 @@ int main()
                             if (line[i] != ' ' && !underscore_name_control)
                             {
                                 message_error("Nome da função tem que iniciar com __", line_number);
-                                return 1; /*O código PARA quando encontra erro*/
+                                fclose(file); return 1; /*O código PARA quando encontra erro*/
                             }
                         }
                     }
@@ -394,7 +394,7 @@ int main()
                             if (!(isspace((unsigned char)line[i]) || line[i] == '('))
                             {
                                 message_error("Nome da função escrito com caracter inválido", line_number);
-                                return 1; /*O código PARA quando encontra erro*/
+                                fclose(file); return 1; /*O código PARA quando encontra erro*/
                             }
 
                             i--; /*volta um*/
@@ -405,7 +405,7 @@ int main()
                         else
                         {
                             message_error("Nome da função tem que iniciar com __letra minscula", line_number);
-                            return 1; /*O código PARA quando encontra erro*/
+                            fclose(file); return 1; /*O código PARA quando encontra erro*/
                         }
                     }
                     /* Verificar parênteses após nome*/
@@ -430,7 +430,7 @@ int main()
                                 i = res.posicao;
                                 if (res.sucesso == 1)
                                 {
-                                    return 1;
+                                    fclose(file); return 1;
                                 }
                                 else
                                 {
@@ -458,7 +458,7 @@ int main()
                                 else
                                 { /* Qualquer outro caractere é erro */
                                     message_error("Esperado '{' após parênteses", line_number);
-                                    return 1; /*O código PARA quando encontra erro*/
+                                    fclose(file); return 1; /*O código PARA quando encontra erro*/
                                 }
                             }
                             else
@@ -479,13 +479,13 @@ int main()
                     if (line[i] != inteiro[i] && i < 7)
                     {
                         message_error("Inteiro escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 /* Verifica restante da linha - SINTÁTICO*/
                 if (verificarVariavelInteira(line, 7, line_number) == 1)
                 {
-                    return 1;
+                    fclose(file); return 1;
                 }
                 printf("Inteiro ok\n");
             }
@@ -497,13 +497,13 @@ int main()
                     if (line[i] != texto[i] && i < 5)
                     {
                         message_error("Texto escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 /*SINTÁTICO*/
                 if (verificarVariavelTexto(line, 5, line_number) == 1)
                 {
-                    return 1;
+                    fclose(file); return 1;
                 }
                 printf("texto ok\n");
             }
@@ -515,13 +515,13 @@ int main()
                     if (line[i] != decimal[i] && i < 7)
                     {
                         message_error("Decimal escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 /*SINTÁTICO*/
                 if (verificarVariavelDecimal(line, 7, line_number) == 1)
                 {
-                    return 1;
+                    fclose(file); return 1;
                 }
                 printf("decimal ok\n");
             }
@@ -533,7 +533,7 @@ int main()
                     if (line[i] != leia[i] && i < 4)
                     {
                         message_error("Leia escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 /*SINTÁTICO*/
@@ -548,14 +548,14 @@ int main()
                 }
                 if (verificarLeia(line, 5 + aux, line_number) == 1)
                 { /*Funciona, mas deixa = passar*/
-                    return 1;
+                    fclose(file); return 1;
                 }
                 for (int i = 4; line[i] != '\0'; i++)
                 {
                     if (line[i] == '=')
                     {
                         message_error("Não é permitido atribuições no leia", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 printf("leia ok\n");
@@ -569,7 +569,7 @@ int main()
                     if (line[i] != retorno[i])
                     {
                         message_error("Retorno escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 /*SINTÁTICO*/
@@ -591,7 +591,7 @@ int main()
                     else
                     {
                         message_error("Esperado '!' antes da variável", line_number);
-                        return 1;
+                        fclose(file); return 1;
                     }
                 }
 
@@ -601,7 +601,7 @@ int main()
                     if (line[i] < 'a' || line[i] > 'z')
                     {
                         message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
-                        return 1;
+                        fclose(file); return 1;
                     }
                     else
                     {
@@ -626,7 +626,7 @@ int main()
                                 if (!isspace((unsigned char)line[i]))
                                 {
                                     message_error("Caracteres inválidos após ';'", line_number);
-                                    return 1;
+                                    fclose(file); return 1;
                                 }
                                 i++;
                             }
@@ -637,7 +637,7 @@ int main()
                     else
                     {
                         message_error("Caractere inválido após variável. Esperado espaço ou ';'", line_number);
-                        return 1;
+                        fclose(file); return 1;
                     }
                 }
                 printf("retorno ok\n");
@@ -653,7 +653,7 @@ int main()
                     if (line[i] != escreva[i])
                     {
                         message_error("Módulo escreva escrito incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 /*SINTÁTICO*/
@@ -701,13 +701,13 @@ int main()
                                         if (aspas_control_open_escreva > 2)
                                         {
                                             message_error("Use apenas duas aspas", line_number);
-                                            return 1;
+                                            fclose(file); return 1;
                                         }
                                     }
                                     else if(line[i] == '/0' || line[i] == ')')
                                     {
                                         message_error("Precisa fechar as aspas\n", line_number);
-                                        return 1;
+                                        fclose(file); return 1;
                                     }
                                     i++;
                                 }
@@ -728,7 +728,7 @@ int main()
                                     i = res.posicao;
                                     if (res.sucesso == 1)
                                     {
-                                        return 1;
+                                        fclose(file); return 1;
                                     }
                                     else
                                     {
@@ -772,7 +772,7 @@ int main()
                     /* Verifica se se(){ - LÉXICO*/
                     if (!strncmp(line, se, 2) == 0) {
                         message_error("Módulo se incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                     /*SINTÁTICO*/
                     int parenteses_control_open_se = 0;
@@ -803,7 +803,7 @@ int main()
                                 i = res.posicao;
                                 if (res.sucesso == 1)
                                 {
-                                    return 1;
+                                    fclose(file); return 1;
                                 }
                                 else
                                 {
@@ -823,7 +823,7 @@ int main()
                                     i = res.posicao;
                                     if (res.sucesso == 1)
                                     {
-                                        return 1;
+                                        fclose(file); return 1;
                                     }
                                     else
                                     {
@@ -851,7 +851,7 @@ int main()
                     int i = 5;
                     if (strncmp(line, senao, 5) != 0) {
                         message_error("Módulo senao incorretamente", line_number);
-                        return 1; /*O código PARA quando encontra erro*/
+                        fclose(file); return 1; /*O código PARA quando encontra erro*/
                     }
                     while (isspace((unsigned char)line[i])){i++;}
 
@@ -868,7 +868,7 @@ int main()
                 else
                 {
                     message_error("Comando deve ser 'se' ou 'senao'", line_number);
-                    return 1;
+                    fclose(file); return 1;
                 }
 
 
@@ -876,7 +876,7 @@ int main()
             else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
             { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
                 if(verificarOperacaoMatematicaMain(line, 0, line_number)==1){
-                    return 1;
+                    fclose(file); return 1;
                 } else{
                     printf("Operação com variável ok\n");
                 }
@@ -891,7 +891,7 @@ int main()
             } else
             { /*aqui tudo que não poderia estar solto no conteúdo*/
                 printf("Conteúdo não reconhecido na linha %i: %c\n",line_number, line[0]);
-                return 1;
+                fclose(file); return 1;
             }
 
             line_number++;
@@ -899,7 +899,7 @@ int main()
 
         if(cont_principal == 0) {
             message_error("Módulo principal inexistente", line_number);
-            return 1;
+            fclose(file); return 1;
         }
 
         fclose(file);
@@ -907,8 +907,10 @@ int main()
     else
     {
         fprintf(stderr, "Não foi possível abrir o arquivo!\n");
+        return 1;
     }
 
+    printf("Análise léxica e sintática ok\n");
     return 0;
 }
 
