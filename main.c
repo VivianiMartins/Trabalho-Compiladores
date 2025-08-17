@@ -40,6 +40,16 @@ typedef struct Funcao {
     struct Funcao* proxima;
 } Funcao;
 
+/* Estrutura para árvore da tabela de símbolos*/
+typedef struct Node {
+    char *nome;
+    char *tipo;
+    int tamanho;
+    char *valor;
+    struct Node *esq;
+    struct Node *dir;
+    int altura;
+} Node;
 /*----------------------------------------------------------------------------------------------------------*/
 /*Declaração de funções*/
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
@@ -59,6 +69,26 @@ Resultado verificarParametroFuncao(char line[], int posicao, int line_number); /
 Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /*função para tratar parametros de para*/
 Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len); /*função para tratar parametros de se*/
 
+/*Funções para tabela de símbolos*/
+Node* criar_no(const char *nome, const char *tipo, int tamanho, const char *valor);
+int altura(Node *n);
+int max_int(int a, int b);
+Node* rotacao_direita(Node *y);
+Node* rotacao_esquerda(Node *x);
+int fator_balanceamento(Node *n);
+Node* inserir_no(Node *raiz, const char *nome, const char *tipo, int tamanho, const char *valor);
+Node* buscar_no(Node *raiz, const char *nome);
+Node* min_valor_no(Node *n);
+Node* remover_no(Node *raiz, const char *nome);
+Node* alterar_no(Node *raiz, const char *nome_antigo, const char *novo_nome, const char *novo_tipo, int novo_tamanho, const char *novo_valor);
+void inorder(Node *raiz);
+void liberar_arvore(Node *raiz);
+char* duplicar_string(const char *s);
+
+/*----------------------------------------------------------------------------------------------------------*/
+/*Criação da varíavel global da tabela de símbolos*/
+Node *raiz = NULL;
+
 
 int main()
 {
@@ -71,6 +101,18 @@ int main()
         return 1;
     }
     FILE *file = fopen(exemploFormatado, "r");*/
+
+    /*Inserindo palavras reservadas*/
+    raiz = inserir_no(raiz, "principal", "reservada", 0, "sj");
+    raiz = inserir_no(raiz, "funcao", "reservada", 0, "");
+    raiz = inserir_no(raiz, "leia", "reservada", 0, "");
+    raiz = inserir_no(raiz, "escreva", "reservada", 0, "");
+    raiz = inserir_no(raiz, "se", "reservada", 0, "");
+    raiz = inserir_no(raiz, "senao", "reservada", 0, "");
+    raiz = inserir_no(raiz, "para", "reservada", 0, "");
+    printf("Árvore (inorder): ");
+    inorder(raiz);
+
 
     char line[256];
     if (file != NULL)
@@ -2313,4 +2355,249 @@ Resultado verificarParametrosSe(char line[], int posicao, int line_number, int l
         message_error("Caractere inválido no parâmetro\n", line_number);
         return (Resultado){i, 1};
     }
+}
+
+char* duplicar_string(const char *s) {
+    if (!s) return NULL;
+    size_t len = strlen(s) + 1;
+    char *d = malloc(len);
+    if (!d) return NULL;
+    memcpy(d, s, len);
+    return d;
+}
+
+Node* criar_no(const char *nome, const char *tipo, int tamanho, const char *valor) {
+    Node *n = malloc(sizeof(Node));
+    if (!n) return NULL;
+    n->nome = duplicar_string(nome);
+    n->tipo = duplicar_string(tipo);
+    n->tamanho = tamanho;
+    n->valor = duplicar_string(valor);
+    n->esq = n->dir = NULL;
+    n->altura = 1; /* nó folha */
+    return n;
+}
+
+int altura(Node *n) {
+    return n ? n->altura : 0;
+}
+
+int max_int(int a, int b) { return (a > b) ? a : b; }
+
+Node* rotacao_direita(Node *y) {
+    Node *x = y->esq;
+    Node *T2 = x->dir;
+
+    /* rotação */
+    x->dir = y;
+    y->esq = T2;
+
+    /* atualizar alturas */
+    y->altura = max_int(altura(y->esq), altura(y->dir)) + 1;
+    x->altura = max_int(altura(x->esq), altura(x->dir)) + 1;
+
+    return x; /* nova raiz */
+}
+
+Node* rotacao_esquerda(Node *x) {
+    Node *y = x->dir;
+    Node *T2 = y->esq;
+
+    y->esq = x;
+    x->dir = T2;
+
+    x->altura = max_int(altura(x->esq), altura(x->dir)) + 1;
+    y->altura = max_int(altura(y->esq), altura(y->dir)) + 1;
+
+    return y; /* nova raiz */
+}
+
+int fator_balanceamento(Node *n) {
+    if (!n) return 0;
+    return altura(n->esq) - altura(n->dir);
+}
+
+/* inserir: ordena por 'nome' (lexicográfico com strcmp). Duplicatas de 'nome' são ignoradas. */
+Node* inserir_no(Node *raiz, const char *nome, const char *tipo, int tamanho, const char *valor) {
+    if (raiz == NULL)
+        return criar_no(nome, tipo, tamanho, valor);
+
+    int cmp = strcmp(nome, raiz->nome);
+    if (cmp < 0)
+        raiz->esq = inserir_no(raiz->esq, nome, tipo, tamanho, valor);
+    else if (cmp > 0)
+        raiz->dir = inserir_no(raiz->dir, nome, tipo, tamanho, valor);
+    else {
+        /* duplicata: aqui atualizamos tipo/tamanho/valor opcionalmente; vamos atualizar */
+        free(raiz->tipo);
+        free(raiz->valor);
+        raiz->tipo = duplicar_string(tipo);
+        raiz->tamanho = tamanho;
+        raiz->valor = duplicar_string(valor);
+        return raiz;
+    }
+
+    /* atualizar altura */
+    raiz->altura = 1 + max_int(altura(raiz->esq), altura(raiz->dir));
+
+    int fb = fator_balanceamento(raiz);
+
+    /* casos AVL */
+    if (fb > 1 && strcmp(nome, raiz->esq->nome) < 0)
+        return rotacao_direita(raiz); /* Left Left */
+
+    if (fb < -1 && strcmp(nome, raiz->dir->nome) > 0)
+        return rotacao_esquerda(raiz); /* Right Right */
+
+    if (fb > 1 && strcmp(nome, raiz->esq->nome) > 0) {
+        /* Left Right */
+        raiz->esq = rotacao_esquerda(raiz->esq);
+        return rotacao_direita(raiz);
+    }
+
+    if (fb < -1 && strcmp(nome, raiz->dir->nome) < 0) {
+        /* Right Left */
+        raiz->dir = rotacao_direita(raiz->dir);
+        return rotacao_esquerda(raiz);
+    }
+
+    return raiz;
+}
+
+/* buscar por 'nome' */
+Node* buscar_no(Node *raiz, const char *nome) {
+    Node *cur = raiz;
+    while (cur) {
+        int cmp = strcmp(nome, cur->nome);
+        if (cmp == 0) return cur;
+        if (cmp < 0) cur = cur->esq;
+        else cur = cur->dir;
+    }
+    return NULL;
+}
+
+Node* min_valor_no(Node *n) {
+    Node *atual = n;
+    while (atual && atual->esq)
+        atual = atual->esq;
+    return atual;
+}
+
+/* remover nó por nome (balanceando após remoção) */
+Node* remover_no(Node *raiz, const char *nome) {
+    if (raiz == NULL) return raiz;
+
+    int cmp = strcmp(nome, raiz->nome);
+    if (cmp < 0)
+        raiz->esq = remover_no(raiz->esq, nome);
+    else if (cmp > 0)
+        raiz->dir = remover_no(raiz->dir, nome);
+    else {
+        /* nó encontrado */
+        if (raiz->esq == NULL || raiz->dir == NULL) {
+            Node *temp = raiz->esq ? raiz->esq : raiz->dir;
+
+            if (temp == NULL) {
+                /* sem filhos */
+                free(raiz->nome);
+                free(raiz->tipo);
+                free(raiz->valor);
+                free(raiz);
+                return NULL;
+            } else {
+                /* um filho: substitui */
+                free(raiz->nome);
+                free(raiz->tipo);
+                free(raiz->valor);
+                Node *ret = temp;
+                free(raiz);
+                return ret;
+            }
+        } else {
+            /* dois filhos: pegar sucessor inorder (menor da direita) */
+            Node *temp = min_valor_no(raiz->dir);
+            /* copiar dados do sucessor para o nó atual */
+            free(raiz->nome);
+            free(raiz->tipo);
+            free(raiz->valor);
+            raiz->nome = duplicar_string(temp->nome);
+            raiz->tipo = duplicar_string(temp->tipo);
+            raiz->tamanho = temp->tamanho;
+            raiz->valor = duplicar_string(temp->valor);
+            /* remover o sucessor */
+            raiz->dir = remover_no(raiz->dir, temp->nome);
+        }
+    }
+
+    if (raiz == NULL) return raiz;
+
+    /* atualizar altura */
+    raiz->altura = 1 + max_int(altura(raiz->esq), altura(raiz->dir));
+
+    int fb = fator_balanceamento(raiz);
+
+    /* balancear */
+    if (fb > 1 && fator_balanceamento(raiz->esq) >= 0)
+        return rotacao_direita(raiz);
+
+    if (fb > 1 && fator_balanceamento(raiz->esq) < 0) {
+        raiz->esq = rotacao_esquerda(raiz->esq);
+        return rotacao_direita(raiz);
+    }
+
+    if (fb < -1 && fator_balanceamento(raiz->dir) <= 0)
+        return rotacao_esquerda(raiz);
+
+    if (fb < -1 && fator_balanceamento(raiz->dir) > 0) {
+        raiz->dir = rotacao_direita(raiz->dir);
+        return rotacao_esquerda(raiz);
+    }
+
+    return raiz;
+}
+
+/* alterar: remove registro com nome_antigo e insere novo registro
+   (se nome_antigo existir). Se as chaves forem iguais, apenas atualiza campos. */
+Node* alterar_no(Node *raiz, const char *nome_antigo, const char *novo_nome, const char *novo_tipo, int novo_tamanho, const char *novo_valor) {
+    if (strcmp(nome_antigo, novo_nome) == 0) {
+        /* mesma chave: podemos apenas atualizar tipo/tamanho/valor se existir */
+        Node *n = buscar_no(raiz, nome_antigo);
+        if (n) {
+            free(n->tipo);
+            free(n->valor);
+            n->tipo = duplicar_string(novo_tipo);
+            n->tamanho = novo_tamanho;
+            n->valor = duplicar_string(novo_valor);
+        } else {
+            printf("Chave '%s' não encontrada.", nome_antigo);
+        }
+        return raiz;
+    }
+
+    if (!buscar_no(raiz, nome_antigo)) {
+        printf("Chave '%s' não encontrada.", nome_antigo);
+        return raiz;
+    }
+
+    raiz = remover_no(raiz, nome_antigo);
+    raiz = inserir_no(raiz, novo_nome, novo_tipo, novo_tamanho, novo_valor);
+    return raiz;
+}
+
+/* percurso inorder para mostrar (nome, tipo, tamanho, valor) */
+void inorder(Node *raiz) {
+    if (!raiz) return;
+    inorder(raiz->esq);
+    printf("(%s, %s, %d, %s) ", raiz->nome, raiz->tipo, raiz->tamanho, raiz->valor);
+    inorder(raiz->dir);
+}
+
+void liberar_arvore(Node *raiz) {
+    if (!raiz) return;
+    liberar_arvore(raiz->esq);
+    liberar_arvore(raiz->dir);
+    free(raiz->nome);
+    free(raiz->tipo);
+    free(raiz->valor);
+    free(raiz);
 }
