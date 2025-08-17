@@ -16,7 +16,7 @@
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*Structs*/
-/* Estrutura para retornar dois valores em funções*/
+/* Estrutura para retornar dois valores em funções controladoras do compilador*/
 typedef struct
 {
     int posicao;
@@ -30,6 +30,15 @@ typedef struct No
     int linha, pos;   /* Linha onde foi encontrado, Posição na linha */
     struct No* next;  /* Próximo elemento */
 } No;
+
+/* Estrutura para funções declaradas */
+typedef struct Funcao {
+    char nome[64];
+    int linha_declaracao;
+    int num_parametros;
+    char parametros[10][64]; /* até 10 parâmetros*/
+    struct Funcao* proxima;
+} Funcao;
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*Declaração de funções*/
@@ -66,7 +75,7 @@ int main()
     char line[256];
     if (file != NULL)
     {
-        int balanceado = verificarBalanceamento(file);  /*verificação do duplo balanceamento*/
+        int balanceado = verificarBalanceamento(file);  /*verificação do duplo balanceamento - SINTÁTICO*/
         if (balanceado != 0) {
             return 1;
         }
@@ -77,9 +86,9 @@ int main()
         long start_pos = ftell(file); /*Posição inicial (0)*/
         size_t memory = 0;            /*memória*/
         size_t line_size = 0;         /*tamanho de cada linha que irei ler*/
-        int cont_principal = 0;
+        int cont_principal = 0;         /*controle de principal - SINTÁTICO*/
 
-        /*palavras reservadas*/
+        /*palavras reservadas - LÉXICO*/
         const char *principal = "principal";
         const char *para = "para";
         const char *funcao = "funcao";
@@ -149,7 +158,7 @@ int main()
                 {
                     /*Checando se é principal*/
                     int i = 0;
-                    /* Verifica se principal(){ */
+                    /* Verifica se principal(){ - LÉXICO*/
                     for (i; i < 9; i++)
                     {
                         if (line[i] != principal[i])
@@ -158,6 +167,8 @@ int main()
                             return 1; /*O código PARA quando encontra erro*/
                         }
                     }
+
+                    /*SINTÁTICO*/
                     int parenteses_control_open_principal = 0; /*controle do parênteses*/
                     int found_parentheses_principal = 0;
                     int found_curly_brace_principal = 0; /*Controla a chave { */
@@ -240,7 +251,7 @@ int main()
                 {
                     /*Checando se é para*/
                     int i = 0;
-                    /* Verifica para(){ */
+                    /* Verifica para(){  - LÉXICO*/
                     for (i; i < 4; i++)
                     {
                         if (line[i] != para[i])
@@ -249,6 +260,8 @@ int main()
                             return 1; /*O código PARA quando encontra erro*/
                         }
                     }
+
+                    /*SINTÁTICO*/
                     int parenteses_control_open_para = 0; /*controle do parênteses*/
                     bool found_parentheses_para = false;
                     bool found_curly_brace_para = false; /*Controla a chave { */
@@ -330,7 +343,7 @@ int main()
             {/*percorrer novamente verificando as funções, se estiverem ok, salvar o nome delas, qual linha está*/
                 /*Checando se é funcao __xxx(){*/
                 int i = 0;
-                /* Verifica se começa com "funcao" */
+                /* Verifica se começa com "funcao"  - LÉXICO*/
                 for (i; i < 6; i++)
                 {
                     if (line[i] != funcao[i])
@@ -339,6 +352,8 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
+
+                /*SINTÁTICO*/ /*AQUI TEM QUE TERMINAR DE FAZER*/
                 int parenteses_control_open_funcao = 0;
                 bool underscore_name_control = false;
                 bool after_underscore_name_control = false;
@@ -458,6 +473,7 @@ int main()
             }
             else if (line[0] == 'i')
             {
+                /*LÉXICO*/
                 for (int i = 0; line[i] != '\0'; i++)
                 {
                     if (line[i] != inteiro[i] && i < 7)
@@ -466,7 +482,7 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
-                /* Verifica restante da linha */
+                /* Verifica restante da linha - SINTÁTICO*/
                 if (verificarVariavelInteira(line, 7, line_number) == 1)
                 {
                     return 1;
@@ -475,6 +491,7 @@ int main()
             }
             else if (line[0] == 't')
             {
+                /*LÉXICO*/
                 for (int i = 0; line[i] != '\0'; i++)
                 {
                     if (line[i] != texto[i] && i < 5)
@@ -483,6 +500,7 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
+                /*SINTÁTICO*/
                 if (verificarVariavelTexto(line, 5, line_number) == 1)
                 {
                     return 1;
@@ -491,6 +509,7 @@ int main()
             }
             else if (line[0] == 'd')
             {
+                /*LÉXICO*/
                 for (int i = 0; line[i] != '\0'; i++)
                 {
                     if (line[i] != decimal[i] && i < 7)
@@ -499,6 +518,7 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
+                /*SINTÁTICO*/
                 if (verificarVariavelDecimal(line, 7, line_number) == 1)
                 {
                     return 1;
@@ -507,6 +527,7 @@ int main()
             }
             else if (line[0] == 'l')
             {
+                /*LÉXICO*/
                 for (int i = 0; line[i] != '\0'; i++)
                 {
                     if (line[i] != leia[i] && i < 4)
@@ -515,6 +536,7 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
+                /*SINTÁTICO*/
                 int aux = 0;
                 while (isspace(line[4 + aux]))
                 {
@@ -540,9 +562,9 @@ int main()
             }
             else if (line[0] == 'r') /*talvez colocar junto com função separado*/
             {
-                /* Verifica se retorno !variavel;*/
+                /* Verifica se retorno !variavel; - LÉXICO*/
                 int i = 0;
-                for (i; i < 7; i++)
+                for (i=0; i < 7; i++)
                 {
                     if (line[i] != retorno[i])
                     {
@@ -550,6 +572,7 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
+                /*SINTÁTICO*/
                 bool has_variable = false;
                 /*verificar !variavel ou espaços*/
                 for (i; line[i] != '\0'; i++)
@@ -624,7 +647,7 @@ int main()
             {
                 /*Checando se é escreva("texto")*/
                 int i = 0;
-                /* Verifica se começa com "escreva" */
+                /* Verifica se começa com "escreva" - LÉXICO*/
                 for (i; i < 7; i++)
                 {
                     if (line[i] != escreva[i])
@@ -633,6 +656,7 @@ int main()
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
+                /*SINTÁTICO*/
                 int parenteses_control_open_escreva = 0;
                 int aspas_control_open_escreva = 0;
                 int len = strlen(line);
@@ -745,12 +769,12 @@ int main()
                 {
                     /*Checando se é se*/
                     int i = 2;
-                    /* Verifica se se(){ */
+                    /* Verifica se se(){ - LÉXICO*/
                     if (!strncmp(line, se, 2) == 0) {
                         message_error("Módulo se incorretamente", line_number);
                         return 1; /*O código PARA quando encontra erro*/
                     }
-
+                    /*SINTÁTICO*/
                     int parenteses_control_open_se = 0;
 
                     /* Verifica restante da linha */
@@ -823,7 +847,7 @@ int main()
                 }
                 else if (is_senao)
                 {
-                    /*Checando se é senao*/
+                    /*Checando se é senao - LÉXICO*/
                     int i = 5;
                     if (strncmp(line, senao, 5) != 0) {
                         message_error("Módulo senao incorretamente", line_number);
@@ -832,7 +856,7 @@ int main()
                     while (isspace((unsigned char)line[i])){i++;}
 
 
-                     /* Se houver conteúdo após "senao" */
+                     /* Se houver conteúdo após "senao" - SINTÁTICO*/
                     if (line[i] != '\0') {
                         /*criar função para tratar todos os casos*/
                         /*enviar a linha e a posição i*/
@@ -861,7 +885,7 @@ int main()
             {
                 /*aqui tem que pegar se a função foi declarada previamente*/
             }
-            else if (line[0] == '}' || line[0] == '\0' )
+            else if (line[0] == '}' || line[0] == '{' || line[0] == '\0' )
             { /*Aqui tudo que pode estar sozinho na linha - condição final*/
                 printf("Conteúdo ok\n");
             } else
@@ -871,6 +895,11 @@ int main()
             }
 
             line_number++;
+        }
+
+        if(cont_principal == 0) {
+            message_error("Módulo principal inexistente", line_number);
+            return 1;
         }
 
         fclose(file);
