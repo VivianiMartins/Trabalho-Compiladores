@@ -84,6 +84,7 @@ Node* alterar_no(Node *raiz, const char *nome_antigo, const char *novo_nome, con
 void inorder(Node *raiz);
 void liberar_arvore(Node *raiz);
 char* duplicar_string(const char *s);
+char *substring(const char *str, int inicio, int tamanho);
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*Criação da varíavel global da tabela de símbolos*/
@@ -103,16 +104,13 @@ int main()
     FILE *file = fopen(exemploFormatado, "r");*/
 
     /*Inserindo palavras reservadas*/
-    raiz = inserir_no(raiz, "principal", "reservada", 0, "sj");
+    raiz = inserir_no(raiz, "principal", "reservada", 0, "");
     raiz = inserir_no(raiz, "funcao", "reservada", 0, "");
     raiz = inserir_no(raiz, "leia", "reservada", 0, "");
     raiz = inserir_no(raiz, "escreva", "reservada", 0, "");
     raiz = inserir_no(raiz, "se", "reservada", 0, "");
     raiz = inserir_no(raiz, "senao", "reservada", 0, "");
     raiz = inserir_no(raiz, "para", "reservada", 0, "");
-    printf("Árvore (inorder): ");
-    inorder(raiz);
-
 
     char line[256];
     if (file != NULL)
@@ -952,6 +950,9 @@ int main()
         return 1;
     }
 
+    printf("Árvore (inorder): ");
+    inorder(raiz);
+
     printf("Análise léxica e sintática ok\n");
     return 0;
 }
@@ -1069,6 +1070,7 @@ int verificarVariavelInteira(char line[], int posicao, int line_number)
         else if (c == '!')
         {
             i++;
+            int j = i;
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
@@ -1077,18 +1079,62 @@ int verificarVariavelInteira(char line[], int posicao, int line_number)
                 }; /*verifica se o restante é alfanumerico*/
                 if (line[i] == ',' && (isspace(line[i + 1])))
                 { /*tem mais parâmetros que precisam ser verificados*/
+                    int len = (i - j);              // tamanho da substring
+                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    if (extraida == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(extraida, &line[j], len);
+                    extraida[len] = '\0'; // garante fim da string
+                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    free(extraida);
                     return verificarVariavelInteira(line, i + 1, line_number);
                 }
                 else if (line[i] == ';' && line[i + 1] == '\0')
                 {
+                    int len = (i - j);              // tamanho da substring
+                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    if (extraida == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(extraida, &line[j], len);
+                    extraida[len] = '\0'; // garante fim da string
+                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    free(extraida);
                     return 0;
                 }
                 else if (line[i] == ';' && line[i + 1] == '\n')
                 {
+                    int len = (i - j);              // tamanho da substring
+                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    if (extraida == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(extraida, &line[j], len);
+                    extraida[len] = '\0'; // garante fim da string
+                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    free(extraida);
                     return 0;
                 }
                 else if (line[i] == ';' && isspace(line[i + 1]))
                 { /*tô ignorando espaços que aparecem depois*/
+                    int len = (i - j);              // tamanho da substring
+                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    if (extraida == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(extraida, &line[j], len);
+                    extraida[len] = '\0'; // garante fim da string
+                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    free(extraida);
                     return 0;
                 }
                 else if (isspace(line[i]))
@@ -1104,7 +1150,7 @@ int verificarVariavelInteira(char line[], int posicao, int line_number)
                         {
                             i++;
                         } while (isspace(line[i]));
-                        int result = verificarOperacaoMatematica(line, i, line_number, 0);
+                        int result = verificarOperacaoMatematica(line, i, line_number, 0); /*Aqui dentro vai realizar a atualização dos valores*/
                         if(result == 1)
                         {
                             return 1;
@@ -1151,15 +1197,18 @@ int verificarVariavelTexto(char line[], int posicao, int line_number)
         else if (c == '!')
         {
             i++;
+            int j = i;
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
                 {
                     i++;
                 }; /*verifica se o restante é alfanumerico*/
+                int k = i-1;
                 if (line[i] == '[')
                 {
                     i++;
+                    int l = i;
                     if (line[i] == '0' || !isdigit(line[i]))
                     {
                         message_error("O tamanho de um texto precisa ser um número e maior que zero\n", line_number);
@@ -1175,6 +1224,17 @@ int verificarVariavelTexto(char line[], int posicao, int line_number)
                         message_error("Não foi encontrado ']' após a variável de texto. O tamanho foi escrito incorretamente. Só são permitidos números inteiros entre '[' e ']' \n", line_number);
                         return 1;
                     }
+                    int len = (k - j+1);              // tamanho da substring
+                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    if (extraida == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(extraida, &line[j], len);
+                    extraida[len] = '\0'; // garante fim da string
+                    inserir_no(raiz, extraida, "texto", 99, "0");
+                    free(extraida);
                     i++;
                     if (line[i] == ',' && (isspace(line[i + 1])))
                     { /*tem mais parâmetros que precisam ser verificados*/
@@ -2364,6 +2424,21 @@ char* duplicar_string(const char *s) {
     if (!d) return NULL;
     memcpy(d, s, len);
     return d;
+}
+
+char *substring(const char *str, int inicio, int tamanho) {
+  if (str == NULL || inicio < 0 || tamanho <= 0 || inicio + tamanho > strlen(str)) {
+    return NULL; // Ou trate o erro de outra forma
+  }
+
+  char *sub = (char*) malloc(tamanho + 1); // Aloca espaço para a substring + \0
+  if (sub == NULL) {
+    return NULL; // Falha na alocação
+  }
+
+  strncpy(sub, str + inicio, tamanho);
+  sub[tamanho] = '\0'; // Garante o terminador nulo
+  return sub;
 }
 
 Node* criar_no(const char *nome, const char *tipo, int tamanho, const char *valor) {
