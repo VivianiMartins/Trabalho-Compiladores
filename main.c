@@ -2430,6 +2430,8 @@ Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int 
     }
 }
 
+/*----------------------------------------------------------------------------------------------------------*/
+/*Funções para tabela de símbolos*/
 char* duplicar_string(const char *s) {
     if (!s) return NULL;
     size_t len = strlen(s) + 1;
