@@ -1101,7 +1101,7 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
 
                     strncpy(extraida, &line[j], len);
                     extraida[len] = '\0'; // garante fim da string
-                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    raiz = inserir_no(raiz, extraida, "inteiro", 99, "0");
                     free(extraida);
                     return verificarVariavelInteira(line, i + 1, line_number);
                 }
@@ -1116,7 +1116,7 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
 
                     strncpy(extraida, &line[j], len);
                     extraida[len] = '\0'; // garante fim da string
-                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    raiz = inserir_no(raiz, extraida, "inteiro", 99, "0");
                     free(extraida);
                     return 0;
                 }
@@ -1131,7 +1131,7 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
 
                     strncpy(extraida, &line[j], len);
                     extraida[len] = '\0'; // garante fim da string
-                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    raiz = inserir_no(raiz, extraida, "inteiro", 99, "0");
                     free(extraida);
                     return 0;
                 }
@@ -1146,7 +1146,7 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
 
                     strncpy(extraida, &line[j], len);
                     extraida[len] = '\0'; // garante fim da string
-                    inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    raiz = inserir_no(raiz, extraida, "inteiro", 99, "0");
                     free(extraida);
                     return 0;
                 }
@@ -1246,7 +1246,7 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
 
                     strncpy(extraida, &line[j], len);
                     extraida[len] = '\0'; // garante fim da string
-                    inserir_no(raiz, extraida, "texto", 99, "0");
+                    raiz = inserir_no(raiz, extraida, "texto", 99, "0");
                     free(extraida);
                     i++;
                     if (line[i] == ',' && (isspace(line[i + 1])))
