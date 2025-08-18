@@ -44,7 +44,7 @@ typedef struct Funcao {
 typedef struct Node {
     char *nome;
     char *tipo;
-    int tamanho;
+    float tamanho;
     char *valor;
     struct Node *esq;
     struct Node *dir;
@@ -71,13 +71,13 @@ Resultado verificarParametrosPara(char line[], int posicao, int *line_number);  
 Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int len); /*função para tratar parametros de se*/
 
 /*Funções para tabela de símbolos*/
-Node* criar_no(const char *nome, const char *tipo, int tamanho, const char *valor);
+Node* criar_no(const char *nome, const char *tipo, float tamanho, const char *valor);
 int altura(Node *n);
 int max_int(int a, int b);
 Node* rotacao_direita(Node *y);
 Node* rotacao_esquerda(Node *x);
 int fator_balanceamento(Node *n);
-Node* inserir_no(Node *raiz, const char *nome, const char *tipo, int tamanho, const char *valor);
+Node* inserir_no(Node *raiz, const char *nome, const char *tipo, float tamanho, const char *valor);
 Node* buscar_no(Node *raiz, const char *nome);
 Node* min_valor_no(Node *n);
 Node* remover_no(Node *raiz, const char *nome);
@@ -90,7 +90,6 @@ char *substring(const char *str, int inicio, int tamanho);
 /*----------------------------------------------------------------------------------------------------------*/
 /*Criação da varíavel global da tabela de símbolos*/
 Node *raiz = NULL;
-
 
 int main()
 {
@@ -1246,7 +1245,18 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
 
                     strncpy(extraida, &line[j], len);
                     extraida[len] = '\0'; // garante fim da string
-                    raiz = inserir_no(raiz, extraida, "texto", 99, "0");
+
+                    len = (i - l);              // tamanho da substring
+                    char *tamanho = malloc(len + 1); // +1 para o terminador '\0'
+                    if (tamanho == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(tamanho, &line[l], len);
+                    tamanho[len] = '\0'; // garante fim da string
+                    raiz = inserir_no(raiz, extraida, "texto", strtod(tamanho, NULL), "0");
+                    free(tamanho);
                     free(extraida);
                     i++;
                     if (line[i] == ',' && (isspace(line[i + 1])))
@@ -1351,15 +1361,18 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
         else if (c == '!')
         {
             i++;
+            int j = i;
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
                 {
                     i++;
                 }; /*verifica se o restante é alfanumerico*/
+                int k = i;
                 if (line[i] == '[')
                 {
                     i++;
+                    int l = i;
                     if (line[i] == '0' || !isdigit(line[i]))
                     {
                         message_error("O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
@@ -1386,6 +1399,29 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
                     {
                         i++;
                     }
+                    int len = (k - j);
+                    char *extraida = malloc(len + 1);
+                    if (extraida == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(extraida, &line[j], len);
+                    extraida[len] = '\0';
+
+                    len = (i - l);
+                    char *tamanho = malloc(len + 1);
+                    if (tamanho == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(tamanho, &line[l], len);
+                    tamanho[len] = '\0';
+                    float tamanho_float = strtof(tamanho, NULL);
+                    raiz = inserir_no(raiz, extraida, "decimal", tamanho_float, "0");
+                    free(tamanho);
+                    free(extraida);
                     if (line[i] != ']')
                     {
                         message_error("Não foi encontrado ']' após na variável decimal. O tamanho foi escrito incorretamente. Só são permitidos números e pontos entre '[' e ']'. \n", line_number);
@@ -2456,7 +2492,7 @@ char *substring(const char *str, int inicio, int tamanho) {
   return sub;
 }
 
-Node* criar_no(const char *nome, const char *tipo, int tamanho, const char *valor) {
+Node* criar_no(const char *nome, const char *tipo, float tamanho, const char *valor) {
     Node *n = malloc(sizeof(Node));
     if (!n) return NULL;
     n->nome = duplicar_string(nome);
@@ -2508,7 +2544,7 @@ int fator_balanceamento(Node *n) {
 }
 
 /* inserir: ordena por 'nome' (lexicográfico com strcmp). Duplicatas de 'nome' são ignoradas. */
-Node* inserir_no(Node *raiz, const char *nome, const char *tipo, int tamanho, const char *valor) {
+Node* inserir_no(Node *raiz, const char *nome, const char *tipo, float tamanho, const char *valor) {
     if (raiz == NULL)
         return criar_no(nome, tipo, tamanho, valor);
 
@@ -2678,7 +2714,8 @@ Node* alterar_no(Node *raiz, const char *nome_antigo, const char *novo_nome, con
 void inorder(Node *raiz) {
     if (!raiz) return;
     inorder(raiz->esq);
-    printf("(%s, %s, %d, %s) ", raiz->nome, raiz->tipo, raiz->tamanho, raiz->valor);
+    int casas = 3; /* implemento isso melhor depois */
+    printf("(%s, %s, %.*f, %s) ", raiz->nome, raiz->tipo, casas, raiz->tamanho, raiz->valor);
     inorder(raiz->dir);
 }
 
