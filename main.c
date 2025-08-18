@@ -52,22 +52,23 @@ typedef struct Node {
 } Node;
 /*----------------------------------------------------------------------------------------------------------*/
 /*Declaração de funções*/
+int varredura_principal(FILE *file, int *line_number, int *cont_principal, int is_function); /*função que irá varrer cada linha, testar cada*/
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
-void message_error(const char *erro, int line_number); /*função para retorno de erro*/
+void message_error(const char *erro, int *line_number); /*função para retorno de erro*/
 char *garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
-int verificarVariavelInteira(char line[], int posicao, int line_number); /*função para tratar parte de inteiro*/
-int verificarVariavelTexto(char line[], int posicao, int line_number);   /*função para tratar parte de texto*/
-int verificarVariavelDecimal(char line[], int posicao, int line_number); /*função para tratar parte de decimal*/
-int verificarLeia(char line[], int posicao, int line_number);            /*função para tratar parte de leia*/
+int verificarVariavelInteira(char line[], int posicao, int *line_number); /*função para tratar parte de inteiro*/
+int verificarVariavelTexto(char line[], int posicao, int *line_number);   /*função para tratar parte de texto*/
+int verificarVariavelDecimal(char line[], int posicao, int *line_number); /*função para tratar parte de decimal*/
+int verificarLeia(char line[], int posicao, int *line_number);            /*função para tratar parte de leia*/
 int is_smart_quote(const char *str, int pos, int length);               /*Função para verificar tipos de aspas duplas diferentes*/
-int verificarOperacaoMatematicaMain(char line[], int posicao, int line_number);/*função para operacoes em geral no main*/
-int verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
+int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number);/*função para operacoes em geral no main*/
+int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
 int verificarBalanceamento(FILE* file); /*função para verificar duplo balanceamento*/
 
 /*funções que utilizam a struct Resultado*/
-Resultado verificarParametroFuncao(char line[], int posicao, int line_number); /*função para tratar parametro das funcoes*/
-Resultado verificarParametrosPara(char line[], int posicao, int line_number);  /*função para tratar parametros de para*/
-Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len); /*função para tratar parametros de se*/
+Resultado verificarParametroFuncao(char line[], int posicao, int *line_number); /*função para tratar parametro das funcoes*/
+Resultado verificarParametrosPara(char line[], int posicao, int *line_number);  /*função para tratar parametros de para*/
+Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int len); /*função para tratar parametros de se*/
 
 /*Funções para tabela de símbolos*/
 Node* criar_no(const char *nome, const char *tipo, int tamanho, const char *valor);
@@ -112,12 +113,11 @@ int main()
     raiz = inserir_no(raiz, "senao", "reservada", 0, "");
     raiz = inserir_no(raiz, "para", "reservada", 0, "");
 
-    char line[256];
     if (file != NULL)
     {
         int balanceado = verificarBalanceamento(file);  /*verificação do duplo balanceamento - SINTÁTICO*/
         if (balanceado != 0) {
-            fclose(file); return 1;
+            return 1;
         }
         printf("Duplo balanceamento ok\n\n");
         rewind(file); /* Volta para o início do arquivo para reprocessar*/
@@ -128,819 +128,21 @@ int main()
         size_t line_size = 0;         /*tamanho de cada linha que irei ler*/
         int cont_principal = 0;         /*controle de principal - SINTÁTICO*/
 
-        /*palavras reservadas - LÉXICO*/
-        const char *principal = "principal";
-        const char *para = "para";
-        const char *funcao = "funcao";
-        const char *inteiro = "inteiro";
-        const char *texto = "texto";
-        const char *decimal = "decimal";
-        const char *leia = "leia";
-        const char *retorno = "retorno";
-        const char *escreva = "escreva";
-        const char *se = "se";
-        const char *senao = "senao";
+        int resultado_final = varredura_principal(file, &line_number, &cont_principal, 0);
 
-        while (fgets(line, sizeof(line), file))
-        { /*Coloquei em loop pra ficar verificando*/
-            /*estamos no inicio do arquivo, então tem que começar com principal ou uma função*/
-            printf("Linha %d: %s", line_number, line); /*printa linha por linha*/
 
-            /* Detecta e ignora BOM: Arquivos UTF-8 podem começar com um caractere especial invisível (BOM) que tem
-            o valor 0xEF 0xBB 0xBF em hexadecimal. Isso está fazendo com que seu primeiro caractere não seja como esperado.*/
-            if (strlen(line) >= 3 && (unsigned char)line[0] == 0xEF &&
-                (unsigned char)line[1] == 0xBB && (unsigned char)line[2] == 0xBF)
+        if (resultado_final == 0)
+        {
+            if(cont_principal == 0)
             {
-                memmove(line, line + 3, strlen(line) - 2);
+                message_error("Módulo principal inexistente", &line_number);
             }
-
-            if (isspace((unsigned char)line[0]))
-            {
-                /*Verifica se  uma linha apenas com espaço ou vazia*/
-                int i = 0;
-                while (line[i] != '\0' && isspace((unsigned char)line[i]))
-                {
-                    i++;
-                }
-                /* Se encontrou conteúdo, remove espaços iniciais */
-                if (line[i] != '\0')
-                {
-                    /* Move o conteúdo para o início da string */
-                    int j = 0;
-                    while (line[i] != '\0')
-                    {
-                        line[j++] = line[i++];
-                    }
-                    line[j] = '\0';
-                }
-                /* Se linha é totalmente vazia (só espaços), limpa a string */
-                else
-                {
-                    line[0] = '\0';
-                }
-            }
-
-            if (line[0] == 'p')
-            {
-                bool is_principal = false;
-                bool is_para = false;
-                /* Verifica se começa com "principal" ou "para" */
-                if (line[1] == principal[1])
-                {
-                    is_principal = true;
-                }
-                else if (line[1] == para[1])
-                {
-                    is_para = true;
-                }
-
-                if (is_principal)
-                {
-                    /*Checando se é principal*/
-                    int i = 0;
-                    /* Verifica se principal(){ - LÉXICO*/
-                    for (i; i < 9; i++)
-                    {
-                        if (line[i] != principal[i])
-                        {
-                            message_error("Módulo principal escrito incorretamente", line_number);
-                            fclose(file); return 1; /*O código PARA quando encontra erro*/
-                        }
-                    }
-
-                    /*SINTÁTICO*/
-                    int parenteses_control_open_principal = 0; /*controle do parênteses*/
-                    int found_parentheses_principal = 0;
-                    int found_curly_brace_principal = 0; /*Controla a chave { */
-                    /* Verifica restante da linha */
-                    for (i; line[i] != '\0'; i++)
-                    {
-                        char c = line[i];
-                        /* Ignora espaços antes dos parênteses */
-                        if (!found_parentheses_principal && isspace(c))
-                        {
-                            continue;
-                        }
-                        /* Primeiro não-espaço após "principal" deve ser '(' */
-                        if (!found_parentheses_principal)
-                        {
-                            if (c == '(')
-                            {
-                                parenteses_control_open_principal++;
-                                found_parentheses_principal = 1;
-                            }
-                            else
-                            {
-                                message_error("Esperado '(' após 'principal'", line_number);
-                                fclose(file); return 1; /*O código PARA quando encontra erro*/
-                            }
-                        }
-                        else
-                        { /* Já encontramos o '(' */
-                            /* Dentro dos parênteses: só permite espaços */
-                            if (parenteses_control_open_principal == 1)
-                            {
-                                if (c == ')')
-                                {
-                                    parenteses_control_open_principal--;
-                                }
-                                else if (!isspace(c))
-                                {
-                                    message_error("Parênteses deve conter apenas espaços", line_number);
-                                    fclose(file); return 1; /*O código PARA quando encontra erro*/
-                                }
-                            }
-                            else if (parenteses_control_open_principal == 0)
-                            { /* Após fechar parênteses */
-                                /* Se ainda não encontramos a chave */
-                                if (!found_curly_brace_principal)
-                                {
-                                    /* Permite espaços entre o ')' e a '{' */
-                                    if (isspace(c))
-                                    {
-                                        continue;
-                                    }
-                                    else if (c == '{')
-                                    { /* Encontrou a chave de abertura */
-                                        found_curly_brace_principal = 1;
-                                    }
-                                    else
-                                    { /* Qualquer outro caractere é erro */
-                                        message_error("Esperado '{' após parênteses", line_number);
-                                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                                    }
-                                }
-                                else
-                                { /* Após encontrar a chave e não tiver terminado, passar p frente*/
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    cont_principal++; /*encontrou um principal*/
-
-                    if (cont_principal > 1)
-                    {
-                        message_error("Módulo principal tem que ser único", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                    printf("principal ok\n");
-                    /*fim da checagem se é principal*/
-                }
-                else if (is_para)
-                {
-                    /*Checando se é para*/
-                    int i = 0;
-                    /* Verifica para(){  - LÉXICO*/
-                    for (i; i < 4; i++)
-                    {
-                        if (line[i] != para[i])
-                        {
-                            message_error("Módulo para escrito incorretamente", line_number);
-                            fclose(file); return 1; /*O código PARA quando encontra erro*/
-                        }
-                    }
-
-                    /*SINTÁTICO*/
-                    int parenteses_control_open_para = 0; /*controle do parênteses*/
-                    bool found_parentheses_para = false;
-                    bool found_curly_brace_para = false; /*Controla a chave { */
-                    bool parameter_control_para = false;
-                    bool parenteses_parameter_control_para = false;
-                    /* Verifica restante da linha */
-                    for (i; line[i] != '\0'; i++)
-                    {
-                        /* Verificar parênteses*/
-                        if (parenteses_control_open_para == 0 && !parenteses_parameter_control_para)
-                        {
-                            if (isspace((unsigned char)line[i]) || line[i] == '(')
-                            { /*nome ok, abre parênteses*/
-                                if (line[i] == '(')
-                                {
-                                    parenteses_control_open_para++;
-                                    parenteses_parameter_control_para = true;
-                                }
-                            }
-                        }
-                        else if (parenteses_parameter_control_para)
-                        { /*verificar o que tem no parênteses*/
-                            if (isspace((unsigned char)line[i]) || line[i] == '!')
-                            {
-                                if (line[i] == '!')
-                                {
-                                    Resultado res = verificarParametrosPara(line, i, line_number);
-                                    i = res.posicao;
-                                    if (res.sucesso == 1)
-                                    {
-                                        message_error("Parâmetros de para tem que iniciar com !a..z", line_number);
-                                        fclose(file); return 1;
-                                    }
-                                    else
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                            else if (line[i] == ')')
-                            {
-                                parenteses_control_open_para--;
-                            }
-                            else if (parenteses_control_open_para == 0)
-                            { /* Após fechar parênteses */
-                                /* Se ainda não encontramos a chave */
-                                if (!found_curly_brace_para)
-                                {
-                                    if (isspace((unsigned char)line[i]))
-                                    {
-                                        continue;
-                                    }
-                                    else if (line[i] == '{')
-                                    { /* Encontrou a chave de abertura */
-                                        found_curly_brace_para = true;
-                                    }
-                                    else
-                                    { /* Qualquer outro caractere é erro */
-                                        message_error("Esperado '{' após parênteses", line_number);
-                                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                                    }
-                                }
-                                else
-                                { /* Após encontrar a chave e não tiver terminado, passar p frente*/
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    printf("para ok\n");
-                    /*fim da checagem se é para*/
-                } else {
-                    message_error("Esperado: Principal ou Para", line_number);
-                    fclose(file); return 1; /*O código PARA quando encontra erro*/
-                }
-            }
-            else if (line[0] == 'f') /*Isso será feito antes e separado, para que já fique salvo o nome da função?*/
-            {/*percorrer novamente verificando as funções, se estiverem ok, salvar o nome delas, qual linha está*/
-                /*Checando se é funcao __xxx(){*/
-                int i = 0;
-                /* Verifica se começa com "funcao"  - LÉXICO*/
-                for (i; i < 6; i++)
-                {
-                    if (line[i] != funcao[i])
-                    {
-                        message_error("Módulo funcao escrito incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-
-                /*SINTÁTICO*/ /*AQUI TEM QUE TERMINAR DE FAZER*/
-                int parenteses_control_open_funcao = 0;
-                bool underscore_name_control = false;
-                bool after_underscore_name_control = false;
-                bool parameter_control = false;
-                bool parenteses_parameter_control = false;
-                bool funcao_found_curly_brace = false; /*Controla a chave { */
-                /* Verifica restante da linha */
-                for (i; line[i] != '\0'; i++)
-                {
-                    /*verificar __*/
-                    if ((isspace((unsigned char)line[i]) || line[i] == '_') && !underscore_name_control && !after_underscore_name_control)
-                    {
-                        if (line[i] == '_' && line[i + 1] == '_')
-                        {
-                            underscore_name_control = true;
-                            i++;
-                            continue;
-                        }
-                        else
-                        {
-                            if (line[i] != ' ' && !underscore_name_control)
-                            {
-                                message_error("Nome da função tem que iniciar com __", line_number);
-                                fclose(file); return 1; /*O código PARA quando encontra erro*/
-                            }
-                        }
-                    }
-                    /* Verificar nome após __ */
-                    if (underscore_name_control && !after_underscore_name_control)
-                    {
-                        if (line[i] >= 'a' && line[i] <= 'z')
-                        { /*verifica se está entre a...z*/
-                            while (isalnum((unsigned char)line[i]))
-                            {
-                                i++;
-                            } /*Verifica se é um caractere alfanumérico (letra maiúscula/minúscula ou dígito decimal).*/
-
-                            if (!(isspace((unsigned char)line[i]) || line[i] == '('))
-                            {
-                                message_error("Nome da função escrito com caracter inválido", line_number);
-                                fclose(file); return 1; /*O código PARA quando encontra erro*/
-                            }
-
-                            i--; /*volta um*/
-                            after_underscore_name_control = true;
-
-                            continue;
-                        }
-                        else
-                        {
-                            message_error("Nome da função tem que iniciar com __letra minscula", line_number);
-                            fclose(file); return 1; /*O código PARA quando encontra erro*/
-                        }
-                    }
-                    /* Verificar parênteses após nome*/
-                    if (parenteses_control_open_funcao == 0 && after_underscore_name_control && !parenteses_parameter_control)
-                    {
-                        if (isspace((unsigned char)line[i]) || line[i] == '(')
-                        { /*nome ok, abre parênteses*/
-                            if (line[i] == '(')
-                            {
-                                parenteses_control_open_funcao++;
-                                parenteses_parameter_control = true;
-                            }
-                        }
-                    }
-                    else if (parenteses_parameter_control)
-                    { /*pode ou não ter parâmetros*/
-                        if (isspace((unsigned char)line[i]) || line[i] == '!')
-                        {
-                            if (line[i] == '!')
-                            {
-                                Resultado res = verificarParametroFuncao(line, i, line_number);
-                                i = res.posicao;
-                                if (res.sucesso == 1)
-                                {
-                                    fclose(file); return 1;
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                            }
-                        }
-                        else if (line[i] == ')')
-                        {
-                            parenteses_control_open_funcao--;
-                        }
-                        else if (parenteses_control_open_funcao == 0)
-                        { /* Após fechar parênteses */
-                            /* Se ainda não encontramos a chave */
-                            if (!funcao_found_curly_brace)
-                            {
-                                if (isspace((unsigned char)line[i]))
-                                {
-                                    continue;
-                                }
-                                else if (line[i] == '{')
-                                { /* Encontrou a chave de abertura */
-                                    funcao_found_curly_brace = true;
-                                }
-                                else
-                                { /* Qualquer outro caractere é erro */
-                                    message_error("Esperado '{' após parênteses", line_number);
-                                    fclose(file); return 1; /*O código PARA quando encontra erro*/
-                                }
-                            }
-                            else
-                            { /* Após encontrar a chave e não tiver terminado, passar p frente*/
-                                break;
-                            }
-                        }
-                    }
-                }
-                printf("Funcao ok\n");
-                /*Fim da checagem se é funcao __xxx(){*/
-            }
-            else if (line[0] == 'i')
-            {
-                /*LÉXICO*/
-                for (int i = 0; line[i] != '\0'; i++)
-                {
-                    if (line[i] != inteiro[i] && i < 7)
-                    {
-                        message_error("Inteiro escrito incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                /* Verifica restante da linha - SINTÁTICO*/
-                if (verificarVariavelInteira(line, 7, line_number) == 1)
-                {
-                    fclose(file); return 1;
-                }
-                printf("Inteiro ok\n");
-            }
-            else if (line[0] == 't')
-            {
-                /*LÉXICO*/
-                for (int i = 0; line[i] != '\0'; i++)
-                {
-                    if (line[i] != texto[i] && i < 5)
-                    {
-                        message_error("Texto escrito incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                /*SINTÁTICO*/
-                if (verificarVariavelTexto(line, 5, line_number) == 1)
-                {
-                    fclose(file); return 1;
-                }
-                printf("texto ok\n");
-            }
-            else if (line[0] == 'd')
-            {
-                /*LÉXICO*/
-                for (int i = 0; line[i] != '\0'; i++)
-                {
-                    if (line[i] != decimal[i] && i < 7)
-                    {
-                        message_error("Decimal escrito incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                /*SINTÁTICO*/
-                if (verificarVariavelDecimal(line, 7, line_number) == 1)
-                {
-                    fclose(file); return 1;
-                }
-                printf("decimal ok\n");
-            }
-            else if (line[0] == 'l')
-            {
-                /*LÉXICO*/
-                for (int i = 0; line[i] != '\0'; i++)
-                {
-                    if (line[i] != leia[i] && i < 4)
-                    {
-                        message_error("Leia escrito incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                /*SINTÁTICO*/
-                int aux = 0;
-                while (isspace(line[4 + aux]))
-                {
-                    aux++;
-                }
-                if (line[4 + aux] != '(')
-                {
-                    message_error("Falta '(' depois de leia", line_number);
-                }
-                if (verificarLeia(line, 5 + aux, line_number) == 1)
-                { /*Funciona, mas deixa = passar*/
-                    fclose(file); return 1;
-                }
-                for (int i = 4; line[i] != '\0'; i++)
-                {
-                    if (line[i] == '=')
-                    {
-                        message_error("Não é permitido atribuições no leia", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                printf("leia ok\n");
-            }
-            else if (line[0] == 'r') /*talvez colocar junto com função separado*/
-            {
-                /* Verifica se retorno !variavel; - LÉXICO*/
-                int i = 0;
-                for (i=0; i < 7; i++)
-                {
-                    if (line[i] != retorno[i])
-                    {
-                        message_error("Retorno escrito incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                /*SINTÁTICO*/
-                bool has_variable = false;
-                /*verificar !variavel ou espaços*/
-                for (i; line[i] != '\0'; i++)
-                {
-                    if (isspace(line[i]))
-                    {
-                        continue;
-                    }
-                    /* Encontrou não-espaço: deve ser '!' */
-                    if (line[i] == '!' && !has_variable)
-                    {
-                        has_variable = true;
-                        i++;
-                        break;
-                    }
-                    else
-                    {
-                        message_error("Esperado '!' antes da variável", line_number);
-                        fclose(file); return 1;
-                    }
-                }
-
-                if (has_variable)
-                {
-                    /* Verificar primeiro caractere (obrigatoriamente a-z) */
-                    if (line[i] < 'a' || line[i] > 'z')
-                    {
-                        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
-                        fclose(file); return 1;
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
-                    while (isalnum((unsigned char)line[i]))
-                    {
-                        i++;
-                    }
-                }
-                /*verifica se tem algo depois de retorno ou variavel, pode ser espaço ou ;*/
-                while (line[i] != '\0')
-                {
-                    if (isspace((unsigned char)line[i]) || line[i] == ';')
-                    {
-                        if (line[i] == ';')
-                        {
-                            i++;
-                            while (line[i] != '\0')
-                            {
-                                if (!isspace((unsigned char)line[i]))
-                                {
-                                    message_error("Caracteres inválidos após ';'", line_number);
-                                    fclose(file); return 1;
-                                }
-                                i++;
-                            }
-                            break;
-                        }
-                        i++;
-                    }
-                    else
-                    {
-                        message_error("Caractere inválido após variável. Esperado espaço ou ';'", line_number);
-                        fclose(file); return 1;
-                    }
-                }
-                printf("retorno ok\n");
-                /*Fim da verificação de retorno !variavel;*/
-            }
-            else if (line[0] == 'e')
-            {
-                /*Checando se é escreva("texto")*/
-                int i = 0;
-                /* Verifica se começa com "escreva" - LÉXICO*/
-                for (i; i < 7; i++)
-                {
-                    if (line[i] != escreva[i])
-                    {
-                        message_error("Módulo escreva escrito incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                }
-                /*SINTÁTICO*/
-                int parenteses_control_open_escreva = 0;
-                int aspas_control_open_escreva = 0;
-                int len = strlen(line);
-                bool aspas_control = false;
-                /* Verifica restante da linha */
-                for (i; line[i] != '\0'; i++)
-                {
-                    /* Verificar parênteses*/
-                    if (parenteses_control_open_escreva == 0)
-                    {
-                        if (isspace((unsigned char)line[i]) || line[i] == '(')
-                        { /*abre parênteses*/
-                            if (line[i] == '(')
-                            {
-                                parenteses_control_open_escreva++;
-                            }
-                        }
-                    }
-                    else if (parenteses_control_open_escreva >= 1)
-                    { /*tem que ter aspas*/
-                        int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-
-                        if (isspace((unsigned char)line[i]) ||  quote_bytes > 0 && !aspas_control)
-                        {
-                            if (quote_bytes > 0)
-                            {
-                                 if (quote_bytes == 3) {
-                                    i = i + 3;
-                                 } else {
-                                    i++;
-                                 }
-                                aspas_control_open_escreva ++;
-                                while (!aspas_control)
-                                {
-                                    quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-
-                                    if (quote_bytes > 0)
-                                    {
-                                        aspas_control = true;
-                                        aspas_control_open_escreva ++;
-
-                                        if (aspas_control_open_escreva > 2)
-                                        {
-                                            message_error("Use apenas duas aspas", line_number);
-                                            fclose(file); return 1;
-                                        }
-                                    }
-                                    else if(line[i] == '/0' || line[i] == ')')
-                                    {
-                                        message_error("Precisa fechar as aspas\n", line_number);
-                                        fclose(file); return 1;
-                                    }
-                                    i++;
-                                }
-                                continue;
-                            }
-                        }
-
-                        else if (line[i] == ',' && aspas_control)
-                        { /* Tem parâmetro */
-                            i++;
-                            while(isspace((unsigned char)line[i])) i++;
-
-                            if (isspace((unsigned char)line[i]) || line[i] == '!')
-                            {
-                                if (line[i] == '!')
-                                {
-                                    Resultado res = verificarParametroFuncao(line, i, line_number);
-                                    i = res.posicao;
-                                    if (res.sucesso == 1)
-                                    {
-                                        fclose(file); return 1;
-                                    }
-                                    else
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                        }
-                        else if (line[i] == ')')
-                        {
-                            parenteses_control_open_escreva--;
-                        }
-                        else if (isspace((unsigned char)line[i]) || line[i] == ';')
-                        {
-                            continue;
-                        }
-                    }
-                }
-                printf("escreva ok\n");
-                /*Fim da checagem escreva("texto") */
-            }
-            else if (line[0] == 's')
-            {
-                bool is_se = false;
-                bool is_senao = false;
-                int len = strlen(line);
-                /* Verifica se começa com "se" ou "senao" */
-                if (strncmp(line, se, 2) == 0) {
-                    /* Verificar se é senao (5 caracteres) */
-                    if (len >= 3 && strncmp(line, senao, 3) == 0) {
-                        is_senao = true;
-                    } else {
-                        is_se = true;
-                    }
-                }
-
-                if (is_se)
-                {
-                    /*Checando se é se*/
-                    int i = 2;
-                    /* Verifica se se(){ - LÉXICO*/
-                    if (!strncmp(line, se, 2) == 0) {
-                        message_error("Módulo se incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                    /*SINTÁTICO*/
-                    int parenteses_control_open_se = 0;
-
-                    /* Verifica restante da linha */
-                    for (i; line[i] != '\0'; i++)
-                    {
-                        /* Verificar parênteses*/
-                        if (parenteses_control_open_se == 0)
-                        {
-                            if (isspace((unsigned char)line[i]) || line[i] == '(')
-                            { /*abre parênteses*/
-                                if (line[i] == '(')
-                                {
-                                    parenteses_control_open_se++;
-                                }
-                            }
-                        }
-                        else if (parenteses_control_open_se >= 1)
-                        {
-                            while(isspace((unsigned char)line[i]))i++;
-
-                            int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-
-                            if (line[i] == '!' || line[i] == '"' || quote_bytes>0)
-                            {
-                                Resultado res = verificarParametrosSe(line, i, line_number, len);
-                                i = res.posicao;
-                                if (res.sucesso == 1)
-                                {
-                                    fclose(file); return 1;
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                            }
-                            else if ((line[i] == '|' && line[i+i] == '|') || (line[i] == '&' && line[i] == '&'))
-                            {
-                                i++;
-                                while(isspace((unsigned char)line[i]))i++;
-
-                                int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-
-                                if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
-                                {
-                                    Resultado res = verificarParametrosSe(line, i, line_number, len);
-                                    i = res.posicao;
-                                    if (res.sucesso == 1)
-                                    {
-                                        fclose(file); return 1;
-                                    }
-                                    else
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                            else if (line[i] == ')')
-                            {
-                                parenteses_control_open_se--;
-                            }
-                            else if (isspace((unsigned char)line[i]) || line[i] == '{')
-                            {
-                                continue;
-                            }
-                        }
-                    }
-
-                    printf("se ok\n");
-                    /*fim da checagem se é se*/
-                }
-                else if (is_senao)
-                {
-                    /*Checando se é senao - LÉXICO*/
-                    int i = 5;
-                    if (strncmp(line, senao, 5) != 0) {
-                        message_error("Módulo senao incorretamente", line_number);
-                        fclose(file); return 1; /*O código PARA quando encontra erro*/
-                    }
-                    while (isspace((unsigned char)line[i])){i++;}
-
-
-                     /* Se houver conteúdo após "senao" - SINTÁTICO*/
-                    if (line[i] != '\0') {
-                        /*criar função para tratar todos os casos*/
-                        /*enviar a linha e a posição i*/
-                    }
-
-                    printf("senao ok\n");
-                    /*fim da checagem se é senao*/
-                }
-                else
-                {
-                    message_error("Comando deve ser 'se' ou 'senao'", line_number);
-                    fclose(file); return 1;
-                }
-
-
-            }
-            else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
-            { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
-                if(verificarOperacaoMatematicaMain(line, 0, line_number)==1){
-                    fclose(file); return 1;
-                } else{
-                    printf("Operação com variável ok\n");
-                }
-            }
-            else if (line[0] == '_') /*chamada de função*/
-            {
-                /*aqui tem que pegar se a função foi declarada previamente*/
-            }
-            else if (line[0] == '}' || line[0] == '{' || line[0] == '\0' )
-            { /*Aqui tudo que pode estar sozinho na linha - condição final*/
-                printf("Conteúdo ok\n");
-            } else
-            { /*aqui tudo que não poderia estar solto no conteúdo*/
-                printf("Conteúdo não reconhecido na linha %i: %c\n",line_number, line[0]);
-                fclose(file); return 1;
-            }
-
-            line_number++;
-        }
-
-        if(cont_principal == 0) {
-            message_error("Módulo principal inexistente", line_number);
+            printf("Análise léxica e sintática ok\n");
+        } else
+        {
             fclose(file); return 1;
         }
+
 
         fclose(file);
     }
@@ -953,12 +155,823 @@ int main()
     printf("Árvore (inorder): ");
     inorder(raiz);
 
-    printf("Análise léxica e sintática ok\n");
     return 0;
 }
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*funções*/
+/*função que irá varrer cada linha, testar cada*/
+int varredura_principal(FILE *file, int *line_number, int *cont_principal, int is_function) {
+    char line[256];
+    /*palavras reservadas - LÉXICO*/
+    const char *principal = "principal";
+    const char *para = "para";
+    const char *funcao = "funcao";
+    const char *inteiro = "inteiro";
+    const char *texto = "texto";
+    const char *decimal = "decimal";
+    const char *leia = "leia";
+    const char *retorno = "retorno";
+    const char *escreva = "escreva";
+    const char *se = "se";
+    const char *senao = "senao";
+
+
+     printf("Valor antes linha: %d\n", *line_number);
+      printf("Valor antes principal: %d\n", *cont_principal);
+
+    while (fgets(line, sizeof(line), file))
+    { /*Coloquei em loop pra ficar verificando*/
+        printf("Valor no while linha: %d\n", *line_number);
+      printf("Valor while principal: %d\n", *cont_principal);
+
+
+        printf("Linha %d: %s", (*line_number), line); /*printa linha por linha*/
+
+        /* Detecta e ignora BOM: Arquivos UTF-8 podem começar com um caractere especial invisível (BOM) que tem
+        o valor 0xEF 0xBB 0xBF em hexadecimal. Isso está fazendo com que seu primeiro caractere não seja como esperado.*/
+        if (strlen(line) >= 3 && (unsigned char)line[0] == 0xEF &&
+            (unsigned char)line[1] == 0xBB && (unsigned char)line[2] == 0xBF)
+        {
+            memmove(line, line + 3, strlen(line) - 2);
+        }
+
+        if (isspace((unsigned char)line[0]))
+        {
+            /*Verifica se  uma linha apenas com espaço ou vazia*/
+            int i = 0;
+            while (line[i] != '\0' && isspace((unsigned char)line[i]))
+            {
+                i++;
+            }
+            /* Se encontrou conteúdo, remove espaços iniciais */
+            if (line[i] != '\0')
+            {
+                /* Move o conteúdo para o início da string */
+                int j = 0;
+                while (line[i] != '\0')
+                {
+                    line[j++] = line[i++];
+                }
+                line[j] = '\0';
+            }
+            /* Se linha é totalmente vazia (só espaços), limpa a string */
+            else
+            {
+                line[0] = '\0';
+            }
+        }
+
+        if (line[0] == 'p')
+        {
+            bool is_principal = false;
+            bool is_para = false;
+            /* Verifica se começa com "principal" ou "para" */
+            if (line[1] == principal[1])
+            {
+                is_principal = true;
+            }
+            else if (line[1] == para[1])
+            {
+                is_para = true;
+            }
+
+            if (is_principal)
+            {
+                /*Checando se é principal*/
+                int i = 0;
+                /* Verifica se principal(){ - LÉXICO*/
+                for (i; i < 9; i++)
+                {
+                    if (line[i] != principal[i])
+                    {
+                        message_error("Módulo principal escrito incorretamente", line_number);
+                        return 1; /*O código PARA quando encontra erro*/
+                    }
+                }
+
+                /*SINTÁTICO*/
+                int parenteses_control_open_principal = 0; /*controle do parênteses*/
+                int found_parentheses_principal = 0;
+                int found_curly_brace_principal = 0; /*Controla a chave { */
+                /* Verifica restante da linha */
+                for (i; line[i] != '\0'; i++)
+                {
+                    char c = line[i];
+                    /* Ignora espaços antes dos parênteses */
+                    if (!found_parentheses_principal && isspace(c))
+                    {
+                        continue;
+                    }
+                    /* Primeiro não-espaço após "principal" deve ser '(' */
+                    if (!found_parentheses_principal)
+                    {
+                        if (c == '(')
+                        {
+                            parenteses_control_open_principal++;
+                            found_parentheses_principal = 1;
+                        }
+                        else
+                        {
+                            message_error("Esperado '(' após 'principal'", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                        }
+                    }
+                    else
+                    { /* Já encontramos o '(' */
+                        /* Dentro dos parênteses: só permite espaços */
+                        if (parenteses_control_open_principal == 1)
+                        {
+                            if (c == ')')
+                            {
+                                parenteses_control_open_principal--;
+                            }
+                            else if (!isspace(c))
+                            {
+                                message_error("Parênteses deve conter apenas espaços", line_number);
+                                return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+                        else if (parenteses_control_open_principal == 0)
+                        { /* Após fechar parênteses */
+                            /* Se ainda não encontramos a chave */
+                            if (!found_curly_brace_principal)
+                            {
+                                /* Permite espaços entre o ')' e a '{' */
+                                if (isspace(c))
+                                {
+                                    continue;
+                                }
+                                else if (c == '{')
+                                { /* Encontrou a chave de abertura */
+                                    found_curly_brace_principal = 1;
+                                }
+                                else
+                                { /* Qualquer outro caractere é erro */
+                                    message_error("Esperado '{' após parênteses", line_number);
+                                    return 1; /*O código PARA quando encontra erro*/
+                                }
+                            }
+                            else
+                            { /* Após encontrar a chave e não tiver terminado, passar p frente*/
+                                break;
+                            }
+                        }
+                    }
+                }
+                (*cont_principal)++; /*encontrou um principal*/
+
+                if ((*cont_principal) > 1)
+                {
+                    message_error("Módulo principal tem que ser único", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+                printf("principal ok\n");
+                /*fim da checagem se é principal*/
+            }
+            else if (is_para)
+            {
+                /*Checando se é para*/
+                int i = 0;
+                /* Verifica para(){  - LÉXICO*/
+                for (i; i < 4; i++)
+                {
+                    if (line[i] != para[i])
+                    {
+                        message_error("Módulo para escrito incorretamente", line_number);
+                        return 1; /*O código PARA quando encontra erro*/
+                    }
+                }
+
+                /*SINTÁTICO*/
+                int parenteses_control_open_para = 0; /*controle do parênteses*/
+                bool found_parentheses_para = false;
+                bool found_curly_brace_para = false; /*Controla a chave { */
+                bool parameter_control_para = false;
+                bool parenteses_parameter_control_para = false;
+                /* Verifica restante da linha */
+                for (i; line[i] != '\0'; i++)
+                {
+                    /* Verificar parênteses*/
+                    if (parenteses_control_open_para == 0 && !parenteses_parameter_control_para)
+                    {
+                        if (isspace((unsigned char)line[i]) || line[i] == '(')
+                        { /*nome ok, abre parênteses*/
+                            if (line[i] == '(')
+                            {
+                                parenteses_control_open_para++;
+                                parenteses_parameter_control_para = true;
+                            }
+                        }
+                    }
+                    else if (parenteses_parameter_control_para)
+                    { /*verificar o que tem no parênteses*/
+                        if (isspace((unsigned char)line[i]) || line[i] == '!')
+                        {
+                            if (line[i] == '!')
+                            {
+                                Resultado res = verificarParametrosPara(line, i, line_number);
+                                i = res.posicao;
+                                if (res.sucesso == 1)
+                                {
+                                    message_error("Parâmetros de para tem que iniciar com !a..z", line_number);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                        else if (line[i] == ')')
+                        {
+                            parenteses_control_open_para--;
+                        }
+                        else if (parenteses_control_open_para == 0)
+                        { /* Após fechar parênteses */
+                            /* Se ainda não encontramos a chave */
+                            if (!found_curly_brace_para)
+                            {
+                                if (isspace((unsigned char)line[i]))
+                                {
+                                    continue;
+                                }
+                                else if (line[i] == '{')
+                                { /* Encontrou a chave de abertura */
+                                    found_curly_brace_para = true;
+                                }
+                                else
+                                { /* Qualquer outro caractere é erro */
+                                    message_error("Esperado '{' após parênteses", line_number);
+                                    return 1; /*O código PARA quando encontra erro*/
+                                }
+                            }
+                            else
+                            { /* Após encontrar a chave e não tiver terminado, passar p frente*/
+                                break;
+                            }
+                        }
+                    }
+                }
+                printf("para ok\n");
+                /*fim da checagem se é para*/
+            } else {
+                message_error("Esperado: Principal ou Para", line_number);
+                return 1; /*O código PARA quando encontra erro*/
+            }
+        }
+        else if (line[0] == 'f') /*Isso será feito antes e separado, para que já fique salvo o nome da função?*/
+        {/*percorrer novamente verificando as funções, se estiverem ok, salvar o nome delas, qual linha está*/
+            /*Checando se é funcao __xxx(){*/
+            int i = 0;
+            /* Verifica se começa com "funcao"  - LÉXICO*/
+            for (i; i < 6; i++)
+            {
+                if (line[i] != funcao[i])
+                {
+                    message_error("Módulo funcao escrito incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+
+            /*SINTÁTICO*/ /*AQUI TEM QUE TERMINAR DE FAZER*/
+            int parenteses_control_open_funcao = 0;
+            bool underscore_name_control = false;
+            bool after_underscore_name_control = false;
+            bool parameter_control = false;
+            bool parenteses_parameter_control = false;
+            bool funcao_found_curly_brace = false; /*Controla a chave { */
+            /* Verifica restante da linha */
+            for (i; line[i] != '\0'; i++)
+            {
+                /*verificar __*/
+                if ((isspace((unsigned char)line[i]) || line[i] == '_') && !underscore_name_control && !after_underscore_name_control)
+                {
+                    if (line[i] == '_' && line[i + 1] == '_')
+                    {
+                        underscore_name_control = true;
+                        i++;
+                        continue;
+                    }
+                    else
+                    {
+                        if (line[i] != ' ' && !underscore_name_control)
+                        {
+                            message_error("Nome da função tem que iniciar com __", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                        }
+                    }
+                }
+                /* Verificar nome após __ */
+                if (underscore_name_control && !after_underscore_name_control)
+                {
+                    if (line[i] >= 'a' && line[i] <= 'z')
+                    { /*verifica se está entre a...z*/
+                        while (isalnum((unsigned char)line[i]))
+                        {
+                            i++;
+                        } /*Verifica se é um caractere alfanumérico (letra maiúscula/minúscula ou dígito decimal).*/
+                        if (!(isspace((unsigned char)line[i]) || line[i] == '('))
+                        {
+                            message_error("Nome da função escrito com caracter inválido", line_number);
+                            return 1; /*O código PARA quando encontra erro*/
+                        }
+
+                        i--; /*volta um*/
+                        after_underscore_name_control = true;
+                        continue;
+                    }
+                    else
+                    {
+                        message_error("Nome da função tem que iniciar com __letra minscula", line_number);
+                        return 1; /*O código PARA quando encontra erro*/
+                    }
+                }
+                /* Verificar parênteses após nome*/
+                if (parenteses_control_open_funcao == 0 && after_underscore_name_control && !parenteses_parameter_control)
+                {
+                    if (isspace((unsigned char)line[i]) || line[i] == '(')
+                    { /*nome ok, abre parênteses*/
+                        if (line[i] == '(')
+                        {
+                            parenteses_control_open_funcao++;
+                            parenteses_parameter_control = true;
+                        }
+                    }
+                }
+                else if (parenteses_parameter_control)
+                { /*pode ou não ter parâmetros*/
+                    if (isspace((unsigned char)line[i]) || line[i] == '!')
+                    {
+                        if (line[i] == '!')
+                        {
+                            Resultado res = verificarParametroFuncao(line, i, line_number);
+                            i = res.posicao;
+                            if (res.sucesso == 1)
+                            {
+                                return 1;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    else if (line[i] == ')')
+                    {
+                        parenteses_control_open_funcao--;
+                    }
+                    else if (parenteses_control_open_funcao == 0)
+                    { /* Após fechar parênteses */
+                        /* Se ainda não encontramos a chave */
+                        if (!funcao_found_curly_brace)
+                        {
+                            if (isspace((unsigned char)line[i]))
+                            {
+                            continue;
+                            }
+                            else if (line[i] == '{')
+                            { /* Encontrou a chave de abertura */
+                                funcao_found_curly_brace = true;
+                            }
+                            else
+                            { /* Qualquer outro caractere é erro */
+                                message_error("Esperado '{' após parênteses", line_number);
+                                return 1; /*O código PARA quando encontra erro*/
+                            }
+                        }
+                        else
+                        { /* Após encontrar a chave e não tiver terminado, passar p frente*/
+                            break;
+                        }
+                    }
+                }
+            }
+            printf("Funcao ok\n");
+            /*Fim da checagem se é funcao __xxx(){*/
+        }
+        else if (line[0] == 'i')
+        {
+            /*LÉXICO*/
+            for (int i = 0; line[i] != '\0'; i++)
+            {
+                if (line[i] != inteiro[i] && i < 7)
+                {
+                    message_error("Inteiro escrito incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+            /* Verifica restante da linha - SINTÁTICO*/
+            if (verificarVariavelInteira(line, 7, line_number) == 1)
+            {
+                return 1;
+            }
+            printf("Inteiro ok\n");
+        }
+        else if (line[0] == 't')
+        {
+            /*LÉXICO*/
+            for (int i = 0; line[i] != '\0'; i++)
+            {
+                if (line[i] != texto[i] && i < 5)
+                {
+                    message_error("Texto escrito incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+            /*SINTÁTICO*/
+            if (verificarVariavelTexto(line, 5, line_number) == 1)
+            {
+                return 1;
+            }
+            printf("texto ok\n");
+        }
+        else if (line[0] == 'd')
+        {
+            /*LÉXICO*/
+            for (int i = 0; line[i] != '\0'; i++)
+            {
+                if (line[i] != decimal[i] && i < 7)
+                {
+                    message_error("Decimal escrito incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+            /*SINTÁTICO*/
+            if (verificarVariavelDecimal(line, 7, line_number) == 1)
+            {
+                return 1;
+            }
+            printf("decimal ok\n");
+        }
+        else if (line[0] == 'l')
+        {
+            /*LÉXICO*/
+            for (int i = 0; line[i] != '\0'; i++)
+            {
+                if (line[i] != leia[i] && i < 4)
+                {
+                    message_error("Leia escrito incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+            /*SINTÁTICO*/
+            int aux = 0;
+            while (isspace(line[4 + aux]))
+            {
+                aux++;
+            }
+            if (line[4 + aux] != '(')
+            {
+                message_error("Falta '(' depois de leia", line_number);
+            }
+            if (verificarLeia(line, 5 + aux, line_number) == 1)
+            { /*Funciona, mas deixa = passar*/
+                return 1;
+            }
+            for (int i = 4; line[i] != '\0'; i++)
+            {
+                if (line[i] == '=')
+                {
+                    message_error("Não é permitido atribuições no leia", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+            printf("leia ok\n");
+        }
+        else if (line[0] == 'r') /*talvez colocar junto com função separado*/
+        {
+            /* Verifica se retorno !variavel; - LÉXICO*/
+            int i = 0;
+            for (i=0; i < 7; i++)
+            {
+                if (line[i] != retorno[i])
+                {
+                    message_error("Retorno escrito incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+            /*SINTÁTICO*/
+            bool has_variable = false;
+            /*verificar !variavel ou espaços*/
+            for (i; line[i] != '\0'; i++)
+            {
+                if (isspace(line[i]))
+                {
+                    continue;
+                }
+                /* Encontrou não-espaço: deve ser '!' */
+                if (line[i] == '!' && !has_variable)
+                {
+                    has_variable = true;
+                    i++;
+                    break;
+                }
+                else
+                {
+                    message_error("Esperado '!' antes da variável", line_number);
+                    return 1;
+                }
+            }
+            if (has_variable)
+            {
+                /* Verificar primeiro caractere (obrigatoriamente a-z) */
+                if (line[i] < 'a' || line[i] > 'z')
+                {
+                    message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+                    return 1;
+                }
+                else
+                {
+                    i++;
+                }
+                /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+                while (isalnum((unsigned char)line[i]))
+                {
+                    i++;
+                }
+            }
+            /*verifica se tem algo depois de retorno ou variavel, pode ser espaço ou ;*/
+            while (line[i] != '\0')
+            {
+                if (isspace((unsigned char)line[i]) || line[i] == ';')
+                {
+                    if (line[i] == ';')
+                    {
+                        i++;
+                        while (line[i] != '\0')
+                        {
+                            if (!isspace((unsigned char)line[i]))
+                            {
+                                message_error("Caracteres inválidos após ';'", line_number);
+                                return 1;
+                            }
+                            i++;
+                        }
+                        break;
+                    }
+                    i++;
+                }
+                else
+                {
+                    message_error("Caractere inválido após variável. Esperado espaço ou ';'", line_number);
+                    return 1;
+                }
+            }
+            printf("retorno ok\n");
+            /*Fim da verificação de retorno !variavel;*/
+        }
+        else if (line[0] == 'e')
+        {
+            /*Checando se é escreva("texto")*/
+            int i = 0;
+            /* Verifica se começa com "escreva" - LÉXICO*/
+            for (i; i < 7; i++)
+            {
+                if (line[i] != escreva[i])
+                {
+                    message_error("Módulo escreva escrito incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+            }
+            /*SINTÁTICO*/
+            int parenteses_control_open_escreva = 0;
+            int aspas_control_open_escreva = 0;
+            int len = strlen(line);
+            bool aspas_control = false;
+            /* Verifica restante da linha */
+            for (i; line[i] != '\0'; i++)
+            {
+                /* Verificar parênteses*/
+                if (parenteses_control_open_escreva == 0)
+                {
+                    if (isspace((unsigned char)line[i]) || line[i] == '(')
+                    { /*abre parênteses*/
+                        if (line[i] == '(')
+                        {
+                            parenteses_control_open_escreva++;
+                        }
+                    }
+                }
+                else if (parenteses_control_open_escreva >= 1)
+                { /*tem que ter aspas*/
+                    int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+
+                    if (isspace((unsigned char)line[i]) ||  quote_bytes > 0 && !aspas_control)
+                    {
+                        if (quote_bytes > 0)
+                        {
+                            if (quote_bytes == 3) {
+                                i = i + 3;
+                            } else {
+                                i++;
+                            }
+                            aspas_control_open_escreva ++;
+                            while (!aspas_control)
+                            {
+                                quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+                                if (quote_bytes > 0)
+                                {
+                                    aspas_control = true;
+                                    aspas_control_open_escreva ++;
+
+                                    if (aspas_control_open_escreva > 2)
+                                    {
+                                        message_error("Use apenas duas aspas", line_number);
+                                        return 1;
+                                    }
+                                }
+                                else if(line[i] == '/0' || line[i] == ')')
+                                {
+                                    message_error("Precisa fechar as aspas\n", line_number);
+                                    return 1;
+                                }
+                                i++;
+                            }
+                            continue;
+                        }
+                    }
+                    else if (line[i] == ',' && aspas_control)
+                    { /* Tem parâmetro */
+                        i++;
+                        while(isspace((unsigned char)line[i])) i++;
+
+                        if (isspace((unsigned char)line[i]) || line[i] == '!')
+                        {
+                            if (line[i] == '!')
+                            {
+                                Resultado res = verificarParametroFuncao(line, i, line_number);
+                                i = res.posicao;
+                                if (res.sucesso == 1)
+                                {
+                                    return 1;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    else if (line[i] == ')')
+                    {
+                        parenteses_control_open_escreva--;
+                    }
+                    else if (isspace((unsigned char)line[i]) || line[i] == ';')
+                    {
+                        continue;
+                    }
+                }
+            }
+            printf("escreva ok\n");
+            /*Fim da checagem escreva("texto") */
+        }
+        else if (line[0] == 's')
+        {
+            bool is_se = false;
+            bool is_senao = false;
+            int len = strlen(line);
+            /* Verifica se começa com "se" ou "senao" */
+            if (strncmp(line, se, 2) == 0) {
+                /* Verificar se é senao (5 caracteres) */
+                if (len >= 3 && strncmp(line, senao, 3) == 0) {
+                    is_senao = true;
+                } else {
+                    is_se = true;
+                }
+            }
+            if (is_se)
+            {
+                /*Checando se é se*/
+                int i = 2;
+                /* Verifica se se(){ - LÉXICO*/
+                if (!strncmp(line, se, 2) == 0) {
+                    message_error("Módulo se incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+                /*SINTÁTICO*/
+                int parenteses_control_open_se = 0;
+
+                /* Verifica restante da linha */
+                for (i; line[i] != '\0'; i++)
+                {
+                    /* Verificar parênteses*/
+                    if (parenteses_control_open_se == 0)
+                    {
+                        if (isspace((unsigned char)line[i]) || line[i] == '(')
+                        { /*abre parênteses*/
+                            if (line[i] == '(')
+                            {
+                                parenteses_control_open_se++;
+                            }
+                        }
+                    }
+                    else if (parenteses_control_open_se >= 1)
+                    {
+                        while(isspace((unsigned char)line[i]))i++;
+
+                        int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+                        if (line[i] == '!' || line[i] == '"' || quote_bytes>0)
+                        {
+                            Resultado res = verificarParametrosSe(line, i, line_number, len);
+                            i = res.posicao;
+                            if (res.sucesso == 1)
+                            {
+                                return 1;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        else if ((line[i] == '|' && line[i+i] == '|') || (line[i] == '&' && line[i] == '&'))
+                        {
+                            i++;
+                            while(isspace((unsigned char)line[i]))i++;
+                            int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+
+                            if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
+                            {
+                                Resultado res = verificarParametrosSe(line, i, line_number, len);
+                                i = res.posicao;
+                                if (res.sucesso == 1)
+                                {
+                                    return 1;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                        else if (line[i] == ')')
+                        {
+                            parenteses_control_open_se--;
+                        }
+                        else if (isspace((unsigned char)line[i]) || line[i] == '{')
+                        {
+                            continue;
+                        }
+                    }
+                }
+                printf("se ok\n");
+                /*fim da checagem se é se*/
+            }
+            else if (is_senao)
+            {
+                /*Checando se é senao - LÉXICO*/
+                int i = 5;
+                if (strncmp(line, senao, 5) != 0) {
+                    message_error("Módulo senao incorretamente", line_number);
+                    return 1; /*O código PARA quando encontra erro*/
+                }
+                while (isspace((unsigned char)line[i])){i++;}
+
+                /* Se houver conteúdo após "senao" - SINTÁTICO*/
+                if (line[i] != '\0') {
+                    /*criar função para tratar todos os casos*/
+                    /*enviar a linha e a posição i*/
+                }
+                printf("senao ok\n");
+                /*fim da checagem se é senao*/
+            }
+            else
+            {
+                message_error("Comando deve ser 'se' ou 'senao'", line_number);
+                return 1;
+            }
+        }
+        else if(line[0]=='!')/*mudando valores de variáveis, atribuições*/
+        { /*Vou fazer uma função só pra isso, e aí adicionar aqui e no inteiro e decimal*/
+            if(verificarOperacaoMatematicaMain(line, 0, line_number)==1){
+                return 1;
+            } else{
+                printf("Operação com variável ok\n");
+            }
+        }
+        else if (line[0] == '_') /*chamada de função*/
+        {
+            /*aqui tem que pegar se a função foi declarada previamente*/
+        }
+        else if (line[0] == '}' || line[0] == '{' || line[0] == '\0' )
+        { /*Aqui tudo que pode estar sozinho na linha - condição final*/
+            printf("Conteúdo ok\n");
+        } else
+        { /*aqui tudo que não poderia estar solto no conteúdo*/
+            printf("Conteúdo não reconhecido na linha %i: %c\n",line_number, line[0]);
+            return 1;
+        }
+
+         (*line_number)++;
+    }
+
+    return 0;
+
+
+}
+
+
+
 int carregarNaMemoria(int Memory, int MaxMemory, int size)
 {
     if (Memory + size <= 0.9 * MaxMemory)
@@ -980,9 +993,9 @@ int carregarNaMemoria(int Memory, int MaxMemory, int size)
     }
 };
 
-void message_error(const char *erro, int line_number)
+void message_error(const char *erro, int *line_number)
 {
-    printf("Erro na linha %d: %s\n", line_number, erro);
+    printf("Erro na linha %d: %s\n", *line_number, erro);
 }
 
 /* Função que garante que todo ';' seja seguido por '\n' e retorna o nome do arquivo de saída*/
@@ -1058,7 +1071,7 @@ char *garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada)
 }
 
 /* Função para declaração de variável inteira*/
-int verificarVariavelInteira(char line[], int posicao, int line_number)
+int verificarVariavelInteira(char line[], int posicao, int *line_number)
 {
     for (int i = posicao; line[i] != '\0'; i++)
     {
@@ -1185,7 +1198,7 @@ int verificarVariavelInteira(char line[], int posicao, int line_number)
 }
 
 /* Função para declaração de variável de texto*/
-int verificarVariavelTexto(char line[], int posicao, int line_number)
+int verificarVariavelTexto(char line[], int posicao, int *line_number)
 {
     for (int i = posicao; line[i] != '\0'; i++)
     {
@@ -1326,7 +1339,7 @@ int verificarVariavelTexto(char line[], int posicao, int line_number)
 }
 
 /* Função para declaração de variável de decimais*/
-int verificarVariavelDecimal(char line[], int posicao, int line_number)
+int verificarVariavelDecimal(char line[], int posicao, int *line_number)
 {
     for (int i = posicao; line[i] != '\0'; i++)
     {
@@ -1440,7 +1453,7 @@ int verificarVariavelDecimal(char line[], int posicao, int line_number)
 }
 
 /* Função para verificação de variável dentro de leia*/
-int verificarLeia(char line[], int posicao, int line_number)
+int verificarLeia(char line[], int posicao, int *line_number)
 {
     int i = posicao;
     int len = strlen(line);
@@ -1517,7 +1530,7 @@ int verificarLeia(char line[], int posicao, int line_number)
     return 0;
 }
 
-int verificarOperacaoMatematica(char line[], int posicao, int line_number, int flagTemPonto) /*verifica depois de =*/
+int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int flagTemPonto) /*verifica depois de =*/
 {
     for (int i = posicao; line[i] != '\0'; i++)
     {
@@ -1889,7 +1902,7 @@ int is_smart_quote(const char *str, int pos, int length)
     return 0;
 }
 
-int verificarOperacaoMatematicaMain(char line[], int posicao, int line_number)
+int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number)
 {
     for (int i = posicao; line[i] != '\0'; i++)
     {
@@ -2143,7 +2156,7 @@ int verificarBalanceamento(FILE* file) {
 /*----------------------------------------------------------------------------------------------------------*/
 /*funções que retornam Resultado*/
 /*função para tratar parametro das funcoes*/
-Resultado verificarParametroFuncao(char line[], int posicao, int line_number)
+Resultado verificarParametroFuncao(char line[], int posicao, int *line_number)
 {
     int i = posicao;
 
@@ -2193,7 +2206,7 @@ Resultado verificarParametroFuncao(char line[], int posicao, int line_number)
 }
 
 /*função para tratar parametros de para*/
-Resultado verificarParametrosPara(char line[], int posicao, int line_number)
+Resultado verificarParametrosPara(char line[], int posicao, int *line_number)
 {
     int i = posicao;
 
@@ -2287,7 +2300,7 @@ Resultado verificarParametrosPara(char line[], int posicao, int line_number)
 }
 
 /*função para tratar parametros de se*/
-Resultado verificarParametrosSe(char line[], int posicao, int line_number, int len)
+Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int len)
 {
     int i = posicao;
     int aspas_control_open_se= 0;
