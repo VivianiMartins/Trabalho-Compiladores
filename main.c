@@ -581,7 +581,6 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                     }
                 }
             }
-            printf("linha: %i\n", (*line_number));
             printf("Funcao ok\n\n");
             /*Fim da checagem se é funcao __xxx(){*/
         }
