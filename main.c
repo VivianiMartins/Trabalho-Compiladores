@@ -92,6 +92,7 @@ void liberar_arvore(Node *raiz);
 char* duplicar_string(const char *s);
 char *substring(const char *str, int inicio, int tamanho);
 int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number);
+int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number);
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*Criação da varíavel global da tabela de símbolos*/
@@ -1399,8 +1400,13 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
                             }
                             else
                             {
-                                message_error("Não foi encontrada aspas no texto\n", line_number);
-                                return 1;
+                                if(line[i]=='!'){
+                                    return verificarOperacaoMatematica(line, i, line_number, 0);
+                                } else {
+                                    message_error("Não foi encontrada aspas no texto\n", line_number);
+                                    printf("aqui o texto: %c", line[i]);
+                                    return 1;
+                                }
                             }
                         }
                     }
@@ -1699,6 +1705,7 @@ int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, 
                 if(!encontrado1){
 
                     message_error("Você tentou usar uma variável não declarada anteriormente", line_number);
+                    inorder(raiz);
                     return 1;
                 }
                 if (strcmp(encontrado1->tipo, encontrado->tipo)!=0){
@@ -1755,6 +1762,19 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
 
                     if(extrair_e_printar_palavras(line,i,encontrado,line_number)==1){
                        return 1;
+                    }
+                    if(strcmp(encontrado->tipo,"texto")==0){
+                        while(isspace(line[i])){
+                            i++;
+                        }
+                        if(line[i]!=';'){
+                            if(line[i]!='\0'){
+                                message_error("Operação com texto não permitida", line_number);
+                            }
+                        } else {
+                            /*Vamos replicar aquele processo de voltar só que para salvar os valores*/
+                            /*Checar tamanho*/
+                        }
                     }
                     free(q);
                     if(isspace(line[i])){
@@ -2173,7 +2193,7 @@ int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number)
                                         {
                                         i++;
                                         }
-                                        if(line[i]!='\0'||line[i]!='\n'){
+                                        if(line[i]!='\0'&&line[i]!='\n'){
                                             message_error("Só podem conter espaços depois de ponto e vírgula\n", line_number);
                                             return 1;
                                         } else {
@@ -3397,4 +3417,73 @@ void liberar_arvore(Node *raiz) {
     free(raiz->tipo);
     free(raiz->valor);
     free(raiz);
+}
+
+int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number) {
+    int pos_igual = -1;
+    for (int k = posicao_atual - 1; k >= 0; k--) {
+        if (line[k] == '=') {
+            pos_igual = k;
+            break;
+        }
+    }
+
+    if (pos_igual == -1) {
+        message_error("Erro: '=' não encontrado antes da posição atual\n", line_number);
+        return 1;
+    }
+
+    /* Agora processa as palavras antes do '=' */
+    int inicio_palavra = 0;
+
+    for (int k = 0; k < pos_igual; k++) {
+        /* Encontrou uma palavra que começa com '!' */
+        if (line[k] == '!') {
+            inicio_palavra = k + 1; // Pula o '!'
+            int fim_palavra = inicio_palavra;
+
+            // Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')
+            while (fim_palavra < pos_igual &&
+                   line[fim_palavra] != ',' &&
+                   line[fim_palavra] != ' ' &&
+                   line[fim_palavra] != '=') {
+                fim_palavra++;
+            }
+
+            // Se encontrou uma palavra válida
+            if (fim_palavra > inicio_palavra) {
+                int len_palavra = fim_palavra - inicio_palavra;
+                char *palavra = malloc(len_palavra + 1);
+
+                if (palavra == NULL) {
+                    message_error("Erro ao alocar memória", line_number);
+                    return 1;
+                }
+
+                strncpy(palavra, &line[inicio_palavra], len_palavra);
+                palavra[len_palavra] = '\0';
+
+                /*printf("Palavra encontrada: %s\n", palavra);*/
+                Node *encontrado1 = buscar_no(raiz, palavra);
+                if(!encontrado1){
+                    message_error("Você tentou usar uma variável não declarada anteriormente...", line_number);
+                    return 1;
+                }
+                if (encontrado1->tamanho==encontrado->tamanho){
+                    raiz = alterar_no(raiz, encontrado1->nome, encontrado1->nome, encontrado1->tipo, encontrado1->tamanho, encontrado->valor);
+                } else {
+                    message_error("Para realizar alterações em sua variável, elas precisam ter o mesmo tamanho", line_number);
+                    return 1;
+                }
+                free(palavra);
+            }
+
+            k = fim_palavra;
+            while (k < pos_igual && (line[k] == ',' || line[k] == ' ')) {
+                k++;
+            }
+            k--;
+        }
+    }
+    return 0;
 }
