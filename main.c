@@ -98,7 +98,7 @@ Node *raiz = NULL;
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_correto_funcao.txt", "r");
+    FILE *file = fopen("exemplo_correto.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
