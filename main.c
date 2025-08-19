@@ -91,6 +91,7 @@ void inorder(Node *raiz);
 void liberar_arvore(Node *raiz);
 char* duplicar_string(const char *s);
 char *substring(const char *str, int inicio, int tamanho);
+int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number);
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*Criação da varíavel global da tabela de símbolos*/
@@ -1162,30 +1163,31 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                 }; /*verifica se o restante é alfanumerico*/
                 if (line[i] == ',' && (isspace(line[i + 1])))
                 { /*tem mais parâmetros que precisam ser verificados*/
-                    int len = (i - j);              // tamanho da substring
-                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    int len = (i - j);              /* tamanho da substring*/
+                    char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
                         return 1;
                     }
 
                     strncpy(extraida, &line[j], len);
-                    extraida[len] = '\0'; // garante fim da string
+                    extraida[len] = '\0'; /* garante fim da string*/
                     raiz = inserir_no(raiz, extraida, "inteiro", 99, "0");
+
                     free(extraida);
                     return verificarVariavelInteira(line, i + 1, line_number);
                 }
                 else if (line[i] == ';' && line[i + 1] == '\0')
                 {
-                    int len = (i - j);              // tamanho da substring
-                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    int len = (i - j);              /* tamanho da substring*/
+                    char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
                         return 1;
                     }
 
                     strncpy(extraida, &line[j], len);
-                    extraida[len] = '\0'; // garante fim da string
+                    extraida[len] = '\0'; /* garante fim da string*/
                     raiz = inserir_no(raiz, extraida, "inteiro", 99, "0");
                     free(extraida);
                     return 0;
@@ -1222,6 +1224,17 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                 }
                 else if (isspace(line[i]))
                 {
+                    int len = (i - j);              // tamanho da substring
+                    char *extraida = malloc(len + 1); // +1 para o terminador '\0'
+                    if (extraida == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(extraida, &line[j], len);
+                    extraida[len] = '\0'; // garante fim da string
+                    raiz = inserir_no(raiz, extraida, "inteiro", 99, "0");
+                    free(extraida);
                     do
                     {
                         i++;
@@ -1637,6 +1650,76 @@ int verificarLeia(char line[], int posicao, int *line_number)
     return 0;
 }
 
+int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number) {
+    int pos_igual = -1;
+    for (int k = posicao_atual - 1; k >= 0; k--) {
+        if (line[k] == '=') {
+            pos_igual = k;
+            break;
+        }
+    }
+
+    if (pos_igual == -1) {
+        message_error("Erro: '=' não encontrado antes da posição atual\n", line_number);
+        return 1;
+    }
+
+    /* Agora processa as palavras antes do '=' */
+    int inicio_palavra = 0;
+
+    for (int k = 0; k < pos_igual; k++) {
+        /* Encontrou uma palavra que começa com '!' */
+        if (line[k] == '!') {
+            inicio_palavra = k + 1; // Pula o '!'
+            int fim_palavra = inicio_palavra;
+
+            // Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')
+            while (fim_palavra < pos_igual &&
+                   line[fim_palavra] != ',' &&
+                   line[fim_palavra] != ' ' &&
+                   line[fim_palavra] != '=') {
+                fim_palavra++;
+            }
+
+            // Se encontrou uma palavra válida
+            if (fim_palavra > inicio_palavra) {
+                int len_palavra = fim_palavra - inicio_palavra;
+                char *palavra = malloc(len_palavra + 1);
+
+                if (palavra == NULL) {
+                    message_error("Erro ao alocar memória", line_number);
+                    return 1;
+                }
+
+                strncpy(palavra, &line[inicio_palavra], len_palavra);
+                palavra[len_palavra] = '\0';
+
+                /*printf("Palavra encontrada: %s\n", palavra);*/
+                Node *encontrado1 = buscar_no(raiz, palavra);
+                if(!encontrado1){
+
+                    message_error("Você tentou usar uma variável não declarada anteriormente", line_number);
+                    return 1;
+                }
+                if (strcmp(encontrado1->tipo, encontrado->tipo)!=0){
+
+                    message_error("Os tipos das variáveis do lado direito e esquerdo do '=' devem ser os mesmos", line_number);
+                    inorder(raiz);
+                    return 1;
+                }
+                free(palavra);
+            }
+
+            k = fim_palavra;
+            while (k < pos_igual && (line[k] == ',' || line[k] == ' ')) {
+                k++;
+            }
+            k--;
+        }
+    }
+    return 0;
+}
+
 int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int flagTemPonto) /*verifica depois de =*/
 {
     for (int i = posicao; line[i] != '\0'; i++)
@@ -1648,12 +1731,32 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
         {
             /*regra para variáveis*/
                 i++;
+                int j = i;
                 if (line[i] >= 'a' && line[i] <= 'z')
                 {
                     while (isalnum((unsigned char)line[i]))
                     {
                         i++;
                     }; /*verifica se o restante é alfanumerico*/
+                    int len = (i - j);              /* tamanho da substring*/
+                    char *q = malloc(len + 1); /* +1 para o terminador '\0'*/
+                    if (q == NULL) {
+                        message_error("Erro ao alocar memória", line_number);
+                        return 1;
+                    }
+
+                    strncpy(q, &line[j], len);
+                    q[len] = '\0'; /* garante fim da string*/
+                    Node *encontrado = buscar_no(raiz, q);
+                    if(!encontrado){
+                        message_error("Você tentou usar uma variável não declarada anteriormente", line_number);
+                        return 1;
+                    }
+
+                    if(extrair_e_printar_palavras(line,i,encontrado,line_number)==1){
+                       return 1;
+                    }
+                    free(q);
                     if(isspace(line[i])){
                         i++;
                         while (isspace(line[i])){
@@ -1989,14 +2092,23 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
 /*Função para verificar tipos de aspas duplas diferentes*/
 int is_smart_quote(const char *str, int pos, int length)
 {
+    /* Verifica se há pelo menos 3 bytes disponíveis */
+    if (pos + 2 >= length) {
+        return 0;
+    }
+
     /* Verifica usando comparação de strings segura */
     if (strncmp(str + pos, "\xE2\x80\x9C", 3) == 0) {  /* “ */
         return 1;
     }
     if (strncmp(str + pos, "\xE2\x80\x9D", 3) == 0) {  /* ” */
-
         return 1;
     }
+
+    if (str[pos] == '"') {  /* Verifica aspas normais*/
+        return 1;
+    }
+
     return 0;
 }
 
@@ -3144,8 +3256,7 @@ Node* inserir_no(Node *raiz, const char *nome, const char *tipo, float tamanho, 
         /* Right Left */
         raiz->dir = rotacao_direita(raiz->dir);
         return rotacao_esquerda(raiz);
-    }
-
+    };
     return raiz;
 }
 
