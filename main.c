@@ -70,6 +70,10 @@ Resultado verificarParametroFuncao(char line[], int posicao, int *line_number); 
 Resultado verificarParametrosPara(char line[], int posicao, int *line_number);  /*função para tratar parametros de para*/
 Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int len); /*função para tratar parametros de se*/
 
+/*funções que utilizam a struct Funcao*/
+int validar_nome_variavel(char *s); /* Função auxiliar para validar nomes de variáveis nos parâmetros */
+Funcao* encontrar_funcoes(FILE *file);/* Função para encontrar funções no arquivo */
+
 /*Funções para tabela de símbolos*/
 Node* criar_no(const char *nome, const char *tipo, float tamanho, const char *valor);
 int altura(Node *n);
@@ -94,7 +98,7 @@ Node *raiz = NULL;
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_correto.txt", "r");
+    FILE *file = fopen("exemplo_correto_funcao.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -121,6 +125,30 @@ int main()
         printf("Duplo balanceamento ok\n\n");
         rewind(file); /* Volta para o início do arquivo para reprocessar*/
 
+        /*guardando funções existentes*/
+        Funcao *lista_funcoes = encontrar_funcoes(file);
+        /* Contar quantas funções foram encontradas */
+        int count_funcoes = 0;
+        Funcao *temp = lista_funcoes;
+        while (temp != NULL) {
+            count_funcoes++;
+            temp = temp->proxima;
+        }
+        /* Imprimir apenas se houver funções */
+        if (count_funcoes > 0) {
+            printf("Funcoes encontradas (%d):\n", count_funcoes);
+            Funcao *atual = lista_funcoes;
+            while (atual != NULL) {
+                printf("- %s (linha %d, %d parametros)\n", atual->nome, atual->linha_declaracao, atual->num_parametros);
+                for (int i = 0; i < atual->num_parametros; i++) {
+                    printf("  Param %d: %s\n", i+1, atual->parametros[i]);
+                }
+                atual = atual->proxima;
+            }
+            printf("\n"); /* linha em branco após a listagem */
+        }
+        rewind(file);
+
         int line_number = 1;          /*número da linha em questão*/
         long start_pos = ftell(file); /*Posição inicial (0)*/
         size_t memory = 0;            /*memória*/
@@ -135,8 +163,9 @@ int main()
             if(cont_principal == 0)
             {
                 message_error("Módulo principal inexistente", &line_number);
+                fclose(file); return 1;
             }
-            printf("Análise léxica e sintática ok\n");
+            printf("Análise léxica e sintática ok\n\n");
         } else
         {
             fclose(file); return 1;
@@ -175,16 +204,8 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
     const char *se = "se";
     const char *senao = "senao";
 
-
-     printf("Valor antes linha: %d\n", *line_number);
-      printf("Valor antes principal: %d\n", *cont_principal);
-
     while (fgets(line, sizeof(line), file))
     { /*Coloquei em loop pra ficar verificando*/
-        printf("Valor no while linha: %d\n", *line_number);
-      printf("Valor while principal: %d\n", *cont_principal);
-
-
         printf("Linha %d: %s", (*line_number), line); /*printa linha por linha*/
 
         /* Detecta e ignora BOM: Arquivos UTF-8 podem começar com um caractere especial invisível (BOM) que tem
@@ -965,10 +986,7 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
     }
 
     return 0;
-
-
 }
-
 
 
 int carregarNaMemoria(int Memory, int MaxMemory, int size)
@@ -2188,7 +2206,6 @@ int verificarBalanceamento(FILE* file) {
     return 0;
 }
 
-
 /*----------------------------------------------------------------------------------------------------------*/
 /*funções que retornam Resultado*/
 /*função para tratar parametro das funcoes*/
@@ -2464,6 +2481,203 @@ Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int 
         message_error("Caractere inválido no parâmetro\n", line_number);
         return (Resultado){i, 1};
     }
+}
+
+
+/*----------------------------------------------------------------------------------------------------------*/
+/*funções que retornam Função*/
+/* Função auxiliar para validar nomes de variáveis nos parâmetros */
+int validar_nome_variavel(char *s) {
+    if (s[0] != '!') {
+        return 0;
+    }
+    if (!(s[1] >= 'a' && s[1] <= 'z')) {
+        return 0;
+    }
+    int i = 2;
+    while (s[i] != '\0') {
+        if (!isalnum((unsigned char)s[i])) {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+/* Função para encontrar funções no arquivo */
+Funcao* encontrar_funcoes(FILE *file) {
+    Funcao *lista = NULL;
+    char line[256];
+    int line_number = 1;
+
+    while (fgets(line, sizeof(line), file)) {
+        /* Remover BOM se existir */
+        if (strlen(line) >= 3 &&
+            (unsigned char)line[0] == 0xEF &&
+            (unsigned char)line[1] == 0xBB &&
+            (unsigned char)line[2] == 0xBF) {
+            memmove(line, line + 3, strlen(line) - 2);
+        }
+
+        /* Remover espaços iniciais */
+        int i = 0;
+        while (isspace((unsigned char)line[i])) {
+            i++;
+        }
+
+        /* Verificar se linha começa com "funcao" */
+        if (strncmp(&line[i], "funcao", 6) == 0) {
+            i += 6; /* Avançar após "funcao" */
+
+            /* Pular espaços após "funcao" */
+            while (isspace(line[i])) {
+                i++;
+            }
+
+            /* Verificar "__" */
+            if (line[i] != '_' || line[i+1] != '_') {
+                line_number++;
+                continue;
+            }
+            i += 2; /* Avançar após "__" */
+
+            /* Extrair nome da função */
+            int start_nome = i;
+            if (!isalnum((unsigned char)line[i])) {
+                line_number++;
+                continue;
+            }
+            i++;
+            while (isalnum((unsigned char)line[i])) {
+                i++;
+            }
+            int nome_len = i - start_nome;
+            char nome[64];
+            if (nome_len >= 64) nome_len = 63;
+            strncpy(nome, &line[start_nome], nome_len);
+            nome[nome_len] = '\0';
+
+            /* Pular espaços após o nome */
+            while (isspace(line[i])) {
+                i++;
+            }
+
+            /* Verificar '(' */
+            if (line[i] != '(') {
+                line_number++;
+                continue;
+            }
+            i++; /* Avançar após '(' */
+
+            /* Encontrar ')' correspondente */
+            int start_params = i;
+            int parent_count = 1;
+            while (line[i] != '\0' && parent_count > 0) {
+                if (line[i] == '(') parent_count++;
+                else if (line[i] == ')') parent_count--;
+                i++;
+            }
+            if (parent_count != 0) {
+                line_number++;
+                continue;
+            }
+
+            /* Extrair substring de parâmetros (excluindo o último ')') */
+            int params_len = (i - 1) - start_params;
+            char param_str[256] = {0};
+            if (params_len > 0) {
+                strncpy(param_str, &line[start_params], params_len);
+            }
+
+            /* Processar parâmetros */
+            char parametros[10][64] = {{0}};
+            int num_params = 0;
+
+            /* Se não há parâmetros (string vazia ou só espaços) */
+            char *temp = param_str;
+            while (isspace(*temp)) temp++;
+            if (*temp == '\0') {
+                /* Função sem parâmetros - criar struct */
+                Funcao *nova = (Funcao*)malloc(sizeof(Funcao));
+                if (nova) {
+                    strncpy(nova->nome, nome, 63);
+                    nova->nome[63] = '\0';
+                    nova->linha_declaracao = line_number;
+                    nova->num_parametros = 0;
+                    nova->proxima = lista;
+                    lista = nova;
+                }
+            } else {
+                /* Processar parâmetros separados por vírgula */
+                char *token = strtok(param_str, ",");
+                int valid_params = 1;
+
+                while (token != NULL && num_params < 10) {
+                    /* Remover espaços do token */
+                    char *start = token;
+                    while (isspace(*start)) start++;
+                    char *end = token + strlen(token) - 1;
+                    while (end > start && isspace(*end)) end--;
+                    *(end + 1) = '\0';
+
+                    /* Ignorar tokens vazios */
+                    if (strlen(start) == 0) {
+                        token = strtok(NULL, ",");
+                        continue;
+                    }
+
+                    /* Para sua sintaxe, aceitar diretamente nomes de variáveis */
+                    /* Verificar se é um tipo conhecido seguido de variável */
+                    char *var_start = NULL;
+                    if (strncmp(start, "inteiro", 7) == 0) {
+                        var_start = start + 7;
+                        while (isspace(*var_start)) var_start++;
+                    } else if (strncmp(start, "texto", 5) == 0) {
+                        var_start = start + 5;
+                        while (isspace(*var_start)) var_start++;
+                    } else if (strncmp(start, "decimal", 7) == 0) {
+                        var_start = start + 7;
+                        while (isspace(*var_start)) var_start++;
+                    } else {
+                        /* Assumir que é apenas nome de variável (sem tipo explícito) */
+                        var_start = start;
+                    }
+
+                    /* Validar nome da variável */
+                    if (!validar_nome_variavel(var_start)) {
+                        valid_params = 0;
+                        break;
+                    }
+
+                    /* Salvar nome do parâmetro */
+                    strncpy(parametros[num_params], var_start, 63);
+                    parametros[num_params][63] = '\0';
+                    num_params++;
+
+                    token = strtok(NULL, ",");
+                }
+
+                /* Se todos os parâmetros válidos, criar struct */
+                if (valid_params) {
+                    Funcao *nova = (Funcao*)malloc(sizeof(Funcao));
+                    if (nova) {
+                        strncpy(nova->nome, nome, 63);
+                        nova->nome[63] = '\0';
+                        nova->linha_declaracao = line_number;
+                        nova->num_parametros = num_params;
+                        for (int j = 0; j < num_params; j++) {
+                            strncpy(nova->parametros[j], parametros[j], 63);
+                            nova->parametros[j][63] = '\0';
+                        }
+                        nova->proxima = lista;
+                        lista = nova;
+                    }
+                }
+            }
+        }
+
+        line_number++;
+    }
+    return lista;
 }
 
 /*----------------------------------------------------------------------------------------------------------*/
