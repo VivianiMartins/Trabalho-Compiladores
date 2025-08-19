@@ -52,7 +52,7 @@ typedef struct Node {
 } Node;
 /*----------------------------------------------------------------------------------------------------------*/
 /*Declaração de funções*/
-int varredura_principal(FILE *file, int *line_number, int *cont_principal, int is_function); /*função que irá varrer cada linha, testar cada*/
+int varredura_principal(FILE *file, char *line,int *line_number, int *cont_principal, int is_function); /*função que irá varrer cada linha, testar cada*/
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int *line_number); /*função para retorno de erro*/
 char *garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
@@ -98,7 +98,7 @@ Node *raiz = NULL;
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_correto.txt", "r");
+    FILE *file = fopen("exemplo_correto_funcao.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -149,13 +149,14 @@ int main()
         }
         rewind(file);
 
+        char line[256];
         int line_number = 1;          /*número da linha em questão*/
         long start_pos = ftell(file); /*Posição inicial (0)*/
         size_t memory = 0;            /*memória*/
         size_t line_size = 0;         /*tamanho de cada linha que irei ler*/
         int cont_principal = 0;         /*controle de principal - SINTÁTICO*/
 
-        int resultado_final = varredura_principal(file, &line_number, &cont_principal, 0);
+        int resultado_final = varredura_principal(file, line ,&line_number, &cont_principal, 0);
 
 
         if (resultado_final == 0)
@@ -189,8 +190,7 @@ int main()
 /*----------------------------------------------------------------------------------------------------------*/
 /*funções*/
 /*função que irá varrer cada linha, testar cada*/
-int varredura_principal(FILE *file, int *line_number, int *cont_principal, int is_function) {
-    char line[256];
+int varredura_principal(FILE *file,char *line , int *line_number, int *cont_principal, int is_function) {
     /*palavras reservadas - LÉXICO*/
     const char *principal = "principal";
     const char *para = "para";
@@ -204,7 +204,11 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
     const char *se = "se";
     const char *senao = "senao";
 
-    while (fgets(line, sizeof(line), file))
+    /*controladores para função*/
+    bool retorno_control = false;
+    bool curly_control = false;
+
+    while (fgets(line, 256, file))
     { /*Coloquei em loop pra ficar verificando*/
         printf("Linha %d: %s", (*line_number), line); /*printa linha por linha*/
 
@@ -440,7 +444,7 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
                 return 1; /*O código PARA quando encontra erro*/
             }
         }
-        else if (line[0] == 'f') /*Isso será feito antes e separado, para que já fique salvo o nome da função?*/
+        else if (line[0] == 'f' && !is_function) /*Isso será feito antes e separado, para que já fique salvo o nome da função?*/
         {/*percorrer novamente verificando as funções, se estiverem ok, salvar o nome delas, qual linha está*/
             /*Checando se é funcao __xxx(){*/
             int i = 0;
@@ -533,6 +537,10 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
                             }
                             else
                             {
+                                if (line[i] == ')')
+                                {
+                                    parenteses_control_open_funcao--;
+                                }
                                 continue;
                             }
                         }
@@ -546,9 +554,8 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
                         /* Se ainda não encontramos a chave */
                         if (!funcao_found_curly_brace)
                         {
-                            if (isspace((unsigned char)line[i]))
-                            {
-                            continue;
+                            if (isspace((unsigned char)line[i])){
+                                continue;
                             }
                             else if (line[i] == '{')
                             { /* Encontrou a chave de abertura */
@@ -560,14 +567,22 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
                                 return 1; /*O código PARA quando encontra erro*/
                             }
                         }
-                        else
-                        { /* Após encontrar a chave e não tiver terminado, passar p frente*/
-                            break;
+                        if (funcao_found_curly_brace)
+                        { /*estamos dentor da função, verificar tudo o que tem*/
+                            (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
+                            int dentroFuncao = varredura_principal(file, line, line_number, cont_principal, 1);
+
+                            if (dentroFuncao != 0)
+                            {
+                                message_error("Função construída incorretamente", line_number);
+                                return 1;
+                            }
                         }
                     }
                 }
             }
-            printf("Funcao ok\n");
+            printf("linha: %i\n", (*line_number));
+            printf("Funcao ok\n\n");
             /*Fim da checagem se é funcao __xxx(){*/
         }
         else if (line[0] == 'i')
@@ -658,88 +673,6 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
                 }
             }
             printf("leia ok\n");
-        }
-        else if (line[0] == 'r') /*talvez colocar junto com função separado*/
-        {
-            /* Verifica se retorno !variavel; - LÉXICO*/
-            int i = 0;
-            for (i=0; i < 7; i++)
-            {
-                if (line[i] != retorno[i])
-                {
-                    message_error("Retorno escrito incorretamente", line_number);
-                    return 1; /*O código PARA quando encontra erro*/
-                }
-            }
-            /*SINTÁTICO*/
-            bool has_variable = false;
-            /*verificar !variavel ou espaços*/
-            for (i; line[i] != '\0'; i++)
-            {
-                if (isspace(line[i]))
-                {
-                    continue;
-                }
-                /* Encontrou não-espaço: deve ser '!' */
-                if (line[i] == '!' && !has_variable)
-                {
-                    has_variable = true;
-                    i++;
-                    break;
-                }
-                else
-                {
-                    message_error("Esperado '!' antes da variável", line_number);
-                    return 1;
-                }
-            }
-            if (has_variable)
-            {
-                /* Verificar primeiro caractere (obrigatoriamente a-z) */
-                if (line[i] < 'a' || line[i] > 'z')
-                {
-                    message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
-                    return 1;
-                }
-                else
-                {
-                    i++;
-                }
-                /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
-                while (isalnum((unsigned char)line[i]))
-                {
-                    i++;
-                }
-            }
-            /*verifica se tem algo depois de retorno ou variavel, pode ser espaço ou ;*/
-            while (line[i] != '\0')
-            {
-                if (isspace((unsigned char)line[i]) || line[i] == ';')
-                {
-                    if (line[i] == ';')
-                    {
-                        i++;
-                        while (line[i] != '\0')
-                        {
-                            if (!isspace((unsigned char)line[i]))
-                            {
-                                message_error("Caracteres inválidos após ';'", line_number);
-                                return 1;
-                            }
-                            i++;
-                        }
-                        break;
-                    }
-                    i++;
-                }
-                else
-                {
-                    message_error("Caractere inválido após variável. Esperado espaço ou ';'", line_number);
-                    return 1;
-                }
-            }
-            printf("retorno ok\n");
-            /*Fim da verificação de retorno !variavel;*/
         }
         else if (line[0] == 'e')
         {
@@ -973,12 +906,109 @@ int varredura_principal(FILE *file, int *line_number, int *cont_principal, int i
         {
             /*aqui tem que pegar se a função foi declarada previamente*/
         }
-        else if (line[0] == '}' || line[0] == '{' || line[0] == '\0' )
+        else if (is_function && (line[0] == '}' || line[0] == 'r'))
+        {
+            if (line[0] == 'r')
+            {
+                /* Verifica se retorno !variavel; - LÉXICO*/
+                int i = 0;
+                for (i=0; i < 7; i++)
+                {
+                    if (line[i] != retorno[i])
+                    {
+                        message_error("Retorno escrito incorretamente", line_number);
+                        return 1; /*O código PARA quando encontra erro*/
+                    }
+                }
+                /*SINTÁTICO*/
+                bool has_variable = false;
+                /*verificar !variavel ou espaços*/
+                for (i; line[i] != '\0'; i++)
+                {
+                    if (isspace(line[i]))
+                    {
+                        continue;
+                    }
+                    /* Encontrou não-espaço: deve ser '!' */
+                    if (line[i] == '!' && !has_variable)
+                    {
+                        has_variable = true;
+                        i++;
+                        break;
+                    }
+                    else
+                    {
+                        message_error("Esperado '!' antes da variável", line_number);
+                        return 1;
+                    }
+                }
+
+                if (has_variable)
+                {/* Verificar primeiro caractere (obrigatoriamente a-z) */
+                    if (line[i] < 'a' || line[i] > 'z')
+                    {
+                        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+                        return 1;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+                    while (isalnum((unsigned char)line[i]))
+                    {
+                        i++;
+                    }
+                }
+                /*verifica se tem algo depois de retorno ou variavel, pode ser espaço ou ;*/
+                while (line[i] != '\0')
+                {
+                    if (isspace((unsigned char)line[i]) || line[i] == ';')
+                    {
+                        if (line[i] == ';')
+                        {
+                            i++;
+                            while (line[i] != '\0')
+                            {
+                                if (!isspace((unsigned char)line[i]))
+                                {
+                                    message_error("Caracteres inválidos após ';'", line_number);
+                                    return 1;
+                                }
+                                i++;
+                            }
+                            break;
+                        }
+                        i++;
+                    }
+                    else
+                    {
+                        message_error("Caractere inválido após variável. Esperado espaço ou ';'", line_number);
+                        return 1;
+                    }
+                }
+
+                retorno_control = 1;
+                printf("retorno ok\n");
+                /*Fim da verificação de retorno !variavel;*/
+            }
+
+            if (retorno_control && line[0] == '}')
+            {
+                curly_control = 1;
+                printf("fechou a função ok\n");
+            }
+
+            if (retorno_control && curly_control) {
+                return 0; /*tudo certo na função*/
+            }
+        }
+        else if (line[0] == '}' || line[0] == '{' || line[0] == '\0')
         { /*Aqui tudo que pode estar sozinho na linha - condição final*/
             printf("Conteúdo ok\n");
         } else
         { /*aqui tudo que não poderia estar solto no conteúdo*/
-            printf("Conteúdo não reconhecido na linha %i: %c\n",line_number, line[0]);
+            printf("Conteúdo não reconhecido na linha %i: %c\n",(*line_number), line[0]);
             return 1;
         }
 
