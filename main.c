@@ -1375,9 +1375,26 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
                             if (line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0))
                             {
                                 i++;
+                                int j = i;
                                 while(line[i]!='\0'||line[i]!='\n'){
                                     i++;
                                     if(line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0)){
+                                        int len = (i - j);              /* tamanho da substring*/
+                                        char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
+                                        if (extraida == NULL) {
+                                            message_error("Erro ao alocar memória", line_number);
+                                            return 1;
+                                        }
+
+                                        strncpy(extraida, &line[j], len);
+                                        extraida[len] = '\0'; /* garante fim da string*/
+                                        raiz = inserir_no(raiz, "12", "texto", 99, extraida);
+                                        Node *one = buscar_no(raiz, "12");
+                                        if(extrair_e_atualizar_palavras(line,j-2,one,line_number)==1){
+                                            return 1;
+                                        }
+                                        raiz = remover_no(raiz, "12");
+                                        free(extraida);
                                         i++;
                                         if(line[i]==';')
                                         {
@@ -1678,17 +1695,57 @@ int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, 
         if (line[k] == '!') {
             inicio_palavra = k + 1; // Pula o '!'
             int fim_palavra = inicio_palavra;
+            int tem_colchete = 0; // Flag para detectar colchetes
 
-            // Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')
-            while (fim_palavra < pos_igual &&
-                   line[fim_palavra] != ',' &&
-                   line[fim_palavra] != ' ' &&
-                   line[fim_palavra] != '=') {
-                fim_palavra++;
+            // Primeiro, verifica se a palavra contém colchetes
+            int temp_pos = inicio_palavra;
+            while (temp_pos < pos_igual &&
+                   line[temp_pos] != ',' &&
+                   line[temp_pos] != ' ' &&
+                   line[temp_pos] != '=') {
+
+                if (line[temp_pos] == '[') {
+                    tem_colchete = 1;
+                    break;
+                }
+                temp_pos++;
             }
 
-            // Se encontrou uma palavra válida
-            if (fim_palavra > inicio_palavra) {
+            // Se tem colchetes, pula toda a expressão (incluindo os colchetes)
+            if (tem_colchete) {
+                fim_palavra = inicio_palavra;
+                while (fim_palavra < pos_igual &&
+                       line[fim_palavra] != ',' &&
+                       line[fim_palavra] != ' ' &&
+                       line[fim_palavra] != '=') {
+                    if (line[fim_palavra] == '[') {
+                        // Pula todo o conteúdo até o ']' correspondente
+                        int nivel_colchetes = 1;
+                        fim_palavra++;
+                        while (fim_palavra < pos_igual && nivel_colchetes > 0) {
+                            if (line[fim_palavra] == '[') {
+                                nivel_colchetes++;
+                            } else if (line[fim_palavra] == ']') {
+                                nivel_colchetes--;
+                            }
+                            fim_palavra++;
+                        }
+                    } else {
+                        fim_palavra++;
+                    }
+                }
+            } else {
+                // Se não tem colchetes, encontra o fim normalmente
+                while (fim_palavra < pos_igual &&
+                       line[fim_palavra] != ',' &&
+                       line[fim_palavra] != ' ' &&
+                       line[fim_palavra] != '=') {
+                    fim_palavra++;
+                }
+            }
+
+            // Se encontrou uma palavra válida E não tem colchetes
+            if (fim_palavra > inicio_palavra && !tem_colchete) {
                 int len_palavra = fim_palavra - inicio_palavra;
                 char *palavra = malloc(len_palavra + 1);
 
@@ -1703,19 +1760,17 @@ int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, 
                 /*printf("Palavra encontrada: %s\n", palavra);*/
                 Node *encontrado1 = buscar_no(raiz, palavra);
                 if(!encontrado1){
-
                     message_error("Você tentou usar uma variável não declarada anteriormente", line_number);
-                    inorder(raiz);
                     return 1;
                 }
                 if (strcmp(encontrado1->tipo, encontrado->tipo)!=0){
-
                     message_error("Os tipos das variáveis do lado direito e esquerdo do '=' devem ser os mesmos", line_number);
                     inorder(raiz);
                     return 1;
                 }
                 free(palavra);
             }
+            // Se tem colchetes, simplesmente ignora a palavra inteira
 
             k = fim_palavra;
             while (k < pos_igual && (line[k] == ',' || line[k] == ' ')) {
@@ -1772,8 +1827,9 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 message_error("Operação com texto não permitida", line_number);
                             }
                         } else {
-                            /*Vamos replicar aquele processo de voltar só que para salvar os valores*/
-                            /*Checar tamanho*/
+                            if(extrair_e_atualizar_palavras(line, i, encontrado, line_number)==1){
+                                return 1;
+                               }
                         }
                     }
                     free(q);
@@ -3427,43 +3483,72 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
             break;
         }
     }
-
     if (pos_igual == -1) {
         message_error("Erro: '=' não encontrado antes da posição atual\n", line_number);
         return 1;
     }
-
     /* Agora processa as palavras antes do '=' */
     int inicio_palavra = 0;
-
     for (int k = 0; k < pos_igual; k++) {
         /* Encontrou uma palavra que começa com '!' */
         if (line[k] == '!') {
             inicio_palavra = k + 1; // Pula o '!'
             int fim_palavra = inicio_palavra;
+            int tem_colchete = 0;
 
-            // Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')
-            while (fim_palavra < pos_igual &&
-                   line[fim_palavra] != ',' &&
-                   line[fim_palavra] != ' ' &&
-                   line[fim_palavra] != '=') {
-                fim_palavra++;
+            int temp_pos = inicio_palavra;
+            while (temp_pos < pos_igual &&
+                   line[temp_pos] != ',' &&
+                   line[temp_pos] != ' ' &&
+                   line[temp_pos] != '=') {
+
+                if (line[temp_pos] == '[') {
+                    tem_colchete = 1;
+                    break;
+                }
+                temp_pos++;
             }
 
-            // Se encontrou uma palavra válida
-            if (fim_palavra > inicio_palavra) {
+            if (tem_colchete) {
+                fim_palavra = inicio_palavra;
+                while (fim_palavra < pos_igual &&
+                       line[fim_palavra] != ',' &&
+                       line[fim_palavra] != ' ' &&
+                       line[fim_palavra] != '=') {
+                    if (line[fim_palavra] == '[') {
+                        int nivel_colchetes = 1;
+                        fim_palavra++;
+                        while (fim_palavra < pos_igual && nivel_colchetes > 0) {
+                            if (line[fim_palavra] == '[') {
+                                nivel_colchetes++;
+                            } else if (line[fim_palavra] == ']') {
+                                nivel_colchetes--;
+                            }
+                            fim_palavra++;
+                        }
+                    } else {
+                        fim_palavra++;
+                    }
+                }
+            } else {
+                while (fim_palavra < pos_igual &&
+                       line[fim_palavra] != ',' &&
+                       line[fim_palavra] != ' ' &&
+                       line[fim_palavra] != '=') {
+                    fim_palavra++;
+                }
+            }
+
+            if (fim_palavra > inicio_palavra && !tem_colchete) {
                 int len_palavra = fim_palavra - inicio_palavra;
                 char *palavra = malloc(len_palavra + 1);
-
                 if (palavra == NULL) {
                     message_error("Erro ao alocar memória", line_number);
                     return 1;
                 }
-
                 strncpy(palavra, &line[inicio_palavra], len_palavra);
                 palavra[len_palavra] = '\0';
-
-                /*printf("Palavra encontrada: %s\n", palavra);*/
+                printf("Palavra encontrada: %s\n", palavra);
                 Node *encontrado1 = buscar_no(raiz, palavra);
                 if(!encontrado1){
                     message_error("Você tentou usar uma variável não declarada anteriormente...", line_number);
@@ -3477,7 +3562,6 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
                 }
                 free(palavra);
             }
-
             k = fim_palavra;
             while (k < pos_igual && (line[k] == ',' || line[k] == ' ')) {
                 k++;
