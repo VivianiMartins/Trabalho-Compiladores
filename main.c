@@ -52,7 +52,7 @@ typedef struct Node {
 } Node;
 /*----------------------------------------------------------------------------------------------------------*/
 /*Declaração de funções*/
-int varredura_principal(FILE *file,char *line , int *line_number, int *cont_principal, int is_function, int is_se, int is_para); /*função que irá varrer cada linha, testar cada*/
+int varredura_principal(FILE *file,char *line , int *line_number, int *cont_principal, int is_function, int is_se, int is_para, Funcao* lista_funcoes); /*função que irá varrer cada linha, testar cada*/
 int carregarNaMemoria(int Memory, int MaxMemory, int size);
 void message_error(const char *erro, int *line_number); /*função para retorno de erro*/
 char *garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada);
@@ -64,16 +64,18 @@ int is_smart_quote(const char *str, int pos, int length);               /*Funç�
 int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number);/*função para operacoes em geral no main*/
 int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
 int verificarBalanceamento(FILE* file); /*função para verificar duplo balanceamento*/
-int varredura_mesma_linha(char *line, int *line_number, int i); /*função que irá varrer o restante da linha, em alguns casos*/
+int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_funcoes); /*função que irá varrer o restante da linha, em alguns casos*/
 
 /*funções que utilizam a struct Resultado*/
 Resultado verificarParametroFuncao(char line[], int posicao, int *line_number); /*função para tratar parametro das funcoes*/
 Resultado verificarParametrosPara(char line[], int posicao, int *line_number);  /*função para tratar parametros de para*/
 Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int len); /*função para tratar parametros de se*/
+Resultado verificarParametroFuncaoComContador(const char* line, int posicao, int* line_number, int* contador); /* Função modificada para contar parâmetros com ponteiro */
 
 /*funções que utilizam a struct Funcao*/
 int validar_nome_variavel(char *s); /* Função auxiliar para validar nomes de variáveis nos parâmetros */
 Funcao* encontrar_funcoes(FILE *file);/* Função para encontrar funções no arquivo */
+Funcao* buscar_funcao(Funcao* lista_funcoes, const char* nome_funcao); /* Função para buscar uma função na lista pelo nome */
 
 /*Funções para tabela de símbolos*/
 Node* criar_no(const char *nome, const char *tipo, float tamanho, const char *valor);
@@ -159,7 +161,7 @@ int main()
         size_t line_size = 0;         /*tamanho de cada linha que irei ler*/
         int cont_principal = 0;         /*controle de principal - SINTÁTICO*/
 
-        int resultado_final = varredura_principal(file, line ,&line_number, &cont_principal, 0, 0, 0);
+        int resultado_final = varredura_principal(file, line ,&line_number, &cont_principal, 0, 0, 0, lista_funcoes);
 
 
         if (resultado_final == 0)
@@ -193,7 +195,7 @@ int main()
 /*----------------------------------------------------------------------------------------------------------*/
 /*funções*/
 /*função que irá varrer cada linha, testar cada*/
-int varredura_principal(FILE *file,char *line , int *line_number, int *cont_principal, int is_function, int is_se, int is_para) {
+int varredura_principal(FILE *file,char *line , int *line_number, int *cont_principal, int is_function, int is_se, int is_para, Funcao* lista_funcoes) {
     /*palavras reservadas - LÉXICO*/
     const char *principal = "principal";
     const char *para = "para";
@@ -573,7 +575,7 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                         if (funcao_found_curly_brace)
                         { /*estamos dentor da função, verificar tudo o que tem*/
                             (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
-                            int dentroFuncao = varredura_principal(file, line, line_number, cont_principal, 1, 0, 0);
+                            int dentroFuncao = varredura_principal(file, line, line_number, cont_principal, 1, 0, 0, lista_funcoes);
 
                             if (dentroFuncao != 0)
                             {
@@ -861,11 +863,11 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                         { /* Encontrou a chave de abertura */
                             se_found_curly_brace = true;
                             (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
-                             dentroSe = varredura_principal(file, line, line_number, cont_principal, 0, 1, 0);
+                             dentroSe = varredura_principal(file, line, line_number, cont_principal, 0, 1, 0, lista_funcoes);
                         }
                         else
                         { /* Aqui tenho que verificar caso não tenha { */
-                            dentroSe = varredura_mesma_linha(line,line_number, i);
+                            dentroSe = varredura_mesma_linha(line,line_number, i, lista_funcoes);
                         }
 
                         if (dentroSe != 0)
@@ -894,7 +896,7 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 /* Se houver conteúdo após "senao" - SINTÁTICO*/
                 if (line[i] != '\0') {
                     /*criar função para tratar todos os casos*/
-                    int dentroSenao = varredura_mesma_linha(line,line_number, i);
+                    int dentroSenao = varredura_mesma_linha(line,line_number, i, lista_funcoes);
 
                     if (dentroSenao != 0)
                     {
@@ -922,6 +924,91 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
         else if (line[0] == '_') /*chamada de função*/
         {
             /*aqui tem que pegar se a função foi declarada previamente*/
+            char nome_funcao[64] = {0};
+            int i = 1; /* Começa após o '_' */
+            int nome_idx = 0;
+            bool after_underscore_name_control = false;
+            bool parenteses_parameter_control = false;
+            int parenteses_control_open_funcao = 0;
+            int parametros_encontrados = 0;
+            int posicao_abre_parenteses = -1;
+
+            /* Extrai o nome da função após o '_' */
+            while (line[i] != '\0' && !isspace((unsigned char)line[i]) && line[i] != '(') {
+                if (isalnum((unsigned char)line[i])) {
+                    nome_funcao[nome_idx++] = line[i];
+                }
+                i++;
+            }
+            nome_funcao[nome_idx] = '\0';
+            after_underscore_name_control = true;
+
+            /* Verifica se a função foi declarada */
+            Funcao* funcao_encontrada = buscar_funcao(lista_funcoes, nome_funcao);
+            if (funcao_encontrada == NULL) {
+                printf("ERRO SEMÂNTICO: Função '%s' não foi declarada (linha %d)\n",
+                       nome_funcao, *line_number);
+                return 1;
+            }
+
+            /* Continua a verificação dos parênteses e parâmetros */
+            while (line[i] != '\0' && line[i] != ';') {
+                /* Verificar parênteses após nome*/
+                if (parenteses_control_open_funcao == 0 && after_underscore_name_control && !parenteses_parameter_control) {
+                    if (isspace((unsigned char)line[i]) || line[i] == '(') {
+                        /*nome ok, abre parênteses*/
+                        if (line[i] == '(') {
+                            parenteses_control_open_funcao++;
+                            parenteses_parameter_control = true;
+                            posicao_abre_parenteses = i;
+                        }
+                    }
+                }
+                else if (parenteses_parameter_control) {
+                    /*pode ou não ter parâmetros*/
+                    if (isspace((unsigned char)line[i]) || line[i] == '!') {
+                        if (line[i] == '!') {
+                            Resultado res = verificarParametroFuncaoComContador(line, i, line_number, &parametros_encontrados);
+                            i = res.posicao;
+                            if (res.sucesso == 1) {
+                                return 1;
+                            }
+                            i--;
+                        }
+                    }
+                    else if (line[i] == ')') {
+                        parenteses_control_open_funcao--;
+
+                        /* Verifica se o número de parâmetros está correto */
+                        if (parametros_encontrados != funcao_encontrada->num_parametros) {
+                            printf("ERRO SEMÂNTICO: Função '%s' esperava %d parâmetros, mas recebeu %d (linha %d)\n",
+                                   nome_funcao, funcao_encontrada->num_parametros, parametros_encontrados, *line_number);
+                            return 1;
+                        }
+
+                        /* Verifica se termina com ';' */
+                        int j = i + 1;
+                        while (line[j] != '\0' && isspace((unsigned char)line[j])) {
+                            j++;
+                        }
+                        if (line[j] != ';') {
+                            printf("ERRO SINTÁTICO: Esperado ';' após chamada da função '%s' (linha %d)\n",
+                                   nome_funcao, *line_number);
+                            return 1;
+                        }
+                        break;
+                    }
+                }
+                i++;
+            }
+
+            /* Verifica se os parênteses foram fechados */
+            if (parenteses_control_open_funcao != 0) {
+                printf("ERRO SINTÁTICO: Parênteses não fechados na chamada da função '%s' (linha %d)\n",
+                       nome_funcao, *line_number);
+                return 1;
+            }
+             printf("Chamada de função ok\n");
         }
         else if ((is_function || is_se) && (line[0] == '}' || line[0] == 'r'))
         {
@@ -2431,7 +2518,7 @@ int verificarBalanceamento(FILE* file) {
 
 
 /*função que irá varrer o restante da linha, em alguns casos*/
-int varredura_mesma_linha(char *line, int *line_number, int i) {
+int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_funcoes) {
     /*palavras reservadas - LÉXICO*/
     const char *leia = "leia";
     const char *escreva = "escreva";
@@ -2455,7 +2542,8 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
     while (line[i] != '\0' && line[i] != '\n') {
         char current_char = line[i];
 
-        if (current_char == 'l') {
+        if (current_char == 'l')
+        {
             /*VERIFICA SE É "leia" - LÉXICO*/
             int match = 1;
             for (int j = 0; j < 4; j++) {
@@ -2503,7 +2591,8 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
                 continue;
             }
         }
-        else if (current_char == 'e') {
+        else if (current_char == 'e')
+        {
             /*VERIFICA SE É "escreva" - LÉXICO*/
             int match = 1;
             for (int j = 0; j < 7; j++) {
@@ -2619,7 +2708,8 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
                 continue;
             }
         }
-        else if (current_char == '!') {
+        else if (current_char == '!')
+        {
             /*Operações com variáveis - atribuições*/
             tem_conteudo = 1;
 
@@ -2635,25 +2725,107 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
             printf("Operação com variável ok\n");
             continue;
         }
-        else if (current_char == '_') {
-            /*Chamada de função*/
-            tem_conteudo = 1;
+        else if (current_char == '_') /* chamada de função */
+        {
+            /* aqui tem que pegar se a função foi declarada previamente */
+            char nome_funcao[64] = {0};
+            int start_i = i + 1; /* Começa após o '_' */
+            int nome_idx = 0;
+            bool after_underscore_name_control = false;
+            bool parenteses_parameter_control = false;
+            int parenteses_control_open_funcao = 0;
+            int parametros_encontrados = 0;
+            int posicao_abre_parenteses = -1;
+            tem_conteudo = 1; /* Marca que há conteúdo significativo */
 
-            /*Verifica se é uma função válida (__nome)*/
-            if (i + 1 < strlen(line) && line[i + 1] == '_') {
-                /*Lógica para verificar chamada de função*/
-                /*Por enquanto, apenas avança até encontrar o final*/
-                while (line[i] != '\0' && line[i] != '\n' && line[i] != ';') {
-                    i++;
+            /* Extrai o nome da função após o '_' */
+            while (start_i < strlen(line) && line[start_i] != '\0' &&
+                   !isspace((unsigned char)line[start_i]) && line[start_i] != '(') {
+                if (isalnum((unsigned char)line[start_i])) {
+                    nome_funcao[nome_idx++] = line[start_i];
                 }
-                printf("Chamada de função ok\n");
-                continue;
-            } else {
-                message_error("Nome de função deve começar com '__'\n", line_number);
+                start_i++;
+            }
+            nome_funcao[nome_idx] = '\0';
+            after_underscore_name_control = true;
+
+            /* Verifica se a função foi declarada */
+            Funcao* funcao_encontrada = buscar_funcao(lista_funcoes, nome_funcao);
+            if (funcao_encontrada == NULL) {
+                printf("ERRO SEMÂNTICO: Função '%s' não foi declarada (linha %d)\n",
+                       nome_funcao, *line_number);
                 return 1;
             }
+
+            /* Atualiza i para continuar a partir de onde parou a extração do nome */
+            i = start_i;
+
+            /* Continua a verificação dos parênteses e parâmetros */
+            while (i < strlen(line) && line[i] != '\0' && line[i] != ';' && line[i] != '\n') {
+                /* Verificar parênteses após nome */
+                if (parenteses_control_open_funcao == 0 && after_underscore_name_control && !parenteses_parameter_control) {
+                    if (isspace((unsigned char)line[i]) || line[i] == '(') {
+                        /* nome ok, abre parênteses */
+                        if (line[i] == '(') {
+                            parenteses_control_open_funcao++;
+                            parenteses_parameter_control = true;
+                            posicao_abre_parenteses = i;
+                        }
+                    }
+                }
+                else if (parenteses_parameter_control) {
+                    /* pode ou não ter parâmetros */
+                    if (line[i] == '!') {
+                        /* Passa o ponteiro do contador para a função recursiva */
+                        Resultado res = verificarParametroFuncaoComContador(line, i, line_number, &parametros_encontrados);
+                        i = res.posicao;
+                        if (res.sucesso == 1) {
+                            return 1;
+                        }
+                        i--;
+                        /* O contador já foi atualizado pela função recursiva */
+                        continue;
+                    }
+                    else if (line[i] == ',') {
+                        /* Vírgula já foi tratada na função recursiva */
+                    }
+                    else if (line[i] == ')') {
+                        parenteses_control_open_funcao--;
+
+                        /* Verifica se o número de parâmetros está correto */
+                        if (parametros_encontrados != funcao_encontrada->num_parametros) {
+                            printf("ERRO SEMÂNTICO: Função '%s' esperava %d parâmetros, mas recebeu %d (linha %d)\n",
+                                   nome_funcao, funcao_encontrada->num_parametros, parametros_encontrados, *line_number);
+                            return 1;
+                        }
+
+                        /* Avança i até o próximo caractere significativo ou final da função */
+                        i++;
+                        while (i < strlen(line) && isspace((unsigned char)line[i])) {
+                            i++;
+                        }
+
+                        /* Se encontrou ';', a verificação será feita no final da função */
+                        /* Se não encontrou, continuará processando outros comandos na linha */
+                        break;
+                    }
+                }
+                i++;
+            }
+
+            /* Verifica se os parênteses foram fechados */
+            if (parenteses_control_open_funcao != 0) {
+                printf("ERRO SINTÁTICO: Parênteses não fechados na chamada da função '%s' (linha %d)\n",
+                       nome_funcao, *line_number);
+                return 1;
+            }
+
+            /* Decrementa i para que o loop principal continue corretamente */
+            i--;
+            continue;
         }
-        else if (current_char == 's' && i + 1 < strlen(line) && line[i + 1] == 'e') {
+        else if (current_char == 's' && i + 1 < strlen(line) && line[i + 1] == 'e')
+        {
             /*Comando SE - casos especiais que não precisam de ; */
             /*Verifica se é realmente "se" completo*/
             if (i + 2 >= strlen(line) || !isalnum(line[i + 2])) {
@@ -2661,7 +2833,8 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
             }
             i++;
         }
-        else if (current_char == 'p') {
+        else if (current_char == 'p')
+        {
             /*Comando PARA - casos especiais que não precisam de ; */
             const char *para = "para";
             int match = 1;
@@ -2677,7 +2850,8 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
             }
             i++;
         }
-        else if (current_char == ';') {
+        else if (current_char == ';')
+        {
             /*Encontrou ponto e vírgula*/
             /*Verifica se há apenas espaços após o ;*/
             int j = i + 1;
@@ -2693,12 +2867,14 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
                 return 1;
             }
         }
-        else if (isspace((unsigned char)current_char)) {
+        else if (isspace((unsigned char)current_char))
+        {
             /*Ignora espaços*/
             i++;
             continue;
         }
-        else {
+        else
+        {
             /*Caractere não reconhecido*/
             if (isprint(current_char)) {
                 printf("Conteúdo não reconhecido na linha %d: '%c'\n", line_number, current_char);
@@ -2729,6 +2905,7 @@ int varredura_mesma_linha(char *line, int *line_number, int i) {
 
     return 0;
 }
+
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*funções que retornam Resultado*/
@@ -3007,6 +3184,54 @@ Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int 
     }
 }
 
+/* Função modificada para contar parâmetros com ponteiro */
+Resultado verificarParametroFuncaoComContador(const char* line, int posicao, int* line_number, int* contador) {
+    int i = posicao;
+
+    while (isspace((unsigned char)line[i]))
+        i++; /* Ignorar espaços iniciais */
+
+    /* Verificar marcador obrigatório '!' */
+    if (line[i] != '!') {
+        message_error("Esperado '!' antes da variável\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após o '!' */
+
+    /* Verificar primeiro caractere (obrigatoriamente a-z) */
+    if (line[i] < 'a' || line[i] > 'z') {
+        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        return (Resultado){i, 1};
+    }
+    i++; /* Avançar após a primeira letra */
+
+    /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
+    while (isalnum((unsigned char)line[i])) {
+        i++;
+    }
+
+    if (!(isalnum((unsigned char)line[i]) || line[i] == '(' || line[i] == ')' || line[i] == ',')) {
+        message_error("Nome do parâmetro escrito com caracter inválido", line_number);
+        return (Resultado){i, 1};
+    }
+
+    /* Parâmetro válido encontrado - incrementa contador */
+    (*contador)++;
+
+    /* Ignorar espaços após variável */
+    while (isspace((unsigned char)line[i]))
+        i++;
+
+    /* Verificar se há próximo parâmetro */
+    if (line[i] == ',') {
+        i++; /* Avançar a vírgula */
+        return verificarParametroFuncaoComContador(line, i, line_number, contador); /* Chamada recursiva */
+    }
+
+    /* Retorna sucesso e posição atual */
+    return (Resultado){i, 0};
+}
+
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*funções que retornam Função*/
@@ -3204,6 +3429,17 @@ Funcao* encontrar_funcoes(FILE *file) {
     return lista;
 }
 
+/* Função para buscar uma função na lista pelo nome */
+Funcao* buscar_funcao(Funcao* lista_funcoes, const char* nome_funcao) {
+    Funcao* atual = lista_funcoes;
+    while (atual != NULL) {
+        if (strcmp(atual->nome, nome_funcao) == 0) {
+            return atual;
+        }
+        atual = atual->proxima;
+    }
+    return NULL; /* Função não encontrada */
+}
 /*----------------------------------------------------------------------------------------------------------*/
 /*Funções para tabela de símbolos*/
 char* duplicar_string(const char *s) {
