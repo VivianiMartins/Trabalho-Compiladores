@@ -103,7 +103,7 @@ Node *raiz = NULL;
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_correto.txt", "r");
+    FILE *file = fopen("exemplo_erro.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -254,7 +254,7 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
         if (line[0] == 'p')
         {
             bool is_principal = false;
-            bool is_para = false;
+            bool is_para_text = false;
             /* Verifica se começa com "principal" ou "para" */
             if (line[1] == principal[1])
             {
@@ -262,7 +262,7 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             }
             else if (line[1] == para[1])
             {
-                is_para = true;
+                is_para_text = true;
             }
 
             if (is_principal)
@@ -358,7 +358,7 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 printf("principal ok\n");
                 /*fim da checagem se é principal*/
             }
-            else if (is_para)
+            else if (is_para_text)
             {
                 /*Checando se é para*/
                 int i = 0;
@@ -401,11 +401,13 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                             {
                                 Resultado res = verificarParametrosPara(line, i, line_number);
                                 i = res.posicao;
+
                                 if (res.sucesso == 1)
                                 {
                                     message_error("Parâmetros de para tem que iniciar com !a..z", line_number);
                                     return 1;
                                 }
+                                if (line[i] == ')') i--;
                                 else
                                 {
                                     continue;
@@ -435,9 +437,16 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                                     return 1; /*O código PARA quando encontra erro*/
                                 }
                             }
-                            else
-                            { /* Após encontrar a chave e não tiver terminado, passar p frente*/
-                                break;
+                            if (found_curly_brace_para)
+                            {
+                                (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
+                                int dentroPara = varredura_principal(file, line, line_number, cont_principal, 0, 0, 1, lista_funcoes);
+
+                                if (dentroPara != 0)
+                                {
+                                    message_error("Função construída incorretamente", line_number);
+                                    return 1;
+                                }
                             }
                         }
                     }
@@ -1010,7 +1019,7 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             }
              printf("Chamada de função ok\n");
         }
-        else if ((is_function || is_se) && (line[0] == '}' || line[0] == 'r'))
+        else if (((is_function || is_se || is_para) && !curly_control) && (line[0] == '}' || line[0] == 'r'))
         {
             if (line[0] == 'r')
             {
@@ -1106,6 +1115,19 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 }
 
                 if (retorno_control && curly_control) {
+                    return 0; /*tudo certo na função*/
+                }
+            }
+
+            if (is_para)
+            {
+                if (line[0] == '}')
+                {
+                    curly_control = true;
+                    printf("fechou o para ok\n");
+                }
+
+                if (curly_control) {
                     return 0; /*tudo certo na função*/
                 }
             }
@@ -2830,23 +2852,6 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
             /*Verifica se é realmente "se" completo*/
             if (i + 2 >= strlen(line) || !isalnum(line[i + 2])) {
                 return 0; /*Comando "se" não precisa de ponto e vírgula*/
-            }
-            i++;
-        }
-        else if (current_char == 'p')
-        {
-            /*Comando PARA - casos especiais que não precisam de ; */
-            const char *para = "para";
-            int match = 1;
-            for (int j = 0; j < 4; j++) {
-                if (i + j >= strlen(line) || line[i + j] != para[j]) {
-                    match = 0;
-                    break;
-                }
-            }
-
-            if (match && (i + 4 >= strlen(line) || !isalnum(line[i + 4]))) {
-                return 0; /*Comando "para" não precisa de ponto e vírgula*/
             }
             i++;
         }
