@@ -99,6 +99,7 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
 /*----------------------------------------------------------------------------------------------------------*/
 /*Criação da varíavel global da tabela de símbolos*/
 Node *raiz = NULL;
+int memory = 0;
 
 int main()
 {
@@ -124,16 +125,32 @@ int main()
     if (file != NULL)
     {
         int balanceado = verificarBalanceamento(file);  /*verificação do duplo balanceamento - SINTÁTICO*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(balanceado));
+if (memory == -1){
+    return 1;
+}
         if (balanceado != 0) {
             return 1;
         }
         printf("Duplo balanceamento ok\n\n");
         rewind(file); /* Volta para o início do arquivo para reprocessar*/
 
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, INTEIRO_MEMORY_BYTES);
+        if (memory == -1){
+            return 1;
+        }
         /*guardando funções existentes*/
         Funcao *lista_funcoes = encontrar_funcoes(file);
         /* Contar quantas funções foram encontradas */
         int count_funcoes = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(count_funcoes));
+if (memory == -1){
+    return 1;
+}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, INTEIRO_MEMORY_BYTES);
+        if (memory == -1){
+            return 1;
+        }
         Funcao *temp = lista_funcoes;
         while (temp != NULL) {
             count_funcoes++;
@@ -156,12 +173,39 @@ int main()
 
         char line[256];
         int line_number = 1;          /*número da linha em questão*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line_number));
+if (memory == -1){
+    return 1;
+}
         long start_pos = ftell(file); /*Posição inicial (0)*/
-        size_t memory = 0;            /*memória*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_pos));
+if (memory == -1){
+    return 1;
+}
         size_t line_size = 0;         /*tamanho de cada linha que irei ler*/
         int cont_principal = 0;         /*controle de principal - SINTÁTICO*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cont_principal));
+if (memory == -1){
+    return 1;
+}
+
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line));
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, INTEIRO_MEMORY_BYTES*2);
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line_size));
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_pos));
+        if (memory == -1){
+            return 1;
+        }
 
         int resultado_final = varredura_principal(file, line ,&line_number, &cont_principal, 0, 0, 0, lista_funcoes);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(resultado_final));
+if (memory == -1){
+    return 1;
+}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, INTEIRO_MEMORY_BYTES);
+        if (memory == -1){
+            return 1;
+        }
 
 
         if (resultado_final == 0)
@@ -186,7 +230,8 @@ int main()
         return 1;
     }
 
-    printf("Árvore (inorder): ");
+    printf("\n\nMemoria Gasta: %d Memória Total: %d\n", memory, MAX_MEMORY_BYTES);
+    printf("Árvore (inorder): \n");
     inorder(raiz);
 
     return 0;
@@ -209,9 +254,27 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
     const char *se = "se";
     const char *senao = "senao";
 
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(principal)*11);
+    if (memory == -1){
+        return 1;
+    }
+
     /*controladores para função*/
     bool retorno_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(retorno_control));
+if (memory == -1){
+    return 1;
+}
     bool curly_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(curly_control));
+if (memory == -1){
+    return 1;
+}
+
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(retorno_control)*2);
+    if (memory == -1){
+        return 1;
+    }
 
     while (fgets(line, 256, file))
     { /*Coloquei em loop pra ficar verificando*/
@@ -229,6 +292,15 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
         {
             /*Verifica se  uma linha apenas com espaço ou vazia*/
             int i = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
+
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+            if (memory == -1){
+                return 1;
+            }
             while (line[i] != '\0' && isspace((unsigned char)line[i]))
             {
                 i++;
@@ -238,6 +310,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             {
                 /* Move o conteúdo para o início da string */
                 int j = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
                 while (line[i] != '\0')
                 {
                     line[j++] = line[i++];
@@ -254,7 +330,15 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
         if (line[0] == 'p')
         {
             bool is_principal = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_principal));
+if (memory == -1){
+    return 1;
+}
             bool is_para_text = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_para_text));
+if (memory == -1){
+    return 1;
+}
             /* Verifica se começa com "principal" ou "para" */
             if (line[1] == principal[1])
             {
@@ -269,6 +353,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             {
                 /*Checando se é principal*/
                 int i = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
                 /* Verifica se principal(){ - LÉXICO*/
                 for (i; i < 9; i++)
                 {
@@ -281,12 +369,28 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
 
                 /*SINTÁTICO*/
                 int parenteses_control_open_principal = 0; /*controle do parênteses*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_principal));
+if (memory == -1){
+    return 1;
+}
                 int found_parentheses_principal = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_parentheses_principal));
+if (memory == -1){
+    return 1;
+}
                 int found_curly_brace_principal = 0; /*Controla a chave { */
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_curly_brace_principal));
+if (memory == -1){
+    return 1;
+}
                 /* Verifica restante da linha */
                 for (i; line[i] != '\0'; i++)
                 {
                     char c = line[i];
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+if (memory == -1){
+    return 1;
+}
                     /* Ignora espaços antes dos parênteses */
                     if (!found_parentheses_principal && isspace(c))
                     {
@@ -362,6 +466,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             {
                 /*Checando se é para*/
                 int i = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
                 /* Verifica para(){  - LÉXICO*/
                 for (i; i < 4; i++)
                 {
@@ -374,10 +482,30 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
 
                 /*SINTÁTICO*/
                 int parenteses_control_open_para = 0; /*controle do parênteses*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_para));
+if (memory == -1){
+    return 1;
+}
                 bool found_parentheses_para = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_parentheses_para));
+if (memory == -1){
+    return 1;
+}
                 bool found_curly_brace_para = false; /*Controla a chave { */
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_curly_brace_para));
+if (memory == -1){
+    return 1;
+}
                 bool parameter_control_para = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parameter_control_para));
+if (memory == -1){
+    return 1;
+}
                 bool parenteses_parameter_control_para = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control_para));
+if (memory == -1){
+    return 1;
+}
                 /* Verifica restante da linha */
                 for (i; line[i] != '\0'; i++)
                 {
@@ -441,6 +569,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                             {
                                 (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
                                 int dentroPara = varredura_principal(file, line, line_number, cont_principal, 0, 0, 1, lista_funcoes);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroPara));
+if (memory == -1){
+    return 1;
+}
 
                                 if (dentroPara != 0)
                                 {
@@ -462,6 +594,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
         {/*percorrer novamente verificando as funções, se estiverem ok, salvar o nome delas, qual linha está*/
             /*Checando se é funcao __xxx(){*/
             int i = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
             /* Verifica se começa com "funcao"  - LÉXICO*/
             for (i; i < 6; i++)
             {
@@ -474,11 +610,35 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
 
             /*SINTÁTICO*/ /*AQUI TEM QUE TERMINAR DE FAZER*/
             int parenteses_control_open_funcao = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
+if (memory == -1){
+    return 1;
+}
             bool underscore_name_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(underscore_name_control));
+if (memory == -1){
+    return 1;
+}
             bool after_underscore_name_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
+if (memory == -1){
+    return 1;
+}
             bool parameter_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parameter_control));
+if (memory == -1){
+    return 1;
+}
             bool parenteses_parameter_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
+if (memory == -1){
+    return 1;
+}
             bool funcao_found_curly_brace = false; /*Controla a chave { */
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(funcao_found_curly_brace));
+if (memory == -1){
+    return 1;
+}
             /* Verifica restante da linha */
             for (i; line[i] != '\0'; i++)
             {
@@ -585,6 +745,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                         { /*estamos dentor da função, verificar tudo o que tem*/
                             (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
                             int dentroFuncao = varredura_principal(file, line, line_number, cont_principal, 1, 0, 0, lista_funcoes);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroFuncao));
+if (memory == -1){
+    return 1;
+}
 
                             if (dentroFuncao != 0)
                             {
@@ -665,6 +829,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             }
             /*SINTÁTICO*/
             int aux = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aux));
+if (memory == -1){
+    return 1;
+}
             while (isspace(line[4 + aux]))
             {
                 aux++;
@@ -691,6 +859,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
         {
             /*Checando se é escreva("texto")*/
             int i = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
             /* Verifica se começa com "escreva" - LÉXICO*/
             for (i; i < 7; i++)
             {
@@ -702,9 +874,25 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             }
             /*SINTÁTICO*/
             int parenteses_control_open_escreva = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_escreva));
+if (memory == -1){
+    return 1;
+}
             int aspas_control_open_escreva = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_control_open_escreva));
+if (memory == -1){
+    return 1;
+}
             int len = strlen(line);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
             bool aspas_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_control));
+if (memory == -1){
+    return 1;
+}
             /* Verifica restante da linha */
             for (i; line[i] != '\0'; i++)
             {
@@ -722,6 +910,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 else if (parenteses_control_open_escreva >= 1)
                 { /*tem que ter aspas*/
                     int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
+if (memory == -1){
+    return 1;
+}
 
                     if (isspace((unsigned char)line[i]) || line[i] == '"' ||  quote_bytes > 0 && !aspas_control)
                     {
@@ -803,8 +995,20 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
         else if (line[0] == 's')
         {
             bool is_se_text = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_se_text));
+if (memory == -1){
+    return 1;
+}
             bool is_senao = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_senao));
+if (memory == -1){
+    return 1;
+}
             int len = strlen(line);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
             /* Verifica se começa com "se" ou "senao" */
             if (strncmp(line, se, 2) == 0) {
                 /* Verificar se é senao (5 caracteres) */
@@ -818,6 +1022,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             {
                 /*Checando se é se*/
                 int i = 2;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
                 /* Verifica se se(){ - LÉXICO*/
                 if (!strncmp(line, se, 2) == 0) {
                     message_error("Módulo se incorretamente", line_number);
@@ -825,8 +1033,20 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 }
                 /*SINTÁTICO*/
                 int parenteses_control_open_se = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_se));
+if (memory == -1){
+    return 1;
+}
                 bool se_found_curly_brace = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(se_found_curly_brace));
+if (memory == -1){
+    return 1;
+}
                 bool parenteses_fechou = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_fechou));
+if (memory == -1){
+    return 1;
+}
 
                 while(isspace((unsigned char)line[i]))i++;
                 /* Verifica restante da linha */
@@ -845,6 +1065,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                         while(isspace((unsigned char)line[i]))i++;
 
                         int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
+if (memory == -1){
+    return 1;
+}
                         if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
                         {
                             Resultado res = verificarParametrosSe(line, i, line_number, len);
@@ -867,6 +1091,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                         while(isspace((unsigned char)line[i])) i++;
 
                         int dentroSe = -1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroSe));
+if (memory == -1){
+    return 1;
+}
 
                         if (line[i] == '{')
                         { /* Encontrou a chave de abertura */
@@ -896,6 +1124,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             {
                 /*Checando se é senao - LÉXICO*/
                 int i = 5;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
                 if (strncmp(line, senao, 5) != 0) {
                     message_error("Módulo senao incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
@@ -906,6 +1138,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 if (line[i] != '\0') {
                     /*criar função para tratar todos os casos*/
                     int dentroSenao = varredura_mesma_linha(line,line_number, i, lista_funcoes);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroSenao));
+if (memory == -1){
+    return 1;
+}
 
                     if (dentroSenao != 0)
                     {
@@ -935,12 +1171,40 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             /*aqui tem que pegar se a função foi declarada previamente*/
             char nome_funcao[64] = {0};
             int i = 1; /* Começa após o '_' */
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
             int nome_idx = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_idx));
+if (memory == -1){
+    return 1;
+}
             bool after_underscore_name_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
+if (memory == -1){
+    return 1;
+}
             bool parenteses_parameter_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
+if (memory == -1){
+    return 1;
+}
             int parenteses_control_open_funcao = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
+if (memory == -1){
+    return 1;
+}
             int parametros_encontrados = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parametros_encontrados));
+if (memory == -1){
+    return 1;
+}
             int posicao_abre_parenteses = -1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(posicao_abre_parenteses));
+if (memory == -1){
+    return 1;
+}
 
             /* Extrai o nome da função após o '_' */
             while (line[i] != '\0' && !isspace((unsigned char)line[i]) && line[i] != '(') {
@@ -997,6 +1261,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
 
                         /* Verifica se termina com ';' */
                         int j = i + 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
                         while (line[j] != '\0' && isspace((unsigned char)line[j])) {
                             j++;
                         }
@@ -1025,6 +1293,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
             {
                 /* Verifica se retorno !variavel; - LÉXICO*/
                 int i = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
                 for (i=0; i < 7; i++)
                 {
                     if (line[i] != retorno[i])
@@ -1035,6 +1307,10 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 }
                 /*SINTÁTICO*/
                 bool has_variable = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(has_variable));
+if (memory == -1){
+    return 1;
+}
                 /*verificar !variavel ou espaços*/
                 for (i; line[i] != '\0'; i++)
                 {
@@ -1155,16 +1431,16 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
 
 int carregarNaMemoria(int Memory, int MaxMemory, int size)
 {
-    if (Memory + size <= 0.9 * MaxMemory)
+    if ((Memory + size) <= (0.9 * MaxMemory))
     {
-        return (Memory += size);
+        return (Memory + size);
     }
     else
     {
         if ((Memory) + size < (MaxMemory * 0.99))
         {
             printf("Alerta! Mais de 90% da Memória disponível foi utilizada");
-            return (Memory += size);
+            return (Memory + size);
         }
         else
         {
@@ -1217,7 +1493,15 @@ char *garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada)
     }
 
     int caractere_atual;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(caractere_atual));
+if (memory == -1){
+    return 1;
+}
     int proximo_caractere;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(proximo_caractere));
+if (memory == -1){
+    return 1;
+}
 
     while ((caractere_atual = fgetc(entrada)) != EOF)
     {
@@ -1257,6 +1541,14 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+if (memory == -1){
+    return 1;
+}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+        if (memory == -1){
+                return 1;
+        }
         if (isspace(c))
         {
             /* Ignora, não há nada a fazer */
@@ -1265,6 +1557,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
         {
             i++;
             int j = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
@@ -1274,6 +1570,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                 if (line[i] == ',' && (isspace(line[i + 1])))
                 { /*tem mais parâmetros que precisam ser verificados*/
                     int len = (i - j);              /* tamanho da substring*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1290,6 +1590,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                 else if (line[i] == ';' && line[i + 1] == '\0')
                 {
                     int len = (i - j);              /* tamanho da substring*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1305,6 +1609,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                 else if (line[i] == ';' && line[i + 1] == '\n')
                 {
                     int len = (i - j);              // tamanho da substring
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1320,6 +1628,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                 else if (line[i] == ';' && isspace(line[i + 1]))
                 { /*tô ignorando espaços que aparecem depois*/
                     int len = (i - j);              // tamanho da substring
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1335,6 +1647,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                 else if (isspace(line[i]))
                 {
                     int len = (i - j);              // tamanho da substring
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1357,6 +1673,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
                             i++;
                         } while (isspace(line[i]));
                         int result = verificarOperacaoMatematica(line, i, line_number, 0); /*Aqui dentro vai realizar a atualização dos valores*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(result));
+if (memory == -1){
+    return 1;
+}
                         if(result == 1)
                         {
                             return 1;
@@ -1396,6 +1716,10 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+if (memory == -1){
+    return 1;
+}
         if (isspace(c))
         {
             /* Ignora, não há nada a fazer */
@@ -1404,6 +1728,10 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
         {
             i++;
             int j = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
@@ -1411,10 +1739,18 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
                     i++;
                 }; /*verifica se o restante é alfanumerico*/
                 int k = i-1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(k));
+if (memory == -1){
+    return 1;
+}
                 if (line[i] == '[')
                 {
                     i++;
                     int l = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(l));
+if (memory == -1){
+    return 1;
+}
                     if (line[i] == '0' || !isdigit(line[i]))
                     {
                         message_error("O tamanho de um texto precisa ser um número e maior que zero\n", line_number);
@@ -1431,6 +1767,10 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
                         return 1;
                     }
                     int len = (k - j+1);              // tamanho da substring
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1485,10 +1825,18 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
                             {
                                 i++;
                                 int j = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
                                 while(line[i]!='\0'||line[i]!='\n'){
                                     i++;
                                     if(line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0)){
                                         int len = (i - j);              /* tamanho da substring*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                                         char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                                         if (extraida == NULL) {
                                             message_error("Erro ao alocar memória", line_number);
@@ -1570,6 +1918,10 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+if (memory == -1){
+    return 1;
+}
         if (isspace(c))
         {
             /* Ignora, não há nada a fazer */
@@ -1578,6 +1930,10 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
         {
             i++;
             int j = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
@@ -1585,10 +1941,18 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
                     i++;
                 }; /*verifica se o restante é alfanumerico*/
                 int k = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(k));
+if (memory == -1){
+    return 1;
+}
                 if (line[i] == '[')
                 {
                     i++;
                     int l = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(l));
+if (memory == -1){
+    return 1;
+}
                     if (line[i] == '0' || !isdigit(line[i]))
                     {
                         message_error("O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
@@ -1616,6 +1980,10 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
                         i++;
                     }
                     int len = (k - j);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *extraida = malloc(len + 1);
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1635,6 +2003,10 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
                     strncpy(tamanho, &line[l], len);
                     tamanho[len] = '\0';
                     float tamanho_float = strtof(tamanho, NULL);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(tamanho_float));
+if (memory == -1){
+    return 1;
+}
                     raiz = inserir_no(raiz, extraida, "decimal", tamanho_float, "0");
                     free(tamanho);
                     free(extraida);
@@ -1708,8 +2080,20 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
 int verificarLeia(char line[], int posicao, int *line_number)
 {
     int i = posicao;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
     int len = strlen(line);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
     int variaveis = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(variaveis));
+if (memory == -1){
+    return 1;
+}
 
     while (1)
     {
@@ -1784,6 +2168,10 @@ int verificarLeia(char line[], int posicao, int *line_number)
 
 int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number) {
     int pos_igual = -1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(pos_igual));
+if (memory == -1){
+    return 1;
+}
     for (int k = posicao_atual - 1; k >= 0; k--) {
         if (line[k] == '=') {
             pos_igual = k;
@@ -1798,12 +2186,20 @@ int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, 
 
     /* Agora processa as palavras antes do '=' */
     int inicio_palavra = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(inicio_palavra));
+if (memory == -1){
+    return 1;
+}
 
     for (int k = 0; k < pos_igual; k++) {
         /* Encontrou uma palavra que começa com '!' */
         if (line[k] == '!') {
             inicio_palavra = k + 1; /* Pula o '!'*/
             int fim_palavra = inicio_palavra;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fim_palavra));
+if (memory == -1){
+    return 1;
+}
             /* Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')*/
             while (fim_palavra < pos_igual &&
                    line[fim_palavra] != ',' &&
@@ -1815,6 +2211,10 @@ int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, 
             /* Se encontrou uma palavra válida*/
             if (fim_palavra > inicio_palavra) {
                 int len_palavra = fim_palavra - inicio_palavra;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len_palavra));
+if (memory == -1){
+    return 1;
+}
                 char *palavra = malloc(len_palavra + 1);
 
                 if (palavra == NULL) {
@@ -1860,6 +2260,10 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
             /*regra para variáveis*/
                 i++;
                 int j = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
                 if (line[i] >= 'a' && line[i] <= 'z')
                 {
                     while (isalnum((unsigned char)line[i]))
@@ -1867,6 +2271,10 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                         i++;
                     }; /*verifica se o restante é alfanumerico*/
                     int len = (i - j);              /* tamanho da substring*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
                     char *q = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (q == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -2250,6 +2658,10 @@ int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+if (memory == -1){
+    return 1;
+}
         if (isspace(c))
         {
             /* Ignora, não há nada a fazer */
@@ -2352,6 +2764,10 @@ int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number)
 int verificarBalanceamento(FILE* file) {
     char linha[1024];
     int numLinha = 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(numLinha));
+if (memory == -1){
+    return 1;
+}
     No* pilha = NULL;  /* Inicializa pilha vazia */
 
     while (fgets(linha, sizeof(linha), file)) {
@@ -2364,12 +2780,24 @@ int verificarBalanceamento(FILE* file) {
         }
 
         int dentroDeAspas = 0;  /* Flag para controlar se estamos dentro de aspas */
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroDeAspas));
+if (memory == -1){
+    return 1;
+}
 
         for (int i = 0; linha[i]; i++) {
             char c = linha[i];
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+if (memory == -1){
+    return 1;
+}
 
             /* Verifica se é uma aspas (normal ou inteligente) */
             int eAspas = (c == '"') || is_smart_quote(linha, i, strlen(linha));
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(eAspas));
+if (memory == -1){
+    return 1;
+}
 
             if (eAspas) {
                 /* Se encontrou aspas */
@@ -2428,6 +2856,10 @@ int verificarBalanceamento(FILE* file) {
 
                 /* Determina qual deveria ser o delimitador de abertura*/
                 char esperado;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(esperado));
+if (memory == -1){
+    return 1;
+}
                 if (c == '}') esperado = '{';
                 else if (c == ')') esperado = '(';
                 else esperado = '[';
@@ -2449,6 +2881,10 @@ int verificarBalanceamento(FILE* file) {
         if (pilha != NULL && pilha->delimitador == '"') {
             /* Verifica se a linha termina adequadamente (com ponto e vírgula)*/
             int ultimoCharSignificativo = strlen(linha) - 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(ultimoCharSignificativo));
+if (memory == -1){
+    return 1;
+}
             while (ultimoCharSignificativo >= 0 &&
                    (linha[ultimoCharSignificativo] == '\n' ||
                     linha[ultimoCharSignificativo] == '\r' ||
@@ -2502,6 +2938,10 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
     const char *leia = "leia";
     const char *escreva = "escreva";
     int tem_conteudo = 0; /*Flag para verificar se há conteúdo significativo na linha*/
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(tem_conteudo));
+if (memory == -1){
+    return 1;
+}
 
     /*Se i está fora dos limites, não há nada para processar*/
     if (i >= strlen(line)) {
@@ -2520,11 +2960,19 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
 
     while (line[i] != '\0' && line[i] != '\n') {
         char current_char = line[i];
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(current_char));
+if (memory == -1){
+    return 1;
+}
 
         if (current_char == 'l')
         {
             /*VERIFICA SE É "leia" - LÉXICO*/
             int match = 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(match));
+if (memory == -1){
+    return 1;
+}
             for (int j = 0; j < 4; j++) {
                 if (line[i + j] != leia[j]) {
                     match = 0;
@@ -2553,6 +3001,10 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
 
                 /*Verifica se há atribuição (não permitida no leia)*/
                 int temp_i = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp_i));
+if (memory == -1){
+    return 1;
+}
                 while (line[temp_i] != '\0' && line[temp_i] != '\n') {
                     if (line[temp_i] == '=') {
                         message_error("Não é permitido atribuições no leia\n", line_number);
@@ -2574,6 +3026,10 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
         {
             /*VERIFICA SE É "escreva" - LÉXICO*/
             int match = 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(match));
+if (memory == -1){
+    return 1;
+}
             for (int j = 0; j < 7; j++) {
                 if (i + j >= strlen(line) || line[i + j] != escreva[j]) {
                     match = 0;
@@ -2588,10 +3044,30 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
 
                 /*SINTÁTICO - processa escreva*/
                 int parenteses_count = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_count));
+if (memory == -1){
+    return 1;
+}
                 int aspas_abertas = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_abertas));
+if (memory == -1){
+    return 1;
+}
                 bool dentro_aspas = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentro_aspas));
+if (memory == -1){
+    return 1;
+}
                 bool saiu_aspas = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(saiu_aspas));
+if (memory == -1){
+    return 1;
+}
                 int len = strlen(line);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+if (memory == -1){
+    return 1;
+}
 
                 /*Pula espaços após "escreva"*/
                 while (isspace((unsigned char)line[i])) {
@@ -2610,6 +3086,10 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
                 while (line[i] != '\0' && line[i] != '\n')
                 {
                     int quote_bytes = is_smart_quote(line, i, len);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
+if (memory == -1){
+    return 1;
+}
 
                     if ((quote_bytes > 0 || line[i] == '"' ) && !saiu_aspas)
                     {
@@ -2709,12 +3189,40 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
             /* aqui tem que pegar se a função foi declarada previamente */
             char nome_funcao[64] = {0};
             int start_i = i + 1; /* Começa após o '_' */
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_i));
+if (memory == -1){
+    return 1;
+}
             int nome_idx = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_idx));
+if (memory == -1){
+    return 1;
+}
             bool after_underscore_name_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
+if (memory == -1){
+    return 1;
+}
             bool parenteses_parameter_control = false;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
+if (memory == -1){
+    return 1;
+}
             int parenteses_control_open_funcao = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
+if (memory == -1){
+    return 1;
+}
             int parametros_encontrados = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parametros_encontrados));
+if (memory == -1){
+    return 1;
+}
             int posicao_abre_parenteses = -1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(posicao_abre_parenteses));
+if (memory == -1){
+    return 1;
+}
             tem_conteudo = 1; /* Marca que há conteúdo significativo */
 
             /* Extrai o nome da função após o '_' */
@@ -2817,6 +3325,10 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
             /*Encontrou ponto e vírgula*/
             /*Verifica se há apenas espaços após o ;*/
             int j = i + 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+if (memory == -1){
+    return 1;
+}
             while (j < strlen(line) && (isspace(line[j]) || line[j] == '\n')) {
                 j++;
             }
@@ -2855,6 +3367,10 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
 
         /*Volta para verificar se o último caractere significativo é ;*/
         int last_char = strlen(line) - 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(last_char));
+if (memory == -1){
+    return 1;
+}
         while (last_char >= 0 && (line[last_char] == '\n' || line[last_char] == '\r' || isspace(line[last_char]))) {
             last_char--;
         }
@@ -2956,7 +3472,6 @@ Resultado verificarParametrosPara(char line[], int posicao, int *line_number)
 
     /* Verificar operadores (=, +, -, <=, ==, >=, etc) */
     int has_operator = 0;
-
     /* Operadores de 2 caracteres (<=, ==, >=, !=) */
     if ((line[i] == '<' && line[i + 1] == '=') ||
         (line[i] == '>' && line[i + 1] == '=') ||
@@ -3206,6 +3721,10 @@ int validar_nome_variavel(char *s) {
         return 0;
     }
     int i = 2;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
     while (s[i] != '\0') {
         if (!isalnum((unsigned char)s[i])) {
             return 0;
@@ -3219,6 +3738,10 @@ Funcao* encontrar_funcoes(FILE *file) {
     Funcao *lista = NULL;
     char line[256];
     int line_number = 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line_number));
+if (memory == -1){
+    return 1;
+}
 
     while (fgets(line, sizeof(line), file)) {
         /* Remover BOM se existir */
@@ -3231,6 +3754,10 @@ Funcao* encontrar_funcoes(FILE *file) {
 
         /* Remover espaços iniciais */
         int i = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+if (memory == -1){
+    return 1;
+}
         while (isspace((unsigned char)line[i])) {
             i++;
         }
@@ -3253,6 +3780,10 @@ Funcao* encontrar_funcoes(FILE *file) {
 
             /* Extrair nome da função */
             int start_nome = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_nome));
+if (memory == -1){
+    return 1;
+}
             if (!isalnum((unsigned char)line[i])) {
                 line_number++;
                 continue;
@@ -3262,6 +3793,10 @@ Funcao* encontrar_funcoes(FILE *file) {
                 i++;
             }
             int nome_len = i - start_nome;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_len));
+if (memory == -1){
+    return 1;
+}
             char nome[64];
             if (nome_len >= 64) nome_len = 63;
             strncpy(nome, &line[start_nome], nome_len);
@@ -3281,7 +3816,15 @@ Funcao* encontrar_funcoes(FILE *file) {
 
             /* Encontrar ')' correspondente */
             int start_params = i;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_params));
+if (memory == -1){
+    return 1;
+}
             int parent_count = 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parent_count));
+if (memory == -1){
+    return 1;
+}
             while (line[i] != '\0' && parent_count > 0) {
                 if (line[i] == '(') parent_count++;
                 else if (line[i] == ')') parent_count--;
@@ -3294,6 +3837,10 @@ Funcao* encontrar_funcoes(FILE *file) {
 
             /* Extrair substring de parâmetros (excluindo o último ')') */
             int params_len = (i - 1) - start_params;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(params_len));
+if (memory == -1){
+    return 1;
+}
             char param_str[256] = {0};
             if (params_len > 0) {
                 strncpy(param_str, &line[start_params], params_len);
@@ -3302,6 +3849,10 @@ Funcao* encontrar_funcoes(FILE *file) {
             /* Processar parâmetros */
             char parametros[10][64] = {{0}};
             int num_params = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(num_params));
+if (memory == -1){
+    return 1;
+}
 
             /* Se não há parâmetros (string vazia ou só espaços) */
             char *temp = param_str;
@@ -3321,6 +3872,10 @@ Funcao* encontrar_funcoes(FILE *file) {
                 /* Processar parâmetros separados por vírgula */
                 char *token = strtok(param_str, ",");
                 int valid_params = 1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(valid_params));
+if (memory == -1){
+    return 1;
+}
 
                 while (token != NULL && num_params < 10) {
                     /* Remover espaços do token */
@@ -3485,6 +4040,10 @@ Node* inserir_no(Node *raiz, const char *nome, const char *tipo, float tamanho, 
         return criar_no(nome, tipo, tamanho, valor);
 
     int cmp = strcmp(nome, raiz->nome);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
+if (memory == -1){
+    return 1;
+}
     if (cmp < 0)
         raiz->esq = inserir_no(raiz->esq, nome, tipo, tamanho, valor);
     else if (cmp > 0)
@@ -3503,6 +4062,10 @@ Node* inserir_no(Node *raiz, const char *nome, const char *tipo, float tamanho, 
     raiz->altura = 1 + max_int(altura(raiz->esq), altura(raiz->dir));
 
     int fb = fator_balanceamento(raiz);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fb));
+if (memory == -1){
+    return 1;
+}
 
     /* casos AVL */
     if (fb > 1 && strcmp(nome, raiz->esq->nome) < 0)
@@ -3530,6 +4093,10 @@ Node* buscar_no(Node *raiz, const char *nome) {
     Node *cur = raiz;
     while (cur) {
         int cmp = strcmp(nome, cur->nome);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
+if (memory == -1){
+    return 1;
+}
         if (cmp == 0) return cur;
         if (cmp < 0) cur = cur->esq;
         else cur = cur->dir;
@@ -3549,6 +4116,10 @@ Node* remover_no(Node *raiz, const char *nome) {
     if (raiz == NULL) return raiz;
 
     int cmp = strcmp(nome, raiz->nome);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
+if (memory == -1){
+    return 1;
+}
     if (cmp < 0)
         raiz->esq = remover_no(raiz->esq, nome);
     else if (cmp > 0)
@@ -3596,6 +4167,10 @@ Node* remover_no(Node *raiz, const char *nome) {
     raiz->altura = 1 + max_int(altura(raiz->esq), altura(raiz->dir));
 
     int fb = fator_balanceamento(raiz);
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fb));
+if (memory == -1){
+    return 1;
+}
 
     /* balancear */
     if (fb > 1 && fator_balanceamento(raiz->esq) >= 0)
@@ -3650,6 +4225,10 @@ void inorder(Node *raiz) {
     if (!raiz) return;
     inorder(raiz->esq);
     int casas = 3; /* implemento isso melhor depois */
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(casas));
+if (memory == -1){
+    return 1;
+}
     printf("(%s, %s, %.*f, %s) ", raiz->nome, raiz->tipo, casas, raiz->tamanho, raiz->valor);
     inorder(raiz->dir);
 }
@@ -3666,6 +4245,10 @@ void liberar_arvore(Node *raiz) {
 
 int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number) {
     int pos_igual = -1;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(pos_igual));
+if (memory == -1){
+    return 1;
+}
     for (int k = posicao_atual - 1; k >= 0; k--) {
         if (line[k] == '=') {
             pos_igual = k;
@@ -3678,11 +4261,19 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
     }
     /* Agora processa as palavras antes do '=' */
     int inicio_palavra = 0;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(inicio_palavra));
+if (memory == -1){
+    return 1;
+}
     for (int k = 0; k < pos_igual; k++) {
         /* Encontrou uma palavra que começa com '!' */
         if (line[k] == '!') {
             inicio_palavra = k + 1; // Pula o '!'
             int fim_palavra = inicio_palavra;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fim_palavra));
+if (memory == -1){
+    return 1;
+}
             /* Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')*/
             while (fim_palavra < pos_igual &&
                    line[fim_palavra] != ',' &&
@@ -3694,6 +4285,10 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
             // Se encontrou uma palavra válida
             if (fim_palavra > inicio_palavra) {
                 int len_palavra = fim_palavra - inicio_palavra;
+memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len_palavra));
+if (memory == -1){
+    return 1;
+}
                 char *palavra = malloc(len_palavra + 1);
                 if (palavra == NULL) {
                     message_error("Erro ao alocar memória", line_number);
