@@ -103,7 +103,7 @@ Node *raiz = NULL;
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_erro.txt", "r");
+    FILE *file = fopen("exemplo_correto.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -1497,7 +1497,7 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
 
                                         strncpy(extraida, &line[j], len);
                                         extraida[len] = '\0'; /* garante fim da string*/
-                                        raiz = inserir_no(raiz, "12", "texto", 99, extraida);
+                                        raiz = inserir_no(raiz, "12", "texto", strlen(extraida), extraida);
                                         Node *one = buscar_no(raiz, "12");
                                         if(extrair_e_atualizar_palavras(line,j-2,one,line_number)==1){
                                             return 1;
@@ -3726,52 +3726,16 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
         if (line[k] == '!') {
             inicio_palavra = k + 1; // Pula o '!'
             int fim_palavra = inicio_palavra;
-            int tem_colchete = 0;
-
-            int temp_pos = inicio_palavra;
-            while (temp_pos < pos_igual &&
-                   line[temp_pos] != ',' &&
-                   line[temp_pos] != ' ' &&
-                   line[temp_pos] != '=') {
-
-                if (line[temp_pos] == '[') {
-                    tem_colchete = 1;
-                    break;
-                }
-                temp_pos++;
+            /* Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')*/
+            while (fim_palavra < pos_igual &&
+                   line[fim_palavra] != ',' &&
+                   line[fim_palavra] != ' ' &&
+                   line[fim_palavra] != '=' &&
+                   line[fim_palavra] != '[') {
+                fim_palavra++;
             }
-
-            if (tem_colchete) {
-                fim_palavra = inicio_palavra;
-                while (fim_palavra < pos_igual &&
-                       line[fim_palavra] != ',' &&
-                       line[fim_palavra] != ' ' &&
-                       line[fim_palavra] != '=') {
-                    if (line[fim_palavra] == '[') {
-                        int nivel_colchetes = 1;
-                        fim_palavra++;
-                        while (fim_palavra < pos_igual && nivel_colchetes > 0) {
-                            if (line[fim_palavra] == '[') {
-                                nivel_colchetes++;
-                            } else if (line[fim_palavra] == ']') {
-                                nivel_colchetes--;
-                            }
-                            fim_palavra++;
-                        }
-                    } else {
-                        fim_palavra++;
-                    }
-                }
-            } else {
-                while (fim_palavra < pos_igual &&
-                       line[fim_palavra] != ',' &&
-                       line[fim_palavra] != ' ' &&
-                       line[fim_palavra] != '=') {
-                    fim_palavra++;
-                }
-            }
-
-            if (fim_palavra > inicio_palavra && !tem_colchete) {
+            // Se encontrou uma palavra válida
+            if (fim_palavra > inicio_palavra) {
                 int len_palavra = fim_palavra - inicio_palavra;
                 char *palavra = malloc(len_palavra + 1);
                 if (palavra == NULL) {
@@ -3780,7 +3744,7 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
                 }
                 strncpy(palavra, &line[inicio_palavra], len_palavra);
                 palavra[len_palavra] = '\0';
-                printf("Palavra encontrada: %s\n", palavra);
+                /*printf("Palavra encontrada: %s\n", palavra);*/
                 Node *encontrado1 = buscar_no(raiz, palavra);
                 if(!encontrado1){
                     message_error("Você tentou usar uma variável não declarada anteriormente...", line_number);
@@ -3789,6 +3753,7 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
                 if (encontrado1->tamanho==encontrado->tamanho){
                     raiz = alterar_no(raiz, encontrado1->nome, encontrado1->nome, encontrado1->tipo, encontrado1->tamanho, encontrado->valor);
                 } else {
+                    inorder(raiz);
                     message_error("Para realizar alterações em sua variável, elas precisam ter o mesmo tamanho", line_number);
                     return 1;
                 }
