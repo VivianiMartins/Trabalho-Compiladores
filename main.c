@@ -1802,59 +1802,18 @@ int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, 
     for (int k = 0; k < pos_igual; k++) {
         /* Encontrou uma palavra que começa com '!' */
         if (line[k] == '!') {
-            inicio_palavra = k + 1; // Pula o '!'
+            inicio_palavra = k + 1; /* Pula o '!'*/
             int fim_palavra = inicio_palavra;
-            int tem_colchete = 0; // Flag para detectar colchetes
-
-            // Primeiro, verifica se a palavra contém colchetes
-            int temp_pos = inicio_palavra;
-            while (temp_pos < pos_igual &&
-                   line[temp_pos] != ',' &&
-                   line[temp_pos] != ' ' &&
-                   line[temp_pos] != '=') {
-
-                if (line[temp_pos] == '[') {
-                    tem_colchete = 1;
-                    break;
-                }
-                temp_pos++;
+            /* Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')*/
+            while (fim_palavra < pos_igual &&
+                   line[fim_palavra] != ',' &&
+                   line[fim_palavra] != ' ' &&
+                   line[fim_palavra] != '=' &&
+                   line[fim_palavra] != '[') {
+                fim_palavra++;
             }
-
-            // Se tem colchetes, pula toda a expressão (incluindo os colchetes)
-            if (tem_colchete) {
-                fim_palavra = inicio_palavra;
-                while (fim_palavra < pos_igual &&
-                       line[fim_palavra] != ',' &&
-                       line[fim_palavra] != ' ' &&
-                       line[fim_palavra] != '=') {
-                    if (line[fim_palavra] == '[') {
-                        // Pula todo o conteúdo até o ']' correspondente
-                        int nivel_colchetes = 1;
-                        fim_palavra++;
-                        while (fim_palavra < pos_igual && nivel_colchetes > 0) {
-                            if (line[fim_palavra] == '[') {
-                                nivel_colchetes++;
-                            } else if (line[fim_palavra] == ']') {
-                                nivel_colchetes--;
-                            }
-                            fim_palavra++;
-                        }
-                    } else {
-                        fim_palavra++;
-                    }
-                }
-            } else {
-                // Se não tem colchetes, encontra o fim normalmente
-                while (fim_palavra < pos_igual &&
-                       line[fim_palavra] != ',' &&
-                       line[fim_palavra] != ' ' &&
-                       line[fim_palavra] != '=') {
-                    fim_palavra++;
-                }
-            }
-
-            // Se encontrou uma palavra válida E não tem colchetes
-            if (fim_palavra > inicio_palavra && !tem_colchete) {
+            /* Se encontrou uma palavra válida*/
+            if (fim_palavra > inicio_palavra) {
                 int len_palavra = fim_palavra - inicio_palavra;
                 char *palavra = malloc(len_palavra + 1);
 
@@ -1879,8 +1838,6 @@ int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, 
                 }
                 free(palavra);
             }
-            // Se tem colchetes, simplesmente ignora a palavra inteira
-
             k = fim_palavra;
             while (k < pos_igual && (line[k] == ',' || line[k] == ' ')) {
                 k++;
