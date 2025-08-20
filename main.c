@@ -2168,20 +2168,11 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
 /*Função para verificar tipos de aspas duplas diferentes*/
 int is_smart_quote(const char *str, int pos, int length)
 {
-    /* Verifica se há pelo menos 3 bytes disponíveis */
-    if (pos + 2 >= length) {
-        return 0;
-    }
-
     /* Verifica usando comparação de strings segura */
     if (strncmp(str + pos, "\xE2\x80\x9C", 3) == 0) {  /* “ */
         return 1;
     }
     if (strncmp(str + pos, "\xE2\x80\x9D", 3) == 0) {  /* ” */
-        return 1;
-    }
-
-    if (str[pos] == '"') {  /* Verifica aspas normais*/
         return 1;
     }
 
