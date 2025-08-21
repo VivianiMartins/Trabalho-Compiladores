@@ -11,8 +11,6 @@
 
 /*Tamanho das variáveis aceitáveis*/
 #define INTEIRO_MEMORY_BYTES sizeof(int)          /* Normalmente 4 bytes */
-#define DECIMAL_MEMORY_BYTES sizeof(float)        /* Normalmente 4 bytes */
-#define TEXTO_EACH_CHAR_MEMORY_BYTES sizeof(char) /* Sempre 1 byte */
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*Structs*/
@@ -1848,6 +1846,7 @@ if (memory == -1){
                                         raiz = inserir_no(raiz, "12", "texto", strlen(extraida), extraida);
                                         Node *one = buscar_no(raiz, "12");
                                         if(extrair_e_atualizar_palavras(line,j-2,one,line_number)==1){
+                                            raiz = remover_no(raiz, "12");
                                             return 1;
                                         }
                                         raiz = remover_no(raiz, "12");
@@ -2232,9 +2231,8 @@ if (memory == -1){
                     return 1;
                 }
                 if (strcmp(encontrado1->tipo, encontrado->tipo)!=0){
-                    message_error("Os tipos das variáveis do lado direito e esquerdo do '=' devem ser os mesmos", line_number);
-                    inorder(raiz);
-                    return 1;
+                    printf("Alerta na linha %d: Os tipos das variáveis do lado direito e esquerdo do '=' devem ser os mesmos\n", *line_number);
+                    return 0;
                 }
                 free(palavra);
             }
@@ -4305,7 +4303,6 @@ if (memory == -1){
                 if (encontrado1->tamanho==encontrado->tamanho){
                     raiz = alterar_no(raiz, encontrado1->nome, encontrado1->nome, encontrado1->tipo, encontrado1->tamanho, encontrado->valor);
                 } else {
-                    inorder(raiz);
                     message_error("Para realizar alterações em sua variável, elas precisam ter o mesmo tamanho", line_number);
                     return 1;
                 }
