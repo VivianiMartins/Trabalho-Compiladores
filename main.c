@@ -97,7 +97,8 @@ char* duplicar_string(const char *s);
 char *substring(const char *str, int inicio, int tamanho);
 int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number);
 int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number);
-
+double potencia_rapida(double base, int expoente); /*expoentes*/
+long long meu_llround(double x); /*arredondamento simples*/
 /*----------------------------------------------------------------------------------------------------------*/
 /*Criação da varíavel global da tabela de símbolos*/
 Node *raiz = NULL;
@@ -4574,7 +4575,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             resultado /= operando;
         }
         else if (operador == '^') {
-            resultado = pow(resultado, operando);
+            resultado = potencia_rapida(resultado, (int)operando);
         }
 
         while (pos < len && isspace(line[pos])) pos++;
@@ -4621,8 +4622,8 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                     *posicao_atual = pos;
                     return 0;
                 }
-                /*ERRO AQUI, ONDE ESTÁ POW???*/
-                operando = pow(operando, exp_operando);
+
+                operando = potencia_rapida(operando, (int)exp_operando);
 
                 if (operador == '*') resultado *= operando;
                 else if (operador == '/') {
@@ -4716,7 +4717,7 @@ char *double_para_string_manual(double numero) {
     for (int i = 0; i < casas; ++i) pow10 *= 10LL;
     long long scaled_frac = 0;
     if (casas > 0) {
-        scaled_frac = llround(parte_decimal * (double)pow10);
+        scaled_frac = meu_llround(parte_decimal * (double)pow10);
         /* se o arredondamento "estourar" (e.g. 0.9999999 -> 1.000000), ajusta carry*/
         if (scaled_frac >= pow10) {
             scaled_frac -= pow10;
@@ -4768,4 +4769,30 @@ char *double_para_string_manual(double numero) {
     }
     out[pos] = '\0';
     return out;
+}
+
+
+/*verificar potencia*/
+double potencia_rapida(double base, int expoente) {
+    if (expoente == 0) return 1.0;
+    if (expoente < 0) return 1.0 / potencia_rapida(base, -expoente);
+
+    double resultado = 1.0;
+    while (expoente > 0) {
+        if (expoente % 2 == 1) {
+            resultado *= base;
+        }
+        base *= base;
+        expoente /= 2;
+    }
+    return resultado;
+}
+
+/*arredondamento simples*/
+long long meu_llround(double x) {
+    if (x >= 0) {
+        return (long long)(x + 0.5);
+    } else {
+        return (long long)(x - 0.5);
+    }
 }
