@@ -3,6 +3,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
+#include <errno.h>
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*Tamanho total de memória*/
@@ -63,6 +65,8 @@ int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number);
 int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int flagTemPonto);/*função para operacoes matematicas no inteiro e no decimall*/
 int verificarBalanceamento(FILE* file); /*função para verificar duplo balanceamento*/
 int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_funcoes); /*função que irá varrer o restante da linha, em alguns casos*/
+double validarExpressao(char *line, int *posicao_atual, int *line_number);/*função pra calcular resultado de operações matemática*/
+char *double_para_string_manual(double numero);
 
 /*funções que utilizam a struct Resultado*/
 Resultado verificarParametroFuncao(char line[], int posicao, int *line_number); /*função para tratar parametro das funcoes*/
@@ -98,6 +102,7 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
 /*Criação da varíavel global da tabela de símbolos*/
 Node *raiz = NULL;
 int memory = 0;
+int deuErro = 0;
 
 int main()
 {
@@ -2312,63 +2317,77 @@ if (memory == -1){
                         }
                     }
                         if (line[i] == '+' && line[i+1] == '+')
-                        { /*verificar se tem apenas uma variável de fato*/
-                            if (line[i+2]!=';'){
-                                message_error("Falta ponto e virgula após a contração. \n", line_number);
-                                return 1;
-                            }
-                            i--;
-                            while (isalnum((unsigned char)line[i])){
-                                i--;
-                            }
-                            if(line[i]!='!'){
-                                message_error("Contrações só são permitidas para variáveis. \n", line_number);
-                                return 1;
-                            } else {
-                                i--;
-                                while (isspace(line[i])){
+                        { /*é operação matemática, vamos dar responsabilidade pra função*/
+                                while ((line[i])!='='){
                                     i--;
                                 }
-                                if(line[i]=='='){
-                                    if(flagTemPonto==0){
-                                        return 0;
-                                    } else {
-                                        return (-1);
-                                    }
+                                i++;
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
                                 }
-                            }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
+                                return 0;
                         } else if (line[i] == '-' && line[i+1] == '-')
-                        { /*verificar se tem apenas uma variável de fato*/
-                            if (line[i+2]!=';'){
-                                message_error("Falta ponto e virgula após a contração. \n", line_number);
-                                return 1;
-                            }
-                            i--;
-                            while (isalnum((unsigned char)line[i])){
-                                i--;
-                            }
-                            while (isspace(line[i])){
-                                i--;
-                            }
-                            if(line[i]!='!'){
-                                message_error("Contrações só são permitidas para variáveis. \n", line_number);
-                                return 1;
-                            } else {
-                                i--;
-                                while (isspace(line[i])){
+                        {
+                                while ((line[i])!='='){
                                     i--;
                                 }
-                                if(line[i]=='='){
-                                    if(flagTemPonto==0){
-                                        return 0;
-                                    } else {
-                                        return (-1);
-                                    }
+                                i++;
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
                                 }
-                            }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
+                                return 0;
                         } else if(line[i]=='+'||line[i]=='-'||line[i]=='['||line[i]==']')
                         {
-                            return verificarOperacaoMatematica(line,i,line_number,flagTemPonto);
+                                while ((line[i])!='='){
+                                    i--;
+                                }
+                                i++;
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
+                                }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
+                                return 0;
                         }
                         else if (line[i] == ';' && line[i + 1] == '\0')
                         {
@@ -2433,13 +2452,55 @@ if (memory == -1){
                             };
                             break;
                         }else if (line[i] == ']'||line[i] == '['||line[i] == '+'||line[i] == '-'){
-                            return verificarOperacaoMatematica(line, i+1, line_number, flagTemPonto);
+                                while ((line[i])!='='){
+                                    i--;
+                                }
+                                i++;
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
+                                }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
+                                return 0;
                         }else{
                             message_error("Falta um número depois do ponto", line_number);
                             return 1;
                         }
                     }else if (line[i] == ']'||line[i] == '['||line[i] == '+'||line[i] == '-'){
-                        return verificarOperacaoMatematica(line, i+1, line_number, flagTemPonto);
+                                while ((line[i])!='='){
+                                    i--;
+                                }
+                                i++;
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
+                                }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
+                                return 0;
                     }
                 }
                 i++;
@@ -2450,7 +2511,7 @@ if (memory == -1){
                 {
                     i++;
                 } while (isspace(line[i + 1]));
-                if (!line[i + 1] == '\n' && !line[i + 1] == '\0')
+                if (!(line[i + 1] == '\n')&& !(line[i + 1] == '\0'))
                 {
                     message_error("É necessário que a declaração termine com ';', sem nada após\n", line_number);
                     return 1;
@@ -2469,158 +2530,86 @@ if (memory == -1){
         }
         else if (line[i] == '-')
         {
-            i++;
-            if (line[i] == '-')
-            {
-                i++;
-                if (line[i] == '!')
-                {
-            /*regra para variáveis*/
-                i++;
-                if (line[i] >= 'a' && line[i] <= 'z')
-                {
-                    while (isalnum((unsigned char)line[i]))
-                    {
-                        i++;
-                    }; /*verifica se o restante é alfanumerico*/
-                    if(isspace(line[i])){
-                        i++;
-                        while (isspace(line[i])){
+                                while ((line[i])!='='){
+                                    i--;
+                                }
                                 i++;
-                        }
-                    }
-                        if (line[i] == ';' && line[i + 1] == '\0')
-                        {
-                            if(flagTemPonto==0){
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
+                                }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
                                 return 0;
-                            } else {
-                                return (-1);
-                            }
-                        }
-                        else if (line[i] == ';' && line[i + 1] == '\n')
-                        {
-                            if(flagTemPonto==0){
-                                return 0;
-                            } else {
-                                return (-1);
-                            }
-                        }
-                        else if (line[i] == ';' && isspace(line[i + 1]))
-                        {
-                            while(isspace(line[i+1])){
-                                i++;
-                            }
-                            if(line[i+1]!='\n'&&line[i+1]!='\0'){
-                                message_error("Depois de ';' foi encontrado algo além de espaços", line_number);
-                            }
-                            if(flagTemPonto==0){
-                                return 0;
-                            } else {
-                                return (-1);
-                            }
-                        }
-
-                        else
-                        {
-                            message_error("Algo está incorreto. Tem certeza que digitou corretamente?", line_number);
-                            return 1;
-                        }
-                    }
-                else
-                {
-                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
-                    return 1;
-                }
-                }
-                else
-                {
-                    message_error("Contração feita de forma incorreta\n", line_number);
-                    return 1;
-                }
-            }
         }
         else if (line[i] == '+')
         {
-            i++;
-            if (line[i] == '+')
-            {
-                i++;
-                if (line[i] == '!')
-                {
-            /*regra para variáveis*/
-                i++;
-                if (line[i] >= 'a' && line[i] <= 'z')
-                {
-                    while (isalnum((unsigned char)line[i]))
-                    {
-                        i++;
-                    }; /*verifica se o restante é alfanumerico*/
-                    if(isspace(line[i])){
-                        i++;
-                        while (isspace(line[i])){
+                                            while ((line[i])!='='){
+                                    i--;
+                                }
                                 i++;
-                        }
-                    }
-                        if (line[i] == ';' && line[i + 1] == '\0')
-                        {
-                            if(flagTemPonto==0){
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
+                                }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
                                 return 0;
-                            } else {
-                                return (-1);
-                            }
-                        }
-                        else if (line[i] == ';' && line[i + 1] == '\n')
-                        {
-                            if(flagTemPonto==0){
-                                return 0;
-                            } else {
-                                return (-1);
-                            }
-                        }
-                        else if (line[i] == ';' && isspace(line[i + 1]))
-                        {
-                            while(isspace(line[i+1])){
-                                i++;
-                            }
-                            if(line[i+1]!='\n'&&line[i+1]!='\0'){
-                                message_error("Depois de ';' foi encontrado algo além de espaços", line_number);
-                            }
-                            if(flagTemPonto==0){
-                                return 0;
-                            } else {
-                                return (-1);
-                            }
-                        }
 
-                        else
-                        {
-                            message_error("Algo está incorreto. Tem certeza que digitou corretamente?", line_number);
-                            return 1;
-                        }
-                    }
-                else
-                {
-                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
-                    return 1;
-                }
-                }
-                else
-                {
-                    message_error("Contração feita de forma incorreta\n", line_number);
-                    return 1;
-                }
-            }
         }
         else if (line[i] == '['||line[i]==']')
         {
-            return verificarOperacaoMatematica(line, i + 1, line_number, flagTemPonto);
+                                            while ((line[i])!='='){
+                                    i--;
+                                }
+                                i++;
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
+                                }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
+                                return 0;
         }
         else if (line[i] == '\0' || line[i] == '\n')
         {
             message_error("Falta algo depois de '='. Você pode ter esquecido o ponto e vírgula ou alguma parte da atribuição \n", line_number);
             return 1;
         }
-        else if (line[i] == ';' && line[i-1] == ']')
+        else if (line[i] == ';')
         {
             if(flagTemPonto==1){
                 return (-1);
@@ -2634,6 +2623,7 @@ if (memory == -1){
             return 1;
         }
     }
+    printf("Ué");
     return 1;
 }
 
@@ -4316,4 +4306,386 @@ if (memory == -1){
         }
     }
     return 0;
+}
+
+
+double validarExpressao(char *line, int *posicao_atual, int *line_number) {
+    double resultado = 0;
+    double operando = 0;
+    char operador = '+';
+    int pos = *posicao_atual;
+    int len = strlen(line);
+
+    /*para parênteses*/
+    double valores[100];
+    char operadores[100];
+    int stack_pos = 0;
+
+    while (pos < len && line[pos] != '\0' && line[pos] != '\n' && line[pos] != ']' && line[pos]!= ';') {
+        /* Pular espaços*/
+        while (pos < len && isspace(line[pos])) pos++;
+
+        if (pos >= len) break;
+
+        /* Verificar parênteses de abertura*/
+        if (line[pos] == '[') {
+            pos++;
+            int old_pos = pos;
+            double sub_resultado = validarExpressao(line, &pos, line_number);
+
+            /* Verificar se encontrou o parêntese de fechamento*/
+            if (pos >= len || line[pos] != ']') {
+                message_error("Parêntese não balanceado", line_number);
+                *posicao_atual = pos;
+                deuErro = 1;
+                return 0;
+            }
+            pos++; /* pular o ']'*/
+            operando = sub_resultado;
+        }
+        /* Verificar variável*/
+        else if (line[pos] == '!') {
+            pos++;
+            char var_name[50] = {0};
+            int var_idx = 0;
+
+            /* Ler nome da variável*/
+            while (pos < len && (isalnum(line[pos]) || line[pos] == '_')) {
+                var_name[var_idx++] = line[pos++];
+            }
+
+            if (var_idx == 0) {
+                message_error("Nome de variável inválido", line_number);
+                *posicao_atual = pos;
+                deuErro = 1;
+                return 0;
+            }
+
+            /* Verificar operadores de incremento/decremento pós-fixo*/
+            if (pos + 1 < len && line[pos] == '+' && line[pos+1] == '+') {
+                printf("%s\n", var_name);
+                pos += 2;
+                operando = 0; // valor assumido como zero
+            }
+            else if (pos + 1 < len && line[pos] == '-' && line[pos+1] == '-') {
+                printf("%s\n", var_name);
+                pos += 2;
+                operando = 0; // valor assumido como zero
+            }
+            else {
+                printf("%s\n", var_name);
+                operando = 0; // valor assumido como zero
+            }
+        }
+        /* Verificar operadores de incremento/decremento pré-fixo*/
+        else if (pos + 1 < len && line[pos] == '+' && line[pos+1] == '+' && pos + 2 < len && line[pos+2] == '!') {
+            pos += 3; /* pular "++"*/
+            char var_name[50] = {0};
+            int var_idx = 0;
+
+            while (pos < len && (isalnum(line[pos]) || line[pos] == '_')) {
+                var_name[var_idx++] = line[pos++];
+            }
+
+            if (var_idx == 0) {
+                message_error("Nome de variável inválido", line_number);
+                *posicao_atual = pos;
+                deuErro = 1;
+                return 0;
+            }
+
+            printf("%s\n", var_name);
+            operando = 0;
+        }
+        else if (pos + 1 < len && line[pos] == '-' && line[pos+1] == '-' && pos + 2 < len && line[pos+2] == '!') {
+            pos += 3; /* pular "--"*/
+            char var_name[50] = {0};
+            int var_idx = 0;
+
+            while (pos < len && (isalnum(line[pos]) || line[pos] == '_')) {
+                var_name[var_idx++] = line[pos++];
+            }
+
+            if (var_idx == 0) {
+                message_error("Nome de variável inválido", line_number);
+                *posicao_atual = pos;
+                deuErro = 1;
+                return 0;
+            }
+
+            printf("%s\n", var_name);
+            operando = 0;
+        }
+        /* Verificar números*/
+        else if (isdigit(line[pos]) || line[pos] == '.') {
+            char *endptr;
+            operando = strtod(&line[pos], &endptr);
+
+            if (endptr == &line[pos]) {
+                message_error("Número inválido", line_number);
+                *posicao_atual = pos;
+                deuErro = 1;
+                return 0;
+            }
+            pos = endptr - line;
+        }
+        /* Verificar operador unário negativo*/
+        else if (line[pos] == '-' && (pos == *posicao_atual || line[pos-1] == '[' || line[pos-1] == '+' || line[pos-1] == '-' || line[pos-1] == '*' || line[pos-1] == '/' || line[pos-1] == '^')) {
+            pos++;
+            /* Pular espaços após o sinal*/
+            while (pos < len && isspace(line[pos])) pos++;
+
+            if (pos < len && line[pos] == '[') {
+                pos++;
+                double sub_resultado = validarExpressao(line, &pos, line_number);
+                if (pos >= len || line[pos] != ']') {
+                    message_error("Parêntese não balanceado", line_number);
+                    *posicao_atual = pos;
+                    deuErro = 1;
+                    return 0;
+                }
+                pos++;
+                operando = -sub_resultado;
+            }
+            else if (isdigit(line[pos]) || line[pos] == '.') {
+                char *endptr;
+                operando = -strtod(&line[pos], &endptr);
+                pos = endptr - line;
+            }
+            else if (line[pos] == '!') {
+                pos++;
+                char var_name[50] = {0};
+                int var_idx = 0;
+                while (pos < len && (isalnum(line[pos]) || line[pos] == '_')) {
+                    var_name[var_idx++] = line[pos++];
+                }
+                printf("%s\n", var_name);
+                operando = 0;
+            }
+            else {
+                message_error("Operando esperado após '-'", line_number);
+                *posicao_atual = pos;
+                deuErro = 1;
+                return 0;
+            }
+        }
+        else {
+            message_error("Caractere inválido", line_number);
+            *posicao_atual = pos;
+            deuErro = 1;
+            return 0;
+        }
+
+        /* Aplicar operação baseada na precedência*/
+        if (operador == '+') {
+            resultado += operando;
+        }
+        else if (operador == '-') {
+            resultado -= operando;
+        }
+        else if (operador == '*') {
+            resultado *= operando;
+        }
+        else if (operador == '/') {
+            if (operando == 0) {
+                printf("ALERTA: Potencial divisão por zero na linha %d\n", *line_number);
+                *posicao_atual = pos;
+                return 0;
+            }
+            resultado /= operando;
+        }
+        else if (operador == '^') {
+            resultado = pow(resultado, operando);
+        }
+
+        while (pos < len && isspace(line[pos])) pos++;
+
+        if (pos >= len || line[pos] == ')') break;
+
+        if (line[pos] == '+' || line[pos] == '-' || line[pos] == '*' || line[pos] == '/' || line[pos] == '^') {
+            char novo_op = line[pos];
+            pos++;
+
+            if (novo_op == '^' && (operador == '*' || operador == '/')) {
+                /* Ler próximo operando para potenciação*/
+                while (pos < len && isspace(line[pos])) pos++;
+
+                double exp_operando;
+                if (pos < len && line[pos] == '[') {
+                    pos++;
+                    exp_operando = validarExpressao(line, &pos, line_number);
+                    if (pos >= len || line[pos] != ']') {
+                        message_error("Parentese desbalanceado", line_number);
+                        *posicao_atual = pos;
+                        deuErro = 1;
+                        return 0;
+                    }
+                    pos++;
+                }
+                else if (isdigit(line[pos]) || line[pos] == '.') {
+                    char *endptr;
+                    exp_operando = strtod(&line[pos], &endptr);
+                    pos = endptr - line;
+                }
+                else if (line[pos] == '!') {
+                    pos++;
+                    char var_name[50] = {0};
+                    int var_idx = 0;
+                    while (pos < len && (isalnum(line[pos]) || line[pos] == '_')) {
+                        var_name[var_idx++] = line[pos++];
+                    }
+                    printf("%s\n", var_name);
+                    exp_operando = 0;
+                }
+                else {
+                    printf("ERRO: Operando esperado após '^' na linha %d\n", *line_number);
+                    *posicao_atual = pos;
+                    return 0;
+                }
+
+                operando = pow(operando, exp_operando);
+
+                if (operador == '*') resultado *= operando;
+                else if (operador == '/') {
+                    if (operando == 0) {
+                        printf("ALERTA: Divisão por zero na linha %d\n", *line_number);
+                        *posicao_atual = pos;
+                        return 0;
+                    }
+                    resultado /= operando;
+                }
+
+                while (pos < len && isspace(line[pos])) pos++;
+                if (pos >= len || line[pos] == ')') break;
+
+                if (line[pos] == '+' || line[pos] == '-' || line[pos] == '*' || line[pos] == '/' || line[pos] == '^') {
+                    operador = line[pos];
+                    pos++;
+                } else {
+                    break;
+                }
+            }
+            else {
+                operador = novo_op;
+            }
+        } else {
+            break;
+        }
+    }
+    if (line[pos]!=';'){
+        message_error("Cadê o ponto e vírgula?", line_number);
+        deuErro = 1;
+    }
+     /*Assim, teria que fazer mais verificações sobre, mas acho que isso já é bastante.
+     Para o código a linha acaba depois do ';', correto? então foda-se se tiver algo depois.
+     Não acho que vale a pena avaliar.*/
+    *posicao_atual = pos;
+    return resultado;
+}
+int contar_casas_decimais(double numero) {
+    if (numero < 0) numero = -numero;
+    long long parte_inteira = (long long)numero;
+    double parte_decimal = numero - (double)parte_inteira;
+
+    if (parte_decimal < 1e-15) return 0;
+
+    int casas = 0;
+    double temp = parte_decimal;
+    const int MAX_CASAS = 15; // limite para evitar loops infinitos
+    while (casas < MAX_CASAS) {
+        temp *= 10.0;
+        int digito = (int)temp;
+        temp -= digito;
+        casas++;
+        if (fabs(temp) < 1e-12) break;
+    }
+    return casas;
+}
+
+char *double_para_string_manual(double numero) {
+    // tratamento de NaN / Inf
+    if (isnan(numero)) {
+        char *s = malloc(4);
+        if (!s) return NULL;
+        strcpy(s, "nan");
+        return s;
+    }
+    if (isinf(numero)) {
+        if (numero < 0) {
+            char *s = malloc(5);
+            if (!s) return NULL;
+            strcpy(s, "-inf");
+            return s;
+        } else {
+            char *s = malloc(4);
+            if (!s) return NULL;
+            strcpy(s, "inf");
+            return s;
+        }
+    }
+
+    int casas = contar_casas_decimais(numero);
+    int sign = 0;
+    if (numero < 0) { sign = 1; numero = -numero; }
+
+    long long parte_inteira = (long long)numero;
+    double parte_decimal = numero - (double)parte_inteira;
+
+    // escala a parte decimal para um inteiro, usando arredondamento
+    long long pow10 = 1;
+    for (int i = 0; i < casas; ++i) pow10 *= 10LL;
+    long long scaled_frac = 0;
+    if (casas > 0) {
+        scaled_frac = llround(parte_decimal * (double)pow10);
+        // se o arredondamento "estourar" (e.g. 0.9999999 -> 1.000000), ajusta carry
+        if (scaled_frac >= pow10) {
+            scaled_frac -= pow10;
+            parte_inteira += 1;
+        }
+    }
+
+    // construir strings separadas para inteiro e fracionária
+    char intbuf[64];
+    int intlen = 0;
+    if (parte_inteira == 0) {
+        intbuf[intlen++] = '0';
+    } else {
+        long long tmp = parte_inteira;
+        char rev[64];
+        int r = 0;
+        while (tmp > 0 && r < (int)sizeof(rev)) {
+            rev[r++] = '0' + (int)(tmp % 10LL);
+            tmp /= 10LL;
+        }
+        for (int i = r-1; i >= 0; --i) intbuf[intlen++] = rev[i];
+    }
+    intbuf[intlen] = '\0';
+
+    char fracbuf[64] = {0};
+    if (casas > 0) {
+        // garantir zeros à esquerda na parte fracionária
+        long long divisor = pow10 / 10;
+        for (int i = 0; i < casas; ++i) {
+            int digit = (int)((scaled_frac / divisor) % 10LL);
+            fracbuf[i] = '0' + digit;
+            divisor /= 10;
+        }
+        fracbuf[casas] = '\0';
+    }
+
+    // montar string final
+    size_t needed = (size_t)sign + strlen(intbuf) + (casas > 0 ? 1 + strlen(fracbuf) : 0) + 1;
+    char *out = malloc(needed);
+    if (!out) return NULL;
+    size_t pos = 0;
+    if (sign) out[pos++] = '-';
+    memcpy(out + pos, intbuf, strlen(intbuf));
+    pos += strlen(intbuf);
+    if (casas > 0) {
+        out[pos++] = '.';
+        memcpy(out + pos, fracbuf, strlen(fracbuf));
+        pos += strlen(fracbuf);
+    }
+    out[pos] = '\0';
+    return out;
 }
