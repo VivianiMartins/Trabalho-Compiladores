@@ -128,10 +128,10 @@ int main()
     if (file != NULL)
     {
         int balanceado = verificarBalanceamento(file);  /*verificação do duplo balanceamento - SINTÁTICO*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(balanceado));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(balanceado));
+        if (memory == -1){
+            return 1;
+        }
         if (balanceado != 0) {
             return 1;
         }
@@ -146,10 +146,10 @@ if (memory == -1){
         Funcao *lista_funcoes = encontrar_funcoes(file);
         /* Contar quantas funções foram encontradas */
         int count_funcoes = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(count_funcoes));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(count_funcoes));
+        if (memory == -1){
+            return 1;
+        }
         memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, INTEIRO_MEMORY_BYTES);
         if (memory == -1){
             return 1;
@@ -176,21 +176,21 @@ if (memory == -1){
 
         char line[256];
         int line_number = 1;          /*número da linha em questão*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line_number));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line_number));
+        if (memory == -1){
+            return 1;
+        }
         long start_pos = ftell(file); /*Posição inicial (0)*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_pos));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_pos));
+        if (memory == -1){
+            return 1;
+        }
         size_t line_size = 0;         /*tamanho de cada linha que irei ler*/
         int cont_principal = 0;         /*controle de principal - SINTÁTICO*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cont_principal));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cont_principal));
+        if (memory == -1){
+            return 1;
+        }
 
         memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line));
         memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, INTEIRO_MEMORY_BYTES*2);
@@ -201,10 +201,10 @@ if (memory == -1){
         }
 
         int resultado_final = varredura_principal(file, line ,&line_number, &cont_principal, 0, 0, 0, lista_funcoes);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(resultado_final));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(resultado_final));
+        if (memory == -1){
+            return 1;
+        }
         memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, INTEIRO_MEMORY_BYTES);
         if (memory == -1){
             return 1;
@@ -215,7 +215,7 @@ if (memory == -1){
         {
             if(cont_principal == 0)
             {
-                message_error("Módulo principal inexistente", &line_number);
+                message_error("ERRO SINTÁTICO: Módulo principal inexistente", &line_number);
                 fclose(file); return 1;
             }
             printf("Análise léxica e sintática ok\n\n");
@@ -229,7 +229,7 @@ if (memory == -1){
     }
     else
     {
-        fprintf(stderr, "Não foi possível abrir o arquivo!\n");
+        fprintf(stderr, "ERRO: Não foi possível abrir o arquivo!\n");
         return 1;
     }
 
@@ -264,16 +264,16 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
 
     /*controladores para função*/
     bool retorno_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(retorno_control));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(retorno_control));
+    if (memory == -1){
+        return 1;
+    }
     bool curly_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(curly_control));
-if (memory == -1){
-    return 1;
-}
 
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(curly_control));
+    if (memory == -1){
+        return 1;
+    }
     memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(retorno_control)*2);
     if (memory == -1){
         return 1;
@@ -295,10 +295,10 @@ if (memory == -1){
         {
             /*Verifica se  uma linha apenas com espaço ou vazia*/
             int i = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+            if (memory == -1){
+                return 1;
+            }
 
             memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
             if (memory == -1){
@@ -313,10 +313,10 @@ if (memory == -1){
             {
                 /* Move o conteúdo para o início da string */
                 int j = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+                if (memory == -1){
+                    return 1;
+                }
                 while (line[i] != '\0')
                 {
                     line[j++] = line[i++];
@@ -333,15 +333,17 @@ if (memory == -1){
         if (line[0] == 'p')
         {
             bool is_principal = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_principal));
-if (memory == -1){
-    return 1;
-}
+
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_principal));
+            if (memory == -1){
+                return 1;
+            }
+
             bool is_para_text = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_para_text));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_para_text));
+            if (memory == -1){
+                return 1;
+            }
             /* Verifica se começa com "principal" ou "para" */
             if (line[1] == principal[1])
             {
@@ -356,44 +358,46 @@ if (memory == -1){
             {
                 /*Checando se é principal*/
                 int i = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+                if (memory == -1){
+                    return 1;
+                }
                 /* Verifica se principal(){ - LÉXICO*/
                 for (i; i < 9; i++)
                 {
                     if (line[i] != principal[i])
                     {
-                        message_error("Módulo principal escrito incorretamente", line_number);
+                        message_error("ERRO LÉXICO: Módulo principal escrito incorretamente", line_number);
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
 
                 /*SINTÁTICO*/
                 int parenteses_control_open_principal = 0; /*controle do parênteses*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_principal));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_principal));
+                if (memory == -1){
+                    return 1;
+                }
+
                 int found_parentheses_principal = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_parentheses_principal));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_parentheses_principal));
+                if (memory == -1){
+                    return 1;
+                }
+
                 int found_curly_brace_principal = 0; /*Controla a chave { */
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_curly_brace_principal));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_curly_brace_principal));
+                if (memory == -1){
+                    return 1;
+                }
                 /* Verifica restante da linha */
                 for (i; line[i] != '\0'; i++)
                 {
                     char c = line[i];
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+                    if (memory == -1){
+                        return 1;
+                    }
                     /* Ignora espaços antes dos parênteses */
                     if (!found_parentheses_principal && isspace(c))
                     {
@@ -409,7 +413,7 @@ if (memory == -1){
                         }
                         else
                         {
-                            message_error("Esperado '(' após 'principal'", line_number);
+                            message_error("ERRO SINTÁTICO: Esperado '(' após 'principal'", line_number);
                             return 1; /*O código PARA quando encontra erro*/
                         }
                     }
@@ -424,7 +428,7 @@ if (memory == -1){
                             }
                             else if (!isspace(c))
                             {
-                                message_error("Parênteses deve conter apenas espaços", line_number);
+                                message_error("ERRO SINTÁTICO: Parênteses deve conter apenas espaços", line_number);
                                 return 1; /*O código PARA quando encontra erro*/
                             }
                         }
@@ -444,7 +448,7 @@ if (memory == -1){
                                 }
                                 else
                                 { /* Qualquer outro caractere é erro */
-                                    message_error("Esperado '{' após parênteses", line_number);
+                                    message_error("ERRO SINTÁTICO: Esperado '{' após parênteses", line_number);
                                     return 1; /*O código PARA quando encontra erro*/
                                 }
                             }
@@ -459,7 +463,7 @@ if (memory == -1){
 
                 if ((*cont_principal) > 1)
                 {
-                    message_error("Módulo principal tem que ser único", line_number);
+                    message_error("ERRO SINTÁTICO: Módulo principal tem que ser único", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
                 printf("principal ok\n");
@@ -469,46 +473,50 @@ if (memory == -1){
             {
                 /*Checando se é para*/
                 int i = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+                if (memory == -1){
+                    return 1;
+                }
                 /* Verifica para(){  - LÉXICO*/
                 for (i; i < 4; i++)
                 {
                     if (line[i] != para[i])
                     {
-                        message_error("Módulo para escrito incorretamente", line_number);
+                        message_error("ERRO LÉXICO: Módulo para escrito incorretamente", line_number);
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
 
                 /*SINTÁTICO*/
                 int parenteses_control_open_para = 0; /*controle do parênteses*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_para));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_para));
+                if (memory == -1){
+                    return 1;
+                }
+
                 bool found_parentheses_para = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_parentheses_para));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_parentheses_para));
+                if (memory == -1){
+                    return 1;
+                }
+
                 bool found_curly_brace_para = false; /*Controla a chave { */
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_curly_brace_para));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(found_curly_brace_para));
+                if (memory == -1){
+                    return 1;
+                }
+
                 bool parameter_control_para = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parameter_control_para));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parameter_control_para));
+                if (memory == -1){
+                    return 1;
+                }
+
                 bool parenteses_parameter_control_para = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control_para));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control_para));
+                if (memory == -1){
+                    return 1;
+                }
                 /* Verifica restante da linha */
                 for (i; line[i] != '\0'; i++)
                 {
@@ -535,7 +543,7 @@ if (memory == -1){
 
                                 if (res.sucesso == 1)
                                 {
-                                    message_error("Parâmetros de para tem que iniciar com !a..z", line_number);
+                                    message_error("ERRO SINTÁTICO: Parâmetros de para tem que iniciar com !a..z", line_number);
                                     return 1;
                                 }
                                 if (line[i] == ')') i--;
@@ -564,7 +572,7 @@ if (memory == -1){
                                 }
                                 else
                                 { /* Qualquer outro caractere é erro */
-                                    message_error("Esperado '{' após parênteses", line_number);
+                                    message_error("ERRO SINTÁTICO: Esperado '{' após parênteses", line_number);
                                     return 1; /*O código PARA quando encontra erro*/
                                 }
                             }
@@ -572,14 +580,14 @@ if (memory == -1){
                             {
                                 (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
                                 int dentroPara = varredura_principal(file, line, line_number, cont_principal, 0, 0, 1, lista_funcoes);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroPara));
-if (memory == -1){
-    return 1;
-}
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroPara));
+                                if (memory == -1){
+                                    return 1;
+                                }
 
                                 if (dentroPara != 0)
                                 {
-                                    message_error("Função construída incorretamente", line_number);
+                                    message_error("ERRO SINTÁTICO: Para construído incorretamente", line_number);
                                     return 1;
                                 }
                             }
@@ -589,7 +597,7 @@ if (memory == -1){
                 printf("para ok\n");
                 /*fim da checagem se é para*/
             } else {
-                message_error("Esperado: Principal ou Para", line_number);
+                message_error("ERRO SINTÁTICO: Esperado: Principal ou Para", line_number);
                 return 1; /*O código PARA quando encontra erro*/
             }
         }
@@ -597,51 +605,56 @@ if (memory == -1){
         {/*percorrer novamente verificando as funções, se estiverem ok, salvar o nome delas, qual linha está*/
             /*Checando se é funcao __xxx(){*/
             int i = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+            if (memory == -1){
+                return 1;
+            }
             /* Verifica se começa com "funcao"  - LÉXICO*/
             for (i; i < 6; i++)
             {
                 if (line[i] != funcao[i])
                 {
-                    message_error("Módulo funcao escrito incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Módulo funcao escrito incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
 
             /*SINTÁTICO*/ /*AQUI TEM QUE TERMINAR DE FAZER*/
             int parenteses_control_open_funcao = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
+            if (memory == -1){
+                return 1;
+            }
+
             bool underscore_name_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(underscore_name_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(underscore_name_control));
+            if (memory == -1){
+                return 1;
+            }
+
             bool after_underscore_name_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
+            if (memory == -1){
+                return 1;
+            }
+
             bool parameter_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parameter_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parameter_control));
+            if (memory == -1){
+                return 1;
+            }
+
             bool parenteses_parameter_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
+            if (memory == -1){
+                return 1;
+            }
+
             bool funcao_found_curly_brace = false; /*Controla a chave { */
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(funcao_found_curly_brace));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(funcao_found_curly_brace));
+            if (memory == -1){
+                return 1;
+            }
             /* Verifica restante da linha */
             for (i; line[i] != '\0'; i++)
             {
@@ -658,7 +671,7 @@ if (memory == -1){
                     {
                         if (line[i] != ' ' && !underscore_name_control)
                         {
-                            message_error("Nome da função tem que iniciar com __", line_number);
+                            message_error("ERRO SINTÁTICO: Nome da função tem que iniciar com __", line_number);
                             return 1; /*O código PARA quando encontra erro*/
                         }
                     }
@@ -674,7 +687,7 @@ if (memory == -1){
                         } /*Verifica se é um caractere alfanumérico (letra maiúscula/minúscula ou dígito decimal).*/
                         if (!(isspace((unsigned char)line[i]) || line[i] == '('))
                         {
-                            message_error("Nome da função escrito com caracter inválido", line_number);
+                            message_error("ERRO SINTÁTICO: Nome da função escrito com caracter inválido", line_number);
                             return 1; /*O código PARA quando encontra erro*/
                         }
 
@@ -684,7 +697,7 @@ if (memory == -1){
                     }
                     else
                     {
-                        message_error("Nome da função tem que iniciar com __letra minscula", line_number);
+                        message_error("ERRO SINTÁTICO: Nome da função tem que iniciar com __letra minscula", line_number);
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
@@ -740,7 +753,7 @@ if (memory == -1){
                             }
                             else
                             { /* Qualquer outro caractere é erro */
-                                message_error("Esperado '{' após parênteses", line_number);
+                                message_error("ERRO SINTÁTICO: Esperado '{' após parênteses", line_number);
                                 return 1; /*O código PARA quando encontra erro*/
                             }
                         }
@@ -748,14 +761,14 @@ if (memory == -1){
                         { /*estamos dentor da função, verificar tudo o que tem*/
                             (*line_number)++; /*tem que fazer isso para contar a próxima linha*/
                             int dentroFuncao = varredura_principal(file, line, line_number, cont_principal, 1, 0, 0, lista_funcoes);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroFuncao));
-if (memory == -1){
-    return 1;
-}
+                            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroFuncao));
+                            if (memory == -1){
+                                return 1;
+                            }
 
                             if (dentroFuncao != 0)
                             {
-                                message_error("Função construída incorretamente", line_number);
+                                message_error("ERRO SINTÁTICO: Função construída incorretamente", line_number);
                                 return 1;
                             }
                         }
@@ -772,7 +785,7 @@ if (memory == -1){
             {
                 if (line[i] != inteiro[i] && i < 7)
                 {
-                    message_error("Inteiro escrito incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Inteiro escrito incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
@@ -790,7 +803,7 @@ if (memory == -1){
             {
                 if (line[i] != texto[i] && i < 5)
                 {
-                    message_error("Texto escrito incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Texto escrito incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
@@ -808,7 +821,7 @@ if (memory == -1){
             {
                 if (line[i] != decimal[i] && i < 7)
                 {
-                    message_error("Decimal escrito incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Decimal escrito incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
@@ -826,23 +839,23 @@ if (memory == -1){
             {
                 if (line[i] != leia[i] && i < 4)
                 {
-                    message_error("Leia escrito incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Leia escrito incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
             /*SINTÁTICO*/
             int aux = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aux));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aux));
+            if (memory == -1){
+                return 1;
+            }
             while (isspace(line[4 + aux]))
             {
                 aux++;
             }
             if (line[4 + aux] != '(')
             {
-                message_error("Falta '(' depois de leia", line_number);
+                message_error("ERRO SINTÁTICO: Falta '(' depois de leia", line_number);
             }
             if (verificarLeia(line, 5 + aux, line_number) == 1)
             { /*Funciona, mas deixa = passar*/
@@ -852,7 +865,7 @@ if (memory == -1){
             {
                 if (line[i] == '=')
                 {
-                    message_error("Não é permitido atribuições no leia", line_number);
+                    message_error("ERRO SINTÁTICO: Não é permitido atribuições no leia", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
@@ -862,40 +875,43 @@ if (memory == -1){
         {
             /*Checando se é escreva("texto")*/
             int i = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+            if (memory == -1){
+                return 1;
+            }
             /* Verifica se começa com "escreva" - LÉXICO*/
             for (i; i < 7; i++)
             {
                 if (line[i] != escreva[i])
                 {
-                    message_error("Módulo escreva escrito incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Módulo escreva escrito incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
             }
             /*SINTÁTICO*/
             int parenteses_control_open_escreva = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_escreva));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_escreva));
+            if (memory == -1){
+                return 1;
+            }
+
             int aspas_control_open_escreva = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_control_open_escreva));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_control_open_escreva));
+            if (memory == -1){
+                return 1;
+            }
+
             int len = strlen(line);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+            if (memory == -1){
+                return 1;
+            }
+
             bool aspas_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_control));
+            if (memory == -1){
+                return 1;
+            }
             /* Verifica restante da linha */
             for (i; line[i] != '\0'; i++)
             {
@@ -913,10 +929,10 @@ if (memory == -1){
                 else if (parenteses_control_open_escreva >= 1)
                 { /*tem que ter aspas*/
                     int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
+                    if (memory == -1){
+                        return 1;
+                    }
 
                     if (isspace((unsigned char)line[i]) || line[i] == '"' ||  quote_bytes > 0 && !aspas_control)
                     {
@@ -939,13 +955,13 @@ if (memory == -1){
 
                                     if (aspas_control_open_escreva > 2)
                                     {
-                                        message_error("Use apenas duas aspas", line_number);
+                                        message_error("ERRO SINTÁTICO: Use apenas duas aspas", line_number);
                                         return 1;
                                     }
                                 }
                                 else if(line[i] == '/0' || line[i] == ')')
                                 {
-                                    message_error("Precisa fechar as aspas\n", line_number);
+                                    message_error("ERRO SINTÁTICO: Precisa fechar as aspas\n", line_number);
                                     return 1;
                                 }
                                 i++;
@@ -954,7 +970,7 @@ if (memory == -1){
                         } else {
                             if (aspas_control_open_escreva <2 )
                             {
-                                message_error("Duas aspas necessárias\n", line_number);
+                                message_error("ERRO SINTÁTICO: Duas aspas necessárias\n", line_number);
                                 return 1;
                             }
 
@@ -998,20 +1014,22 @@ if (memory == -1){
         else if (line[0] == 's')
         {
             bool is_se_text = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_se_text));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_se_text));
+            if (memory == -1){
+                return 1;
+            }
+
             bool is_senao = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_senao));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(is_senao));
+            if (memory == -1){
+                return 1;
+            }
+
             int len = strlen(line);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+            if (memory == -1){
+                return 1;
+            }
             /* Verifica se começa com "se" ou "senao" */
             if (strncmp(line, se, 2) == 0) {
                 /* Verificar se é senao (5 caracteres) */
@@ -1025,31 +1043,33 @@ if (memory == -1){
             {
                 /*Checando se é se*/
                 int i = 2;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+                if (memory == -1){
+                    return 1;
+                }
                 /* Verifica se se(){ - LÉXICO*/
                 if (!strncmp(line, se, 2) == 0) {
-                    message_error("Módulo se incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Módulo se incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
                 /*SINTÁTICO*/
                 int parenteses_control_open_se = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_se));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_se));
+                if (memory == -1){
+                    return 1;
+                }
+
                 bool se_found_curly_brace = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(se_found_curly_brace));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(se_found_curly_brace));
+                if (memory == -1){
+                    return 1;
+                }
+
                 bool parenteses_fechou = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_fechou));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_fechou));
+                if (memory == -1){
+                    return 1;
+                }
 
                 while(isspace((unsigned char)line[i]))i++;
                 /* Verifica restante da linha */
@@ -1068,10 +1088,10 @@ if (memory == -1){
                         while(isspace((unsigned char)line[i]))i++;
 
                         int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
-if (memory == -1){
-    return 1;
-}
+                        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
+                        if (memory == -1){
+                            return 1;
+                        }
                         if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
                         {
                             Resultado res = verificarParametrosSe(line, i, line_number, len);
@@ -1094,10 +1114,10 @@ if (memory == -1){
                         while(isspace((unsigned char)line[i])) i++;
 
                         int dentroSe = -1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroSe));
-if (memory == -1){
-    return 1;
-}
+                        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroSe));
+                        if (memory == -1){
+                            return 1;
+                        }
 
                         if (line[i] == '{')
                         { /* Encontrou a chave de abertura */
@@ -1112,7 +1132,7 @@ if (memory == -1){
 
                         if (dentroSe != 0)
                         {
-                            message_error("Se construído incorretamente", line_number);
+                            message_error("ERRO SINTÁTICO: Se construído incorretamente", line_number);
                             return 1;
                         } else {
                             break; /*dentro do se verificado*/
@@ -1127,12 +1147,12 @@ if (memory == -1){
             {
                 /*Checando se é senao - LÉXICO*/
                 int i = 5;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+                if (memory == -1){
+                    return 1;
+                }
                 if (strncmp(line, senao, 5) != 0) {
-                    message_error("Módulo senao incorretamente", line_number);
+                    message_error("ERRO LÉXICO: Módulo senao incorretamente", line_number);
                     return 1; /*O código PARA quando encontra erro*/
                 }
                 while (isspace((unsigned char)line[i])){i++;}
@@ -1141,14 +1161,14 @@ if (memory == -1){
                 if (line[i] != '\0') {
                     /*criar função para tratar todos os casos*/
                     int dentroSenao = varredura_mesma_linha(line,line_number, i, lista_funcoes);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroSenao));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroSenao));
+                    if (memory == -1){
+                        return 1;
+                    }
 
                     if (dentroSenao != 0)
                     {
-                        message_error("Senao construído incorretamente", line_number);
+                        message_error("ERRO SINTÁTICO: Senao construído incorretamente", line_number);
                         return 1;
                     }
                 }
@@ -1157,7 +1177,7 @@ if (memory == -1){
             }
             else
             {
-                message_error("Comando deve ser 'se' ou 'senao'", line_number);
+                message_error("ERRO SINTÁTICO: Comando deve ser 'se' ou 'senao'", line_number);
                 return 1;
             }
         }
@@ -1174,40 +1194,46 @@ if (memory == -1){
             /*aqui tem que pegar se a função foi declarada previamente*/
             char nome_funcao[64] = {0};
             int i = 1; /* Começa após o '_' */
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+            if (memory == -1){
+                return 1;
+            }
+
             int nome_idx = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_idx));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_idx));
+            if (memory == -1){
+                return 1;
+            }
+
             bool after_underscore_name_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
+            if (memory == -1){
+                return 1;
+            }
+
             bool parenteses_parameter_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
+            if (memory == -1){
+                return 1;
+            }
+
             int parenteses_control_open_funcao = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
+            if (memory == -1){
+                return 1;
+            }
+
             int parametros_encontrados = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parametros_encontrados));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parametros_encontrados));
+            if (memory == -1){
+                return 1;
+            }
+
             int posicao_abre_parenteses = -1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(posicao_abre_parenteses));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(posicao_abre_parenteses));
+            if (memory == -1){
+                return 1;
+            }
 
             /* Extrai o nome da função após o '_' */
             while (line[i] != '\0' && !isspace((unsigned char)line[i]) && line[i] != '(') {
@@ -1264,10 +1290,10 @@ if (memory == -1){
 
                         /* Verifica se termina com ';' */
                         int j = i + 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+                        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+                        if (memory == -1){
+                            return 1;
+                        }
                         while (line[j] != '\0' && isspace((unsigned char)line[j])) {
                             j++;
                         }
@@ -1296,24 +1322,24 @@ if (memory == -1){
             {
                 /* Verifica se retorno !variavel; - LÉXICO*/
                 int i = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+                if (memory == -1){
+                    return 1;
+                }
                 for (i=0; i < 7; i++)
                 {
                     if (line[i] != retorno[i])
                     {
-                        message_error("Retorno escrito incorretamente", line_number);
+                        message_error("ERRO LÉXICO: Retorno escrito incorretamente", line_number);
                         return 1; /*O código PARA quando encontra erro*/
                     }
                 }
                 /*SINTÁTICO*/
                 bool has_variable = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(has_variable));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(has_variable));
+                if (memory == -1){
+                    return 1;
+                }
                 /*verificar !variavel ou espaços*/
                 for (i; line[i] != '\0'; i++)
                 {
@@ -1330,7 +1356,7 @@ if (memory == -1){
                     }
                     else
                     {
-                        message_error("Esperado '!' antes da variável", line_number);
+                        message_error("ERRO SINTÁTICO: Esperado '!' antes da variável", line_number);
                         return 1;
                     }
                 }
@@ -1339,7 +1365,7 @@ if (memory == -1){
                 {/* Verificar primeiro caractere (obrigatoriamente a-z) */
                     if (line[i] < 'a' || line[i] > 'z')
                     {
-                        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+                        message_error("ERRO SINTÁTICO: Após '!' deve haver letra minúscula (a-z)\n", line_number);
                         return 1;
                     }
                     else
@@ -1364,7 +1390,7 @@ if (memory == -1){
                             {
                                 if (!isspace((unsigned char)line[i]))
                                 {
-                                    message_error("Caracteres inválidos após ';'", line_number);
+                                    message_error("ERRO SINTÁTICO: Caracteres inválidos após ';'", line_number);
                                     return 1;
                                 }
                                 i++;
@@ -1375,7 +1401,7 @@ if (memory == -1){
                     }
                     else
                     {
-                        message_error("Caractere inválido após variável. Esperado espaço ou ';'", line_number);
+                        message_error("ERRO SINTÁTICO: Caractere inválido após variável. Esperado espaço ou ';'", line_number);
                         return 1;
                     }
                 }
@@ -1421,7 +1447,7 @@ if (memory == -1){
             printf("Conteúdo ok\n");
         } else
         { /*aqui tudo que não poderia estar solto no conteúdo*/
-            printf("Conteúdo não reconhecido na linha %i: %c\n",(*line_number), line[0]);
+            printf("ERRO SINTÁTICO: Conteúdo não reconhecido na linha %i: %c\n",(*line_number), line[0]);
             return 1;
         }
 
@@ -1442,12 +1468,12 @@ int carregarNaMemoria(int Memory, int MaxMemory, int size)
     {
         if ((Memory) + size < (MaxMemory * 0.99))
         {
-            printf("Alerta! Mais de 90% da Memória disponível foi utilizada");
+            printf("ALERTA! Mais de 90% da Memória disponível foi utilizada");
             return (Memory + size);
         }
         else
         {
-            printf("Memória cheia!!! Não foi possível carregar os bits na memória");
+            printf("ERRO MEMÓRIA: Memória cheia!!! Não foi possível carregar os bits na memória");
             return -1;
         }
     }
@@ -1496,15 +1522,22 @@ char *garantir_quebra_linha_apos_ponto_virgula(const char *arquivo_entrada)
     }
 
     int caractere_atual;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(caractere_atual));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(caractere_atual));
+    if (memory == -1){
+        perror("ERRO MEMÓRIA: insuficiente");
+        fclose(entrada);
+        free(arquivo_saida);
+        exit(EXIT_FAILURE);
+    }
+
     int proximo_caractere;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(proximo_caractere));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(proximo_caractere));
+    if (memory == -1){
+        perror("ERRO MEMÓRIA: insuficiente");
+        fclose(entrada);
+        free(arquivo_saida);
+        exit(EXIT_FAILURE);
+    }
 
     while ((caractere_atual = fgetc(entrada)) != EOF)
     {
@@ -1719,10 +1752,10 @@ int verificarVariavelTexto(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+        if (memory == -1){
+            return 1;
+        }
         if (isspace(c))
         {
             /* Ignora, não há nada a fazer */
@@ -1731,10 +1764,10 @@ if (memory == -1){
         {
             i++;
             int j = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+            if (memory == -1){
+                return 1;
+            }
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
@@ -1742,21 +1775,21 @@ if (memory == -1){
                     i++;
                 }; /*verifica se o restante é alfanumerico*/
                 int k = i-1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(k));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(k));
+                if (memory == -1){
+                    return 1;
+                }
                 if (line[i] == '[')
                 {
                     i++;
                     int l = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(l));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(l));
+                    if (memory == -1){
+                        return 1;
+                    }
                     if (line[i] == '0' || !isdigit(line[i]))
                     {
-                        message_error("O tamanho de um texto precisa ser um número e maior que zero\n", line_number);
+                        message_error("ERRO SINTÁTICO: O tamanho de um texto precisa ser um número e maior que zero\n", line_number);
                         return 1;
                     }
 
@@ -1766,14 +1799,14 @@ if (memory == -1){
                     }
                     if (line[i] != ']')
                     {
-                        message_error("Não foi encontrado ']' após a variável de texto. O tamanho foi escrito incorretamente. Só são permitidos números inteiros entre '[' e ']' \n", line_number);
+                        message_error("ERRO SINTÁTICO: Não foi encontrado ']' após a variável de texto. O tamanho foi escrito incorretamente. Só são permitidos números inteiros entre '[' e ']' \n", line_number);
                         return 1;
                     }
                     int len = (k - j+1);              // tamanho da substring
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                    if (memory == -1){
+                        return 1;
+                    }
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1828,18 +1861,18 @@ if (memory == -1){
                             {
                                 i++;
                                 int j = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+                                if (memory == -1){
+                                    return 1;
+                                }
                                 while(line[i]!='\0'||line[i]!='\n'){
                                     i++;
                                     if(line[i] == '"' || (is_smart_quote(line, i, strlen(line)) > 0)){
                                         int len = (i - j);              /* tamanho da substring*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                                        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                                        if (memory == -1){
+                                            return 1;
+                                        }
                                         char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                                         if (extraida == NULL) {
                                             message_error("Erro ao alocar memória", line_number);
@@ -1865,7 +1898,7 @@ if (memory == -1){
                                             i++;
                                             }
                                             if(line[i]!='\0'&&line[i]!='\n'){
-                                                message_error("Só podem conter espaços depois de ponto e vírgula\n", line_number);
+                                                message_error("ERRO SINTÁTICO: Só podem conter espaços depois de ponto e vírgula\n", line_number);
                                                 return 1;
                                             } else {
                                                 return 0;
@@ -1873,7 +1906,7 @@ if (memory == -1){
                                         }
                                     }
                                 }
-                                message_error("Erro: falta fechar aspas e/ou ponto e vírgula\n", line_number);
+                                message_error("ERRO SINTÁTICO: falta fechar aspas e/ou ponto e vírgula\n", line_number);
                                 return 1;
                             }
                             else
@@ -1881,7 +1914,7 @@ if (memory == -1){
                                 if(line[i]=='!'){
                                     return verificarOperacaoMatematica(line, i, line_number, 0);
                                 } else {
-                                    message_error("Não foi encontrada aspas no texto\n", line_number);
+                                    message_error("ERRO SINTÁTICO: Não foi encontrada aspas no texto\n", line_number);
                                     printf("aqui o texto: %c", line[i]);
                                     return 1;
                                 }
@@ -1890,29 +1923,29 @@ if (memory == -1){
                     }
                     else
                     {
-                        message_error("Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
+                        message_error("ERRO SINTÁTICO: Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
                         return 1;
                     }
                 }
                 else
                 {
-                    message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
+                    message_error("ERRO SINTÁTICO: Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
                     return 1;
                 }
             }
             else
             {
-                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                message_error("ERRO SINTÁTICO: Variáveis precisam começar com letra minúscula.\n", line_number);
                 return 1;
             }
         }
         else
         {
-            message_error("Falta '!' antes da variável.\n", line_number);
+            message_error("ERRO SINTÁTICO: Falta '!' antes da variável.\n", line_number);
             return 1;
         }
     }
-    message_error("Declaração de variável não encontrada.\n", line_number);
+    message_error("ERRO SINTÁTICO: Declaração de variável não encontrada.\n", line_number);
     return 1;
 }
 
@@ -1922,10 +1955,10 @@ int verificarVariavelDecimal(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+        if (memory == -1){
+            return 1;
+        }
         if (isspace(c))
         {
             /* Ignora, não há nada a fazer */
@@ -1934,10 +1967,10 @@ if (memory == -1){
         {
             i++;
             int j = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+            if (memory == -1){
+                return 1;
+            }
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
@@ -1945,21 +1978,21 @@ if (memory == -1){
                     i++;
                 }; /*verifica se o restante é alfanumerico*/
                 int k = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(k));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(k));
+                if (memory == -1){
+                    return 1;
+                }
                 if (line[i] == '[')
                 {
                     i++;
                     int l = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(l));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(l));
+                    if (memory == -1){
+                        return 1;
+                    }
                     if (line[i] == '0' || !isdigit(line[i]))
                     {
-                        message_error("O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
+                        message_error("ERRO SINTÁTICO: O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
                         return 1;
                     }
 
@@ -1969,13 +2002,13 @@ if (memory == -1){
                     }
                     if (line[i] != '.')
                     {
-                        message_error("Não foi encontrado '.' após na variável decimal. O tamanho foi escrito incorretamente. \n", line_number);
+                        message_error("ERRO SINTÁTICO: Não foi encontrado '.' após na variável decimal. O tamanho foi escrito incorretamente. \n", line_number);
                         return 1;
                     }
                     i++;
                     if (line[i] == '0' || !isdigit(line[i]))
                     {
-                        message_error("O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
+                        message_error("ERRO SINTÁTICO: O tamanho de um decimal precisa ser um número e maior que zero antes do '.'\n", line_number);
                         return 1;
                     }
 
@@ -1984,10 +2017,10 @@ if (memory == -1){
                         i++;
                     }
                     int len = (k - j);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                    if (memory == -1){
+                        return 1;
+                    }
                     char *extraida = malloc(len + 1);
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -2007,16 +2040,16 @@ if (memory == -1){
                     strncpy(tamanho, &line[l], len);
                     tamanho[len] = '\0';
                     float tamanho_float = strtof(tamanho, NULL);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(tamanho_float));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(tamanho_float));
+                    if (memory == -1){
+                        return 1;
+                    }
                     raiz = inserir_no(raiz, extraida, "decimal", tamanho_float, "0");
                     free(tamanho);
                     free(extraida);
                     if (line[i] != ']')
                     {
-                        message_error("Não foi encontrado ']' após na variável decimal. O tamanho foi escrito incorretamente. Só são permitidos números e pontos entre '[' e ']'. \n", line_number);
+                        message_error("ERRO SINTÁTICO: Não foi encontrado ']' após na variável decimal. O tamanho foi escrito incorretamente. Só são permitidos números e pontos entre '[' e ']'. \n", line_number);
                         return 1;
                     }
                     i++;
@@ -2054,29 +2087,29 @@ if (memory == -1){
                     }
                     else
                     {
-                        message_error("Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
+                        message_error("ERRO SINTÁTICO: Algo depois de ']' está incorreto. Tem certeza que digitou corretamente?", line_number);
                         return 1;
                     }
                 }
                 else
                 {
-                    message_error("Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
+                    message_error("ERRO SINTÁTICO: Declaração incorreta. falta '[' ou foram usados não alfanuméricos. \n", line_number);
                     return 1;
                 }
             }
             else
             {
-                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                message_error("ERRO SINTÁTICO: Variáveis precisam começar com letra minúscula.\n", line_number);
                 return 1;
             }
         }
         else
         {
-            message_error("Falta '!' antes da variável.\n", line_number);
+            message_error("ERRO SINTÁTICO: Falta '!' antes da variável.\n", line_number);
             return 1;
         }
     }
-    message_error("Declaração de variável não encontrada.\n", line_number);
+    message_error("ERRO SINTÁTICO: Declaração de variável não encontrada.\n", line_number);
     return 1;
 }
 
@@ -2084,20 +2117,22 @@ if (memory == -1){
 int verificarLeia(char line[], int posicao, int *line_number)
 {
     int i = posicao;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+    if (memory == -1){
+        return 1;
+    }
+
     int len = strlen(line);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+    if (memory == -1){
+        return 1;
+    }
+
     int variaveis = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(variaveis));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(variaveis));
+    if (memory == -1){
+        return 1;
+    }
 
     while (1)
     {
@@ -2110,14 +2145,14 @@ if (memory == -1){
         {
             if (variaveis > 0 && line[i] == ')')
                 break;
-            message_error("Esperado '!' antes da variável que deveria aparecer depois de ',' ou '('.\n", line_number);
+            message_error("ERRO SINTÁTICO: Esperado '!' antes da variável que deveria aparecer depois de ',' ou '('.\n", line_number);
             return 1;
         }
         i++;
 
         if (i >= len || !(line[i] >= 'a' && line[i] <= 'z'))
         {
-            message_error("Variáveis devem começar com letra minúscula.\n", line_number);
+            message_error("ERRO SINTÁTICO: Variáveis devem começar com letra minúscula.\n", line_number);
             return 1;
         }
         i++;
@@ -2135,7 +2170,7 @@ if (memory == -1){
             break;
         if (line[i] != ',')
         {
-            message_error("Esperado ',' ou ')' após variável.\n", line_number);
+            message_error("ERRO SINTÁTICO: Esperado ',' ou ')' após variável.\n", line_number);
             return 1;
         }
         i++;
@@ -2143,7 +2178,7 @@ if (memory == -1){
 
     if (i >= len || line[i] != ')')
     {
-        message_error("Esperado ')' após variáveis.\n", line_number);
+        message_error("ERRO SINTÁTICO: Esperado ')' após variáveis.\n", line_number);
         return 1;
     }
     i++;
@@ -2153,7 +2188,7 @@ if (memory == -1){
 
     if (i >= len || line[i] != ';')
     {
-        message_error("Esperado ';' após comando.\n", line_number);
+        message_error("ERRO SINTÁTICO: Esperado ';' após comando.\n", line_number);
         return 1;
     }
     i++;
@@ -2163,7 +2198,7 @@ if (memory == -1){
 
     if (i < len && line[i] != '\0' && line[i] != '\n')
     {
-        message_error("Caracteres extras após ';'.\n", line_number);
+        message_error("ERRO SINTÁTICO: Caracteres extras após ';'.\n", line_number);
         return 1;
     }
 
@@ -2172,10 +2207,10 @@ if (memory == -1){
 
 int extrair_e_printar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number) {
     int pos_igual = -1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(pos_igual));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(pos_igual));
+    if (memory == -1){
+        return 1;
+    }
     for (int k = posicao_atual - 1; k >= 0; k--) {
         if (line[k] == '=') {
             pos_igual = k;
@@ -2184,26 +2219,26 @@ if (memory == -1){
     }
 
     if (pos_igual == -1) {
-        message_error("Erro: '=' não encontrado antes da posição atual\n", line_number);
+        message_error("ERRO SINTÁTICO: '=' não encontrado antes da posição atual\n", line_number);
         return 1;
     }
 
     /* Agora processa as palavras antes do '=' */
     int inicio_palavra = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(inicio_palavra));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(inicio_palavra));
+    if (memory == -1){
+        return 1;
+    }
 
     for (int k = 0; k < pos_igual; k++) {
         /* Encontrou uma palavra que começa com '!' */
         if (line[k] == '!') {
             inicio_palavra = k + 1; /* Pula o '!'*/
             int fim_palavra = inicio_palavra;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fim_palavra));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fim_palavra));
+            if (memory == -1){
+                return 1;
+            }
             /* Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')*/
             while (fim_palavra < pos_igual &&
                    line[fim_palavra] != ',' &&
@@ -2215,10 +2250,10 @@ if (memory == -1){
             /* Se encontrou uma palavra válida*/
             if (fim_palavra > inicio_palavra) {
                 int len_palavra = fim_palavra - inicio_palavra;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len_palavra));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len_palavra));
+                if (memory == -1){
+                    return 1;
+                }
                 char *palavra = malloc(len_palavra + 1);
 
                 if (palavra == NULL) {
@@ -2232,11 +2267,11 @@ if (memory == -1){
                 /*printf("Palavra encontrada: %s\n", palavra);*/
                 Node *encontrado1 = buscar_no(raiz, palavra);
                 if(!encontrado1){
-                    message_error("Você tentou usar uma variável não declarada anteriormente", line_number);
+                    message_error("ERRO SEMÂNTICO: Você tentou usar uma variável não declarada anteriormente", line_number);
                     return 1;
                 }
                 if (strcmp(encontrado1->tipo, encontrado->tipo)!=0){
-                    printf("Alerta na linha %d: Os tipos das variáveis do lado direito e esquerdo do '=' devem ser os mesmos\n", *line_number);
+                    printf("ALERTA na linha %d: Os tipos das variáveis do lado direito e esquerdo do '=' devem ser os mesmos\n", *line_number);
                     return 0;
                 }
                 free(palavra);
@@ -2263,10 +2298,10 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
             /*regra para variáveis*/
                 i++;
                 int j = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+                if (memory == -1){
+                    return 1;
+                }
                 if (line[i] >= 'a' && line[i] <= 'z')
                 {
                     while (isalnum((unsigned char)line[i]))
@@ -2274,10 +2309,10 @@ if (memory == -1){
                         i++;
                     }; /*verifica se o restante é alfanumerico*/
                     int len = (i - j);              /* tamanho da substring*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                    if (memory == -1){
+                        return 1;
+                    }
                     char *q = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (q == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -2288,7 +2323,7 @@ if (memory == -1){
                     q[len] = '\0'; /* garante fim da string*/
                     Node *encontrado = buscar_no(raiz, q);
                     if(!encontrado){
-                        message_error("Você tentou usar uma variável não declarada anteriormente", line_number);
+                        message_error("ERRO SEMÂNTICO: Você tentou usar uma variável não declarada anteriormente", line_number);
                         return 1;
                     }
 
@@ -2301,7 +2336,7 @@ if (memory == -1){
                         }
                         if(line[i]!=';'){
                             if(line[i]!='\0'){
-                                message_error("Operação com texto não permitida", line_number);
+                                message_error("ERRO SEMÂNTICO: Operação com texto não permitida", line_number);
                             }
                         } else {
                             if(extrair_e_atualizar_palavras(line, i, encontrado, line_number)==1){
@@ -2322,7 +2357,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2346,7 +2381,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2370,7 +2405,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2411,7 +2446,7 @@ if (memory == -1){
                                 i++;
                             }
                             if(line[i+1]!='\n'&&line[i+1]!='\0'){
-                                message_error("Depois de ';' foi encontrado algo além de espaços", line_number);
+                                message_error("ERRO SINTÁTICO: Depois de ';' foi encontrado algo além de espaços", line_number);
                             }
                             if(flagTemPonto==0){
                                 return 0;
@@ -2422,20 +2457,20 @@ if (memory == -1){
 
                         else
                         {
-                            message_error("Só são permitidos caracteres alfanuméricos nas variáveis\n", line_number);
+                            message_error("ERRO SINTÁTICO:  Só são permitidos caracteres alfanuméricos nas variáveis\n", line_number);
                             return 1;
                         }
                     }
                 else
                 {
-                    message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                    message_error("ERRO SINTÁTICO:  Variáveis precisam começar com letra minúscula.\n", line_number);
                     return 1;
                 }
         }
         else if (isdigit(line[i]))
         {
             if(line[i]=='0' && isdigit(line[i+1])){
-                message_error("Só aceitamos números decimais. O único número que pode começar com zero é zero.\n", line_number);
+                message_error("ERRO SEMÂNTICO:  Só aceitamos números decimais. O único número que pode começar com zero é zero.\n", line_number);
                 return 1;
             }
 
@@ -2456,7 +2491,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2475,7 +2510,7 @@ if (memory == -1){
                                 raiz = remover_no(raiz, "12");
                                 return 0;
                         }else{
-                            message_error("Falta um número depois do ponto", line_number);
+                            message_error("ERRO SEMÂNTICO: Falta um número depois do ponto", line_number);
                             return 1;
                         }
                     }else if (line[i] == ']'||line[i] == '['||line[i] == '+'||line[i] == '-'){
@@ -2483,7 +2518,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2513,7 +2548,7 @@ if (memory == -1){
                 } while (isspace(line[i + 1]));
                 if (!(line[i + 1] == '\n')&& !(line[i + 1] == '\0'))
                 {
-                    message_error("É necessário que a declaração termine com ';', sem nada após\n", line_number);
+                    message_error("ERRO SINTÁTICO: É necessário que a declaração termine com ';', sem nada após\n", line_number);
                     return 1;
                 }
                 else
@@ -2524,7 +2559,7 @@ if (memory == -1){
                     return 0;
                 }
             } else {
-                message_error("Não foi encontrado ponto e vírgula após seu número\n", line_number);
+                message_error("ERRO SINTÁTICO:  Não foi encontrado ponto e vírgula após seu número\n", line_number);
                 return 1;
             }
         }
@@ -2534,7 +2569,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2559,7 +2594,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2585,7 +2620,7 @@ if (memory == -1){
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
@@ -2606,7 +2641,7 @@ if (memory == -1){
         }
         else if (line[i] == '\0' || line[i] == '\n')
         {
-            message_error("Falta algo depois de '='. Você pode ter esquecido o ponto e vírgula ou alguma parte da atribuição \n", line_number);
+            message_error("ERRO SINTÁTICO: Falta algo depois de '='. Você pode ter esquecido o ponto e vírgula ou alguma parte da atribuição \n", line_number);
             return 1;
         }
         else if (line[i] == ';')
@@ -2618,7 +2653,7 @@ if (memory == -1){
         }
         else
         {
-            message_error("Variaveis ou numeros depois de '=' escritos de forma incorreta \n", line_number);
+            message_error("ERRO SINTÁTICO:  Variaveis ou numeros depois de '=' escritos de forma incorreta \n", line_number);
             printf("%c %c %c", line[i-2], line[i-1], line[i]);
             return 1;
         }
@@ -2646,10 +2681,10 @@ int verificarOperacaoMatematicaMain(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+        if (memory == -1){
+            return 1;
+        }
         if (isspace(c))
         {
             /* Ignora, não há nada a fazer */
@@ -2707,7 +2742,7 @@ if (memory == -1){
                                         i++;
                                         }
                                         if(line[i]!='\0'&&line[i]!='\n'){
-                                            message_error("Só podem conter espaços depois de ponto e vírgula\n", line_number);
+                                            message_error("ERRO SINTÁTICO: Só podem conter espaços depois de ponto e vírgula\n", line_number);
                                             return 1;
                                         } else {
                                             return 0;
@@ -2715,7 +2750,7 @@ if (memory == -1){
                                     }
                                 }
                             }
-                            message_error("Erro: falta fechar aspas e/ou ponto e vírgula\n", line_number);
+                            message_error("ERRO SINTÁTICO:  falta fechar aspas e/ou ponto e vírgula\n", line_number);
                             return 1;
                         }
                         else if(verificarOperacaoMatematica(line, i, line_number, 0) == 1)
@@ -2728,23 +2763,23 @@ if (memory == -1){
                 }
                 else
                 {
-                    message_error("Variáveis só podem conter alfanuméricos.\n", line_number);
+                    message_error("ERRO SINTÁTICO: Variáveis só podem conter alfanuméricos.\n", line_number);
                     return 1;
                 }
             }
             else
             {
-                message_error("Variáveis precisam começar com letra minúscula.\n", line_number);
+                message_error("ERRO SINTÁTICO: Variáveis precisam começar com letra minúscula.\n", line_number);
                 return 1;
             }
         }
         else
         {
-            message_error("Falta '!' antes da variável.\n", line_number);
+            message_error("ERRO SINTÁTICO: Falta '!' antes da variável.\n", line_number);
             return 1;
         }
     }
-    message_error("Declaração de variável não encontrada.\n", line_number);
+    message_error("ERRO SINTÁTICO: Declaração de variável não encontrada.\n", line_number);
     return 1;
 }
 
@@ -2752,10 +2787,10 @@ if (memory == -1){
 int verificarBalanceamento(FILE* file) {
     char linha[1024];
     int numLinha = 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(numLinha));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(numLinha));
+    if (memory == -1){
+        return 1;
+    }
     No* pilha = NULL;  /* Inicializa pilha vazia */
 
     while (fgets(linha, sizeof(linha), file)) {
@@ -2768,24 +2803,24 @@ if (memory == -1){
         }
 
         int dentroDeAspas = 0;  /* Flag para controlar se estamos dentro de aspas */
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroDeAspas));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentroDeAspas));
+        if (memory == -1){
+            return 1;
+        }
 
         for (int i = 0; linha[i]; i++) {
             char c = linha[i];
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+        if (memory == -1){
+            return 1;
+        }
 
             /* Verifica se é uma aspas (normal ou inteligente) */
             int eAspas = (c == '"') || is_smart_quote(linha, i, strlen(linha));
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(eAspas));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(eAspas));
+            if (memory == -1){
+                return 1;
+            }
 
             if (eAspas) {
                 /* Se encontrou aspas */
@@ -2837,23 +2872,23 @@ if (memory == -1){
 
             } else if (c == '}' || c == ')' || c == ']') {
                 if (pilha == NULL) {
-                    printf("ERRO linha %d, posição %d: '%c' fechamento sem abertura correspondente\n",
+                    printf("ERRO SINTÁTICO: linha %d, posição %d: '%c' fechamento sem abertura correspondente\n",
                            numLinha, i + 1, c);
                     return 1;
                 }
 
                 /* Determina qual deveria ser o delimitador de abertura*/
                 char esperado;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(esperado));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(esperado));
+                if (memory == -1){
+                    return 1;
+                }
                 if (c == '}') esperado = '{';
                 else if (c == ')') esperado = '(';
                 else esperado = '[';
 
                 if (pilha->delimitador != esperado) {
-                    printf("ERRO '%c' aberto na linha %d, posição %d. Não foi fechado adequadamente\n",
+                    printf("ERRO SINTÁTICO: '%c' aberto na linha %d, posição %d. Não foi fechado adequadamente\n",
                            pilha->delimitador, pilha->linha, pilha->pos);
                     return 1;
                 }
@@ -2869,10 +2904,10 @@ if (memory == -1){
         if (pilha != NULL && pilha->delimitador == '"') {
             /* Verifica se a linha termina adequadamente (com ponto e vírgula)*/
             int ultimoCharSignificativo = strlen(linha) - 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(ultimoCharSignificativo));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(ultimoCharSignificativo));
+            if (memory == -1){
+                return 1;
+            }
             while (ultimoCharSignificativo >= 0 &&
                    (linha[ultimoCharSignificativo] == '\n' ||
                     linha[ultimoCharSignificativo] == '\r' ||
@@ -2882,7 +2917,7 @@ if (memory == -1){
 
             /* Se não termina com ponto e vírgula ou outros caracteres válidos após aspas */
             if (ultimoCharSignificativo >= 0 && linha[ultimoCharSignificativo] != ';') {
-                printf("ERRO linha %d: Aspas abertas na posição %d não foram fechadas\n",
+                printf("ERRO SINTÁTICO:  linha %d: Aspas abertas na posição %d não foram fechadas\n",
                        pilha->linha, pilha->pos);
                 // Limpa a pilha antes de retornar
                 while (pilha != NULL) {
@@ -2900,10 +2935,10 @@ if (memory == -1){
     /* Verifica se sobrou algo não foi fechado ao final do arquivo*/
     if (pilha != NULL) {
         if (pilha->delimitador == '"') {
-            printf("ERRO: Aspas abertas na linha %d, posição %d não foram fechadas\n",
+            printf("ERRO SINTÁTICO: Aspas abertas na linha %d, posição %d não foram fechadas\n",
                    pilha->linha, pilha->pos);
         } else {
-            printf("ERRO: '%c' aberto na linha %d, posição %d não foi fechado\n",
+            printf("ERRO SINTÁTICO: '%c' aberto na linha %d, posição %d não foi fechado\n",
                    pilha->delimitador, pilha->linha, pilha->pos);
         }
 
@@ -2926,10 +2961,10 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
     const char *leia = "leia";
     const char *escreva = "escreva";
     int tem_conteudo = 0; /*Flag para verificar se há conteúdo significativo na linha*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(tem_conteudo));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(tem_conteudo));
+    if (memory == -1){
+        return 1;
+    }
 
     /*Se i está fora dos limites, não há nada para processar*/
     if (i >= strlen(line)) {
@@ -2948,19 +2983,19 @@ if (memory == -1){
 
     while (line[i] != '\0' && line[i] != '\n') {
         char current_char = line[i];
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(current_char));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(current_char));
+        if (memory == -1){
+            return 1;
+        }
 
         if (current_char == 'l')
         {
             /*VERIFICA SE É "leia" - LÉXICO*/
             int match = 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(match));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(match));
+            if (memory == -1){
+                return 1;
+            }
             for (int j = 0; j < 4; j++) {
                 if (line[i + j] != leia[j]) {
                     match = 0;
@@ -2979,7 +3014,7 @@ if (memory == -1){
                 }
 
                 if (line[i] != '(') {
-                    message_error("Falta '(' depois de leia\n", line_number);
+                    message_error("ERRO SINTÁTICO: Falta '(' depois de leia\n", line_number);
                     return 1;
                 }
 
@@ -2989,13 +3024,13 @@ if (memory == -1){
 
                 /*Verifica se há atribuição (não permitida no leia)*/
                 int temp_i = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp_i));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp_i));
+                if (memory == -1){
+                    return 1;
+                }
                 while (line[temp_i] != '\0' && line[temp_i] != '\n') {
                     if (line[temp_i] == '=') {
-                        message_error("Não é permitido atribuições no leia\n", line_number);
+                        message_error("ERRO SINTÁTICO: Não é permitido atribuições no leia\n", line_number);
                         return 1;
                     }
                     temp_i++;
@@ -3014,10 +3049,10 @@ if (memory == -1){
         {
             /*VERIFICA SE É "escreva" - LÉXICO*/
             int match = 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(match));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(match));
+            if (memory == -1){
+                return 1;
+            }
             for (int j = 0; j < 7; j++) {
                 if (i + j >= strlen(line) || line[i + j] != escreva[j]) {
                     match = 0;
@@ -3032,30 +3067,30 @@ if (memory == -1){
 
                 /*SINTÁTICO - processa escreva*/
                 int parenteses_count = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_count));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_count));
+                if (memory == -1){
+                    return 1;
+                }
                 int aspas_abertas = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_abertas));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(aspas_abertas));
+                if (memory == -1){
+                    return 1;
+                }
                 bool dentro_aspas = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentro_aspas));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(dentro_aspas));
+                if (memory == -1){
+                    return 1;
+                }
                 bool saiu_aspas = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(saiu_aspas));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(saiu_aspas));
+                if (memory == -1){
+                    return 1;
+                }
                 int len = strlen(line);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                if (memory == -1){
+                    return 1;
+                }
 
                 /*Pula espaços após "escreva"*/
                 while (isspace((unsigned char)line[i])) {
@@ -3063,7 +3098,7 @@ if (memory == -1){
                 }
 
                 if (line[i] != '(') {
-                    message_error("Falta '(' depois de escreva\n", line_number);
+                    message_error("ERRO SINTÁTICO: Falta '(' depois de escreva\n", line_number);
                     return 1;
                 }
 
@@ -3074,10 +3109,10 @@ if (memory == -1){
                 while (line[i] != '\0' && line[i] != '\n')
                 {
                     int quote_bytes = is_smart_quote(line, i, len);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(quote_bytes));
+                    if (memory == -1){
+                        return 1;
+                    }
 
                     if ((quote_bytes > 0 || line[i] == '"' ) && !saiu_aspas)
                     {
@@ -3093,7 +3128,7 @@ if (memory == -1){
                             saiu_aspas = true;
 
                             if (aspas_abertas > 2) {
-                                message_error("Use apenas duas aspas por string\n", line_number);
+                                message_error("ERRO SINTÁTICO: Use apenas duas aspas por string\n", line_number);
                                 return 1;
                             }
                         }
@@ -3142,12 +3177,12 @@ if (memory == -1){
                 }
 
                 if (aspas_abertas < 2) {
-                    message_error("Duas aspas necessárias\n", line_number);
+                    message_error("ERRO SINTÁTICO: Duas aspas necessárias\n", line_number);
                     return 1;
                 }
 
                 if (parenteses_count > 0) {
-                    message_error("Parênteses não fechados em escreva\n", line_number);
+                    message_error("ERRO SINTÁTICO: Parênteses não fechados em escreva\n", line_number);
                     return 1;
                 }
 
@@ -3177,40 +3212,40 @@ if (memory == -1){
             /* aqui tem que pegar se a função foi declarada previamente */
             char nome_funcao[64] = {0};
             int start_i = i + 1; /* Começa após o '_' */
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_i));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_i));
+            if (memory == -1){
+                return 1;
+            }
             int nome_idx = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_idx));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_idx));
+            if (memory == -1){
+                return 1;
+            }
             bool after_underscore_name_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(after_underscore_name_control));
+            if (memory == -1){
+                return 1;
+            }
             bool parenteses_parameter_control = false;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_parameter_control));
+            if (memory == -1){
+                return 1;
+            }
             int parenteses_control_open_funcao = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parenteses_control_open_funcao));
+            if (memory == -1){
+                return 1;
+            }
             int parametros_encontrados = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parametros_encontrados));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parametros_encontrados));
+            if (memory == -1){
+                return 1;
+            }
             int posicao_abre_parenteses = -1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(posicao_abre_parenteses));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(posicao_abre_parenteses));
+            if (memory == -1){
+                return 1;
+            }
             tem_conteudo = 1; /* Marca que há conteúdo significativo */
 
             /* Extrai o nome da função após o '_' */
@@ -3313,10 +3348,10 @@ if (memory == -1){
             /*Encontrou ponto e vírgula*/
             /*Verifica se há apenas espaços após o ;*/
             int j = i + 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+            if (memory == -1){
+                return 1;
+            }
             while (j < strlen(line) && (isspace(line[j]) || line[j] == '\n')) {
                 j++;
             }
@@ -3325,7 +3360,7 @@ if (memory == -1){
                 printf("; ok\n");
                 return 0; /*Linha termina corretamente com ;*/
             } else {
-                message_error("Conteúdo após ponto e vírgula\n", line_number);
+                message_error("ERRO SINTÁTICO: Conteúdo após ponto e vírgula\n", line_number);
                 return 1;
             }
         }
@@ -3339,9 +3374,9 @@ if (memory == -1){
         {
             /*Caractere não reconhecido*/
             if (isprint(current_char)) {
-                printf("Conteúdo não reconhecido na linha %d: '%c'\n", line_number, current_char);
+                printf("ERRO SINTÁTICO: Conteúdo não reconhecido na linha %d: '%c'\n", line_number, current_char);
             } else {
-                printf("Caractere não imprimível na linha %d (código: %d)\n", line_number, (int)current_char);
+                printf("ERRO SINTÁTICO: Caractere não imprimível na linha %d (código: %d)\n", line_number, (int)current_char);
             }
             return 1;
         }
@@ -3355,16 +3390,16 @@ if (memory == -1){
 
         /*Volta para verificar se o último caractere significativo é ;*/
         int last_char = strlen(line) - 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(last_char));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(last_char));
+        if (memory == -1){
+            return 1;
+        }
         while (last_char >= 0 && (line[last_char] == '\n' || line[last_char] == '\r' || isspace(line[last_char]))) {
             last_char--;
         }
 
         if (last_char >= 0 && line[last_char] != ';') {
-            message_error("Linha deve terminar com ponto e vírgula", line_number);
+            message_error("ERRO SINTÁTICO: Linha deve terminar com ponto e vírgula", line_number);
             return 1;
         }
     }
@@ -3386,7 +3421,7 @@ Resultado verificarParametroFuncao(char line[], int posicao, int *line_number)
     /* Verificar marcador obrigatório '!' */
     if (line[i] != '!')
     {
-        message_error("Esperado '!' antes da variável\n", line_number);
+        message_error("ERRO SINTÁTICO: Esperado '!' antes da variável\n", line_number);
         return (Resultado){i, 1};
     }
     i++; /* Avançar após o '!' */
@@ -3407,7 +3442,7 @@ Resultado verificarParametroFuncao(char line[], int posicao, int *line_number)
 
     if (!(isalnum((unsigned char)line[i]) || line[i] == '(' || line[i] == ')' || line[i] == ','))
     {
-        message_error("Nome do parâmetro escrito com caracter inválido", line_number);
+        message_error("ERRO SINTÁTICO: Nome do parâmetro escrito com caracter inválido", line_number);
         return (Resultado){i, 1};
     }
 
@@ -3723,13 +3758,15 @@ if (memory == -1){
 }
 /* Função para encontrar funções no arquivo */
 Funcao* encontrar_funcoes(FILE *file) {
+    int erro = 0;
     Funcao *lista = NULL;
     char line[256];
     int line_number = 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line_number));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(line_number));
+    if (memory == -1){
+        erro = 1;
+        return NULL;
+    }
 
     while (fgets(line, sizeof(line), file)) {
         /* Remover BOM se existir */
@@ -3742,10 +3779,12 @@ if (memory == -1){
 
         /* Remover espaços iniciais */
         int i = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(i));
+        if (memory == -1){
+            erro = 1;
+            return NULL;
+        }
+
         while (isspace((unsigned char)line[i])) {
             i++;
         }
@@ -3768,10 +3807,12 @@ if (memory == -1){
 
             /* Extrair nome da função */
             int start_nome = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_nome));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_nome));
+            if (memory == -1){
+                printf("ERRO MEMÓRIA: insuficiente");
+                erro = 1;
+                return NULL;
+            }
             if (!isalnum((unsigned char)line[i])) {
                 line_number++;
                 continue;
@@ -3781,10 +3822,12 @@ if (memory == -1){
                 i++;
             }
             int nome_len = i - start_nome;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_len));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(nome_len));
+            if (memory == -1){
+                printf("ERRO MEMÓRIA: insuficiente");
+                erro = 1;
+                return NULL;
+            }
             char nome[64];
             if (nome_len >= 64) nome_len = 63;
             strncpy(nome, &line[start_nome], nome_len);
@@ -3804,15 +3847,19 @@ if (memory == -1){
 
             /* Encontrar ')' correspondente */
             int start_params = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_params));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(start_params));
+            if (memory == -1){
+                printf("ERRO MEMÓRIA: insuficiente");
+                erro = 1;
+                return NULL;
+            }
             int parent_count = 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parent_count));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(parent_count));
+            if (memory == -1){
+                printf("ERRO MEMÓRIA: insuficiente");
+                erro = 1;
+                return NULL;
+            }
             while (line[i] != '\0' && parent_count > 0) {
                 if (line[i] == '(') parent_count++;
                 else if (line[i] == ')') parent_count--;
@@ -3825,10 +3872,12 @@ if (memory == -1){
 
             /* Extrair substring de parâmetros (excluindo o último ')') */
             int params_len = (i - 1) - start_params;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(params_len));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(params_len));
+            if (memory == -1){
+                printf("ERRO MEMÓRIA: insuficiente");
+                erro = 1;
+                return NULL;
+            }
             char param_str[256] = {0};
             if (params_len > 0) {
                 strncpy(param_str, &line[start_params], params_len);
@@ -3837,10 +3886,12 @@ if (memory == -1){
             /* Processar parâmetros */
             char parametros[10][64] = {{0}};
             int num_params = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(num_params));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(num_params));
+            if (memory == -1){
+                printf("ERRO MEMÓRIA: insuficiente");
+                erro = 1;
+                return NULL;
+            }
 
             /* Se não há parâmetros (string vazia ou só espaços) */
             char *temp = param_str;
@@ -3860,10 +3911,12 @@ if (memory == -1){
                 /* Processar parâmetros separados por vírgula */
                 char *token = strtok(param_str, ",");
                 int valid_params = 1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(valid_params));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(valid_params));
+                if (memory == -1){
+                    printf("ERRO MEMÓRIA: insuficiente");
+                    erro = 1;
+                    return NULL;
+                }
 
                 while (token != NULL && num_params < 10) {
                     /* Remover espaços do token */
@@ -3932,6 +3985,17 @@ if (memory == -1){
         line_number++;
     }
     return lista;
+
+    erro:
+    /* Libera memória alocada em caso de erro*/
+    while (lista != NULL) {
+        Funcao *temp = lista;
+        lista = lista->proxima;
+        free(temp);
+    }
+    erro = 1;
+    return NULL;
+
 }
 
 /* Função para buscar uma função na lista pelo nome */
@@ -3945,6 +4009,9 @@ Funcao* buscar_funcao(Funcao* lista_funcoes, const char* nome_funcao) {
     }
     return NULL; /* Função não encontrada */
 }
+
+
+
 /*----------------------------------------------------------------------------------------------------------*/
 /*Funções para tabela de símbolos*/
 char* duplicar_string(const char *s) {
@@ -4024,14 +4091,17 @@ int fator_balanceamento(Node *n) {
 
 /* inserir: ordena por 'nome' (lexicográfico com strcmp). Duplicatas de 'nome' são ignoradas. */
 Node* inserir_no(Node *raiz, const char *nome, const char *tipo, float tamanho, const char *valor) {
+
     if (raiz == NULL)
         return criar_no(nome, tipo, tamanho, valor);
 
     int cmp = strcmp(nome, raiz->nome);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
+    if (memory == -1){
+        printf("ERRO MEMÓRIA: insuficiente");
+        liberar_arvore(raiz);
+        return NULL;
+    }
     if (cmp < 0)
         raiz->esq = inserir_no(raiz->esq, nome, tipo, tamanho, valor);
     else if (cmp > 0)
@@ -4050,10 +4120,12 @@ if (memory == -1){
     raiz->altura = 1 + max_int(altura(raiz->esq), altura(raiz->dir));
 
     int fb = fator_balanceamento(raiz);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fb));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fb));
+     if (memory == -1){
+        printf("ERRO MEMÓRIA: insuficiente");
+        liberar_arvore(raiz);
+        return NULL;
+    }
 
     /* casos AVL */
     if (fb > 1 && strcmp(nome, raiz->esq->nome) < 0)
@@ -4074,6 +4146,7 @@ if (memory == -1){
         return rotacao_esquerda(raiz);
     };
     return raiz;
+
 }
 
 /* buscar por 'nome' */
@@ -4081,10 +4154,12 @@ Node* buscar_no(Node *raiz, const char *nome) {
     Node *cur = raiz;
     while (cur) {
         int cmp = strcmp(nome, cur->nome);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
+        if (memory == -1){
+            printf("ERRO MEMÓRIA: insuficiente");
+            liberar_arvore(raiz);
+            return NULL;
+        }
         if (cmp == 0) return cur;
         if (cmp < 0) cur = cur->esq;
         else cur = cur->dir;
@@ -4104,10 +4179,12 @@ Node* remover_no(Node *raiz, const char *nome) {
     if (raiz == NULL) return raiz;
 
     int cmp = strcmp(nome, raiz->nome);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(cmp));
+    if (memory == -1){
+        printf("ERRO MEMÓRIA: insuficiente");
+        liberar_arvore(raiz);
+        return NULL;
+    }
     if (cmp < 0)
         raiz->esq = remover_no(raiz->esq, nome);
     else if (cmp > 0)
@@ -4155,11 +4232,12 @@ if (memory == -1){
     raiz->altura = 1 + max_int(altura(raiz->esq), altura(raiz->dir));
 
     int fb = fator_balanceamento(raiz);
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fb));
-if (memory == -1){
-    return 1;
-}
-
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fb));
+    if (memory == -1){
+        printf("ERRO MEMÓRIA: insuficiente");
+        liberar_arvore(raiz);
+        return NULL;
+    }
     /* balancear */
     if (fb > 1 && fator_balanceamento(raiz->esq) >= 0)
         return rotacao_direita(raiz);
@@ -4193,13 +4271,13 @@ Node* alterar_no(Node *raiz, const char *nome_antigo, const char *novo_nome, con
             n->tamanho = novo_tamanho;
             n->valor = duplicar_string(novo_valor);
         } else {
-            printf("Chave '%s' não encontrada.", nome_antigo);
+            printf("ERRO SEMÂNTICO: Chave '%s' não encontrada.", nome_antigo);
         }
         return raiz;
     }
 
     if (!buscar_no(raiz, nome_antigo)) {
-        printf("Chave '%s' não encontrada.", nome_antigo);
+        printf("ERRO SEMÂNTICO: Chave '%s' não encontrada.", nome_antigo);
         return raiz;
     }
 
@@ -4213,10 +4291,11 @@ void inorder(Node *raiz) {
     if (!raiz) return;
     inorder(raiz->esq);
     int casas = 3; /* implemento isso melhor depois */
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(casas));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(casas));
+    if (memory == -1){
+        printf("ERRO MEMÓRIA: insuficiente");
+        liberar_arvore(raiz);
+    }
     printf("(%s, %s, %.*f, %s) ", raiz->nome, raiz->tipo, casas, raiz->tamanho, raiz->valor);
     inorder(raiz->dir);
 }
@@ -4233,10 +4312,10 @@ void liberar_arvore(Node *raiz) {
 
 int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado, int *line_number) {
     int pos_igual = -1;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(pos_igual));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(pos_igual));
+    if (memory == -1){
+        return 1;
+    }
     for (int k = posicao_atual - 1; k >= 0; k--) {
         if (line[k] == '=') {
             pos_igual = k;
@@ -4244,24 +4323,24 @@ if (memory == -1){
         }
     }
     if (pos_igual == -1) {
-        message_error("Erro: '=' não encontrado antes da posição atual\n", line_number);
+        message_error("ERRO SEMÂNTICO: '=' não encontrado antes da posição atual\n", line_number);
         return 1;
     }
     /* Agora processa as palavras antes do '=' */
     int inicio_palavra = 0;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(inicio_palavra));
-if (memory == -1){
-    return 1;
-}
+    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(inicio_palavra));
+    if (memory == -1){
+        return 1;
+    }
     for (int k = 0; k < pos_igual; k++) {
         /* Encontrou uma palavra que começa com '!' */
         if (line[k] == '!') {
             inicio_palavra = k + 1; // Pula o '!'
             int fim_palavra = inicio_palavra;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fim_palavra));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(fim_palavra));
+            if (memory == -1){
+                return 1;
+            }
             /* Encontra o fim da palavra (até encontrar ',' ou espaço ou '=')*/
             while (fim_palavra < pos_igual &&
                    line[fim_palavra] != ',' &&
@@ -4273,10 +4352,10 @@ if (memory == -1){
             // Se encontrou uma palavra válida
             if (fim_palavra > inicio_palavra) {
                 int len_palavra = fim_palavra - inicio_palavra;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len_palavra));
-if (memory == -1){
-    return 1;
-}
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len_palavra));
+                if (memory == -1){
+                    return 1;
+                }
                 char *palavra = malloc(len_palavra + 1);
                 if (palavra == NULL) {
                     message_error("Erro ao alocar memória", line_number);
@@ -4287,13 +4366,13 @@ if (memory == -1){
                 /*printf("Palavra encontrada: %s\n", palavra);*/
                 Node *encontrado1 = buscar_no(raiz, palavra);
                 if(!encontrado1){
-                    message_error("Você tentou usar uma variável não declarada anteriormente...", line_number);
+                    message_error("ERRO SEMÂNTICO: Você tentou usar uma variável não declarada anteriormente...", line_number);
                     return 1;
                 }
                 if (encontrado1->tamanho==encontrado->tamanho){
                     raiz = alterar_no(raiz, encontrado1->nome, encontrado1->nome, encontrado1->tipo, encontrado1->tamanho, encontrado->valor);
                 } else {
-                    message_error("Para realizar alterações em sua variável, elas precisam ter o mesmo tamanho", line_number);
+                    message_error("ERRO SEMÂNTICO: Para realizar alterações em sua variável, elas precisam ter o mesmo tamanho", line_number);
                     return 1;
                 }
                 free(palavra);
@@ -4335,7 +4414,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
 
             /* Verificar se encontrou o parêntese de fechamento*/
             if (pos >= len || line[pos] != ']') {
-                message_error("Parêntese não balanceado", line_number);
+                message_error("ERRO SINTÁTICO: Parêntese não balanceado", line_number);
                 *posicao_atual = pos;
                 deuErro = 1;
                 return 0;
@@ -4355,7 +4434,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             }
 
             if (var_idx == 0) {
-                message_error("Nome de variável inválido", line_number);
+                message_error("ERRO SINTÁTICO: Nome de variável inválido", line_number);
                 *posicao_atual = pos;
                 deuErro = 1;
                 return 0;
@@ -4388,7 +4467,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             }
 
             if (var_idx == 0) {
-                message_error("Nome de variável inválido", line_number);
+                message_error("ERRO SINTÁTICO: Nome de variável inválido", line_number);
                 *posicao_atual = pos;
                 deuErro = 1;
                 return 0;
@@ -4407,7 +4486,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             }
 
             if (var_idx == 0) {
-                message_error("Nome de variável inválido", line_number);
+                message_error("ERRO SINTÁTICO: Nome de variável inválido", line_number);
                 *posicao_atual = pos;
                 deuErro = 1;
                 return 0;
@@ -4422,7 +4501,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             operando = strtod(&line[pos], &endptr);
 
             if (endptr == &line[pos]) {
-                message_error("Número inválido", line_number);
+                message_error("ERRO SEMÂNTICO: Número inválido", line_number);
                 *posicao_atual = pos;
                 deuErro = 1;
                 return 0;
@@ -4439,7 +4518,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 pos++;
                 double sub_resultado = validarExpressao(line, &pos, line_number);
                 if (pos >= len || line[pos] != ']') {
-                    message_error("Parêntese não balanceado", line_number);
+                    message_error("ERRO SINTÁTICO: Parêntese não balanceado", line_number);
                     *posicao_atual = pos;
                     deuErro = 1;
                     return 0;
@@ -4463,14 +4542,14 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 operando = 0;
             }
             else {
-                message_error("Operando esperado após '-'", line_number);
+                message_error("ERRO SEMÂNTICO: Operando esperado após '-'", line_number);
                 *posicao_atual = pos;
                 deuErro = 1;
                 return 0;
             }
         }
         else {
-            message_error("Caractere inválido", line_number);
+            message_error("ERRO SINTÁTICO: Caractere inválido", line_number);
             *posicao_atual = pos;
             deuErro = 1;
             return 0;
@@ -4515,7 +4594,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                     pos++;
                     exp_operando = validarExpressao(line, &pos, line_number);
                     if (pos >= len || line[pos] != ']') {
-                        message_error("Parentese desbalanceado", line_number);
+                        message_error("ERRO SINTÁTICO: Parentese desbalanceado", line_number);
                         *posicao_atual = pos;
                         deuErro = 1;
                         return 0;
@@ -4538,11 +4617,11 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                     exp_operando = 0;
                 }
                 else {
-                    printf("ERRO: Operando esperado após '^' na linha %d\n", *line_number);
+                    printf("ERRO SEMÂNTICO: Operando esperado após '^' na linha %d\n", *line_number);
                     *posicao_atual = pos;
                     return 0;
                 }
-
+                /*ERRO AQUI, ONDE ESTÁ POW???*/
                 operando = pow(operando, exp_operando);
 
                 if (operador == '*') resultado *= operando;
@@ -4573,7 +4652,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
         }
     }
     if (line[pos]!=';'){
-        message_error("Cadê o ponto e vírgula?", line_number);
+        message_error("ERRO SINTÁTICO: Cadê o ponto e vírgula?", line_number);
         deuErro = 1;
     }
      /*Assim, teria que fazer mais verificações sobre, mas acho que isso já é bastante.
@@ -4582,6 +4661,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
     *posicao_atual = pos;
     return resultado;
 }
+
 int contar_casas_decimais(double numero) {
     if (numero < 0) numero = -numero;
     long long parte_inteira = (long long)numero;
@@ -4591,7 +4671,7 @@ int contar_casas_decimais(double numero) {
 
     int casas = 0;
     double temp = parte_decimal;
-    const int MAX_CASAS = 15; // limite para evitar loops infinitos
+    const int MAX_CASAS = 15; /* limite para evitar loops infinitos*/
     while (casas < MAX_CASAS) {
         temp *= 10.0;
         int digito = (int)temp;
@@ -4603,7 +4683,7 @@ int contar_casas_decimais(double numero) {
 }
 
 char *double_para_string_manual(double numero) {
-    // tratamento de NaN / Inf
+    /* tratamento de NaN / Inf*/
     if (isnan(numero)) {
         char *s = malloc(4);
         if (!s) return NULL;
@@ -4631,20 +4711,20 @@ char *double_para_string_manual(double numero) {
     long long parte_inteira = (long long)numero;
     double parte_decimal = numero - (double)parte_inteira;
 
-    // escala a parte decimal para um inteiro, usando arredondamento
+    /* escala a parte decimal para um inteiro, usando arredondamento*/
     long long pow10 = 1;
     for (int i = 0; i < casas; ++i) pow10 *= 10LL;
     long long scaled_frac = 0;
     if (casas > 0) {
         scaled_frac = llround(parte_decimal * (double)pow10);
-        // se o arredondamento "estourar" (e.g. 0.9999999 -> 1.000000), ajusta carry
+        /* se o arredondamento "estourar" (e.g. 0.9999999 -> 1.000000), ajusta carry*/
         if (scaled_frac >= pow10) {
             scaled_frac -= pow10;
             parte_inteira += 1;
         }
     }
 
-    // construir strings separadas para inteiro e fracionária
+    /* construir strings separadas para inteiro e fracionária*/
     char intbuf[64];
     int intlen = 0;
     if (parte_inteira == 0) {
@@ -4663,7 +4743,7 @@ char *double_para_string_manual(double numero) {
 
     char fracbuf[64] = {0};
     if (casas > 0) {
-        // garantir zeros à esquerda na parte fracionária
+        /* garantir zeros à esquerda na parte fracionária*/
         long long divisor = pow10 / 10;
         for (int i = 0; i < casas; ++i) {
             int digit = (int)((scaled_frac / divisor) % 10LL);
@@ -4673,7 +4753,7 @@ char *double_para_string_manual(double numero) {
         fracbuf[casas] = '\0';
     }
 
-    // montar string final
+    /* montar string final*/
     size_t needed = (size_t)sign + strlen(intbuf) + (casas > 0 ? 1 + strlen(fracbuf) : 0) + 1;
     char *out = malloc(needed);
     if (!out) return NULL;
