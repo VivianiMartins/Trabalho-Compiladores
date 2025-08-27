@@ -598,7 +598,7 @@ int varredura_principal(FILE *file,char *line , int *line_number, int *cont_prin
                 printf("para ok\n");
                 /*fim da checagem se é para*/
             } else {
-                message_error("ERRO SINTÁTICO: Esperado: Principal ou Para", line_number);
+                message_error("ERRO LÉXICO: Esperado: Principal ou Para", line_number);
                 return 1; /*O código PARA quando encontra erro*/
             }
         }
@@ -3000,6 +3000,7 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
             for (int j = 0; j < 4; j++) {
                 if (line[i + j] != leia[j]) {
                     match = 0;
+                    message_error("ERRO LÉXICO: Módulo leia escrito incorretamente", line_number);
                     break;
                 }
             }
@@ -3057,6 +3058,7 @@ int varredura_mesma_linha(char *line, int *line_number, int i, Funcao* lista_fun
             for (int j = 0; j < 7; j++) {
                 if (i + j >= strlen(line) || line[i + j] != escreva[j]) {
                     match = 0;
+                    message_error("ERRO LÉXICO: Módulo escreva escrito incorretamente", line_number);
                     break;
                 }
             }
@@ -3430,7 +3432,7 @@ Resultado verificarParametroFuncao(char line[], int posicao, int *line_number)
     /* Verificar primeiro caractere (obrigatoriamente a-z) */
     if (line[i] < 'a' || line[i] > 'z')
     {
-        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        message_error("ERRO SINTÁTICO: Após '!' deve haver letra minúscula (a-z)\n", line_number);
         return (Resultado){i, 1};
     }
     i++; /* Avançar após a primeira letra */
@@ -3472,7 +3474,7 @@ Resultado verificarParametrosPara(char line[], int posicao, int *line_number)
     /* Verificar marcador obrigatório '!' */
     if (line[i] != '!')
     {
-        message_error("Esperado '!' antes da variável\n", line_number);
+        message_error("ERRO SINTÁTICO: Esperado '!' antes da variável\n", line_number);
         return (Resultado){i, 1};
     }
     i++; /* Avançar após o '!' */
@@ -3480,7 +3482,7 @@ Resultado verificarParametrosPara(char line[], int posicao, int *line_number)
     /* Verificar primeiro caractere (obrigatoriamente a-z) */
     if (line[i] < 'a' || line[i] > 'z')
     {
-        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        message_error("ERRO SINTÁTICO: Após '!' deve haver letra minúscula (a-z)\n", line_number);
         return (Resultado){i, 1};
     }
     i++; /* Avançar após a primeira letra */
@@ -3535,7 +3537,7 @@ Resultado verificarParametrosPara(char line[], int posicao, int *line_number)
         }
         else
         {
-            message_error("Valor inválido após operador\n", line_number);
+            message_error("ERRO SINTÁTICO: Valor inválido após operador\n", line_number);
             return (Resultado){i, 1};
         }
     }
@@ -3549,7 +3551,7 @@ Resultado verificarParametrosPara(char line[], int posicao, int *line_number)
     }
     else
     {
-        message_error("Caractere inválido no parâmetro\n", line_number);
+        message_error("ERRO SINTÁTICO: Caractere inválido no parâmetro\n", line_number);
         return (Resultado){i, 1};
     }
 }
@@ -3558,50 +3560,61 @@ Resultado verificarParametrosPara(char line[], int posicao, int *line_number)
 Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int len)
 {
     int i = posicao;
-    int aspas_control_open_se= 0;
+    int aspas_control_open_se = 0;
     bool aspas_control = false;
 
     while (isspace((unsigned char)line[i]))
         i++; /* Ignorar espaços iniciais */
 
-    /* Verificar iniício */
-    int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
+    /* Verificar início */
+    int quote_bytes = is_smart_quote(line, i, len);
+
     /*Se tem aspas, comparação é texto*/
-    if (line[i] == '"' || quote_bytes > 0 && !aspas_control)
+    if (line[i] == '"' || quote_bytes > 0)
     {
-        if (line[i] == '"' || quote_bytes > 0)
+        if (quote_bytes == 3)
         {
-            if (quote_bytes == 3)
+            i = i + 3;
+        }
+        else
+        {
+            i++;
+        }
+        aspas_control_open_se++;
+
+        while (!aspas_control && line[i] != '\0')
+        {
+            quote_bytes = is_smart_quote(line, i, len);
+
+            if (line[i] == '"' || quote_bytes > 0)
             {
-                i = i + 3;
+                aspas_control = true;
+                aspas_control_open_se++;
+
+                if (quote_bytes == 3)
+                {
+                    i = i + 3;
+                }
+                else
+                {
+                    i++;
+                }
+
+                if (aspas_control_open_se > 2)
+                {
+                    message_error("ERRO SINTÁTICO: Use apenas duas aspas", line_number);
+                    return (Resultado){i, 1};
+                }
+            }
+            else if(line[i] == '\0' || line[i] == ')')
+            {
+                message_error("ERRO SINTÁTICO: Precisa fechar as aspas", line_number);
+                return (Resultado){i, 1};
             }
             else
             {
                 i++;
             }
-            aspas_control_open_se ++;
-            while (!aspas_control)
-            {
-                quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-
-                if (line[i] == '"' || quote_bytes > 0)
-                {
-                    aspas_control = true;
-                    aspas_control_open_se ++;
-
-                    if (aspas_control_open_se > 2)
-                    {
-                        message_error("Use apenas duas aspas", line_number);
-                        return (Resultado){i, 1};
-                    }
-                }
-                else if(line[i] == '/0' || line[i] == ')')
-                {
-                    message_error("Precisa fechar as aspas\n", line_number);
-                    return (Resultado){i, 1};
-                }
-                i++;
-             }
         }
     }
     else if (line[i] == '!')
@@ -3610,7 +3623,7 @@ Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int 
         /* Verificar primeiro caractere (obrigatoriamente a-z) */
         if (line[i] < 'a' || line[i] > 'z')
         {
-            message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+            message_error("ERRO  SINTÁTICO: Após '!' deve haver letra minúscula (a-z)", line_number);
             return (Resultado){i, 1};
         }
         i++; /* Avançar após a primeira letra */
@@ -3618,12 +3631,17 @@ Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int 
         /* Verificar caracteres subsequentes (opcionais a-z, A-Z, 0-9) */
         while (isalnum((unsigned char)line[i])){i++;}
     }
+    else if (isdigit((unsigned char)line[i]))
+    {
+        /* Permitir números diretos na comparação */
+        while (isdigit((unsigned char)line[i]) || line[i] == '.'){i++;}
+    }
     else {
-        message_error("Esperado variável ou texto\n", line_number);
+        message_error("ERRO SINTÁTICO: Esperado variável, texto ou número", line_number);
         return (Resultado){i, 1};
     }
 
-    while (isspace((unsigned char)line[i])){i++;} /* Ignorar espaços iniciais */
+    while (isspace((unsigned char)line[i])){i++;} /* Ignorar espaços */
 
     /* Verificar operadores */
     int has_operator = 0;
@@ -3634,11 +3652,11 @@ Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int 
         (line[i] == '=' && line[i + 1] == '=') ||
         (line[i] == '<' && line[i + 1] == '>'))
     {
-        i += 2; // Avança ambos caracteres
+        i += 2;
         has_operator = 1;
     }
     else if (line[i] == '<' || line[i] == '>')
-    { /* Operadores de 1 caractere (<, >) */
+    {
         i++;
         has_operator = 1;
     }
@@ -3651,36 +3669,53 @@ Resultado verificarParametrosSe(char line[], int posicao, int *line_number, int 
         /* Verificar se é número */
         if (isdigit((unsigned char)line[i]))
         {
-            while (isdigit((unsigned char)line[i]))
+            while (isdigit((unsigned char)line[i]) || line[i] == '.') /* Permitir decimais */
                 i++;
         }
         /* Verificar se é outra variável ou texto */
-        int quote_bytes = is_smart_quote(line, i, len); /*função para verificar as aspas diferentes*/
-        if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
-        {
-            /* Chamada recursiva para verificar próxima variável */
-            Resultado res = verificarParametrosPara(line, i, line_number);
-            if (res.sucesso != 0)
-                return res;
-            i = res.posicao;
-        }
         else
         {
-            message_error("Valor inválido após operador\n", line_number);
-            return (Resultado){i, 1};
+            int quote_bytes = is_smart_quote(line, i, len);
+            if (line[i] == '!' || line[i] == '"' || quote_bytes > 0)
+            {
+                /* Chamada recursiva para verificar próxima variável */
+                Resultado res = verificarParametrosSe(line, i, line_number, len); // CORREÇÃO: era verificarParametrosPara
+                if (res.sucesso != 0)
+                    return res;
+                i = res.posicao;
+            }
+            else
+            {
+                message_error("ERRO SINTÁTICO: Valor inválido após operador", line_number);
+                return (Resultado){i, 1};
+            }
         }
     }
 
     while (isspace((unsigned char)line[i]))
         i++; /* Ignorar espaços finais */
 
-    if (line[i] == '&' || line[i] == '|' || line[i] == ')' || line[i] == '\0')
+    /* Verificar operadores lógicos (& ou |) ou fim válido */
+    if (line[i] == '&' || line[i] == '|')
+    {
+        i++; /* Avança o operador lógico */
+        while (isspace((unsigned char)line[i])){i++;} /* Ignorar espaços após operador */
+
+        /* Verificar próxima condição após operador lógico */
+        Resultado res = verificarParametrosSe(line, i, line_number, len);
+        if (res.sucesso != 0)
+            return res;
+        i = res.posicao;
+    }
+
+    /* Verificar fim válido */
+    if (line[i] == ')' || line[i] == '\0')
     {
         return (Resultado){i, 0}; /* Sucesso */
     }
     else
     {
-        message_error("Caractere inválido no parâmetro\n", line_number);
+        message_error("ERRO SINTÁTICO: Caractere inválido no parâmetro", line_number);
         return (Resultado){i, 1};
     }
 }
@@ -3694,14 +3729,14 @@ Resultado verificarParametroFuncaoComContador(const char* line, int posicao, int
 
     /* Verificar marcador obrigatório '!' */
     if (line[i] != '!') {
-        message_error("Esperado '!' antes da variável\n", line_number);
+        message_error("ERRO SINTÁTICO: Esperado '!' antes da variável\n", line_number);
         return (Resultado){i, 1};
     }
     i++; /* Avançar após o '!' */
 
     /* Verificar primeiro caractere (obrigatoriamente a-z) */
     if (line[i] < 'a' || line[i] > 'z') {
-        message_error("Após '!' deve haver letra minúscula (a-z)\n", line_number);
+        message_error("ERRO SINTÁTICO: Após '!' deve haver letra minúscula (a-z)\n", line_number);
         return (Resultado){i, 1};
     }
     i++; /* Avançar após a primeira letra */
@@ -3712,7 +3747,7 @@ Resultado verificarParametroFuncaoComContador(const char* line, int posicao, int
     }
 
     if (!(isalnum((unsigned char)line[i]) || line[i] == '(' || line[i] == ')' || line[i] == ',')) {
-        message_error("Nome do parâmetro escrito com caracter inválido", line_number);
+        message_error("ERRO SINTÁTICO: Nome do parâmetro escrito com caracter inválido", line_number);
         return (Resultado){i, 1};
     }
 
