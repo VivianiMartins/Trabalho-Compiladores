@@ -2343,7 +2343,31 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                             if(extrair_e_atualizar_palavras(line, i, encontrado, line_number)==1){
                                 return 1;
                                }
+                            return 0;
                         }
+                    } else {/*é operação matemática, vamos dar responsabilidade pra função*/
+                                while ((line[i])!='='){
+                                    i--;
+                                }
+                                i++;
+                                int temp = validarExpressao(line, i, line_number);
+                                if (deuErro == 1){
+                                    return 1;
+                                }
+                                double temp2 = (double)temp;
+                                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(temp)+sizeof(temp2));
+                                if (memory == -1){
+                                    return 1;
+                                }
+                                char* result = double_para_string_manual(temp2);
+                                raiz = inserir_no(raiz, "12", "inteiro", 99, result);
+                                Node *one = buscar_no(raiz, "12");
+                                if(extrair_e_atualizar_palavras(line,i,one,line_number)==1){
+                                    raiz = remover_no(raiz, "12");
+                                    return 1;
+                                }
+                                raiz = remover_no(raiz, "12");
+                                return 0;
                     }
                     free(q);
                     if(isspace(line[i])){
@@ -4406,7 +4430,7 @@ int extrair_e_atualizar_palavras(char *line, int posicao_atual, Node *encontrado
                     return 1;
                 }
                 if (encontrado1->tamanho==encontrado->tamanho){
-                    raiz = alterar_no(raiz, encontrado1->nome, encontrado1->nome, encontrado1->tipo, encontrado1->tamanho, encontrado->valor);
+                    raiz = alterar_no(raiz, encontrado1->nome, encontrado1->nome, encontrado->tipo, encontrado1->tamanho, encontrado->valor);
                 } else {
                     message_error("ERRO SEMÂNTICO: Para realizar alterações em sua variável, elas precisam ter o mesmo tamanho", line_number);
                     return 1;
@@ -4478,18 +4502,25 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
 
             /* Verificar operadores de incremento/decremento pós-fixo*/
             if (pos + 1 < len && line[pos] == '+' && line[pos+1] == '+') {
-                printf("%s\n", var_name);
+                /*printf("%s\n", var_name);*/
+                Node *one = buscar_no(raiz, var_name);
                 pos += 2;
-                operando = 0; // valor assumido como zero
+                float valor_float = strtof(one->valor, NULL);
+                operando = valor_float;
             }
             else if (pos + 1 < len && line[pos] == '-' && line[pos+1] == '-') {
-                printf("%s\n", var_name);
+                /*printf("%s\n", var_name);*/
+                Node *one = buscar_no(raiz, var_name);
                 pos += 2;
-                operando = 0; // valor assumido como zero
+                float valor_float = strtof(one->valor, NULL);
+                operando = valor_float;
             }
             else {
-                printf("%s\n", var_name);
-                operando = 0; // valor assumido como zero
+                /*printf("%s\n", var_name);*/
+                Node *one = buscar_no(raiz, var_name);
+                pos += 2;
+                float valor_float = strtof(one->valor, NULL);
+                operando = valor_float;
             }
         }
         /* Verificar operadores de incremento/decremento pré-fixo*/
@@ -4509,8 +4540,44 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 return 0;
             }
 
-            printf("%s\n", var_name);
-            operando = 0;
+            /*printf("%s\n", var_name);*/
+            Node *one = buscar_no(raiz, var_name);
+            char *A = one->valor;
+            char B[99];
+            int x = 0, y = 0, z = 0;
+
+            /*1. converter parte inteira em número*/
+            while (A[x] != '\0' && A[x] != '.') {
+                z = z * 10 + (A[x] - '0');
+                x++;
+            }
+            /*2. somar 1 na parte inteira*/
+            z = z + 1;
+            /* 3. converter parte inteira de volta para string*/
+            int tempp = z, start = 0;
+            do {
+                B[y++] = (tempp % 10) + '0';
+                tempp /= 10;
+            } while (tempp > 0);
+            B[y] = '\0';
+            /* inverter os dígitos da parte inteira*/
+            for (int w = 0; w < y/2; w++) {
+                char c = B[w];
+                B[w] = B[y-1-w];
+                B[y-1-w] = c;
+            }
+            /* 4. se havia parte decimal, copiar ela*/
+            if (A[x] == '.') {
+                while (A[x] != '\0') {
+                    B[y++] = A[x++];
+                }
+                B[y] = '\0';
+            }
+
+            raiz = alterar_no(raiz, one->nome, one->nome, one->tipo, one->tamanho, B);
+            pos += 2;
+            float valor_float = strtof(one->valor, NULL);
+            operando = valor_float;
         }
         else if (pos + 1 < len && line[pos] == '-' && line[pos+1] == '-' && pos + 2 < len && line[pos+2] == '!') {
             pos += 3; /* pular "--"*/
@@ -4528,8 +4595,44 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 return 0;
             }
 
-            printf("%s\n", var_name);
-            operando = 0;
+            /*printf("%s\n", var_name);*/
+            Node *one = buscar_no(raiz, var_name);
+            char *A = one->valor;
+            char B[99];
+            int x = 0, y = 0, z = 0;
+
+            /*1. converter parte inteira em número*/
+            while (A[x] != '\0' && A[x] != '.') {
+                z = z * 10 + (A[x] - '0');
+                x++;
+            }
+            /*2. somar 1 na parte inteira*/
+            z = z + 1;
+            /* 3. converter parte inteira de volta para string*/
+            int tempp = z, start = 0;
+            do {
+                B[y++] = (tempp % 10) + '0';
+                tempp /= 10;
+            } while (tempp > 0);
+            B[y] = '\0';
+            /* inverter os dígitos da parte inteira*/
+            for (int w = 0; w < y/2; w++) {
+                char c = B[w];
+                B[w] = B[y-1-w];
+                B[y-1-w] = c;
+            }
+            /* 4. se havia parte decimal, copiar ela*/
+            if (A[x] == '.') {
+                while (A[x] != '\0') {
+                    B[y++] = A[x++];
+                }
+                B[y] = '\0';
+            }
+
+            raiz = alterar_no(raiz, one->nome, one->nome, one->tipo, one->tamanho, B);
+            pos += 2;
+            float valor_float = strtof(one->valor, NULL);
+            operando = valor_float;
         }
         /* Verificar números*/
         else if (isdigit(line[pos]) || line[pos] == '.') {
@@ -4574,8 +4677,11 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 while (pos < len && (isalnum(line[pos]) || line[pos] == '_')) {
                     var_name[var_idx++] = line[pos++];
                 }
-                printf("%s\n", var_name);
-                operando = 0;
+                /*printf("%s\n", var_name);*/
+                Node *one = buscar_no(raiz, var_name);
+                pos += 2;
+                float valor_float = strtof(one->valor, NULL);
+                operando = valor_float;
             }
             else {
                 message_error("ERRO SEMÂNTICO: Operando esperado após '-'", line_number);
@@ -4649,7 +4755,10 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                     while (pos < len && (isalnum(line[pos]) || line[pos] == '_')) {
                         var_name[var_idx++] = line[pos++];
                     }
-                    printf("%s\n", var_name);
+                    Node *one = buscar_no(raiz, var_name);
+                    pos += 2;
+                    float valor_float = strtof(one->valor, NULL);
+                    operando = valor_float;
                     exp_operando = 0;
                 }
                 else {
@@ -4688,8 +4797,11 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
         }
     }
     if (line[pos]!=';'){
-        message_error("ERRO SINTÁTICO: Cadê o ponto e vírgula?", line_number);
-        deuErro = 1;
+        pos = pos-2;
+        if (line[pos]!=';'){
+            message_error("ERRO SINTÁTICO: Cadê o ponto e vírgula?", line_number);
+            deuErro = 1;
+        }
     }
      /*Assim, teria que fazer mais verificações sobre, mas acho que isso já é bastante.
      Para o código a linha acaba depois do ';', correto? então foda-se se tiver algo depois.
