@@ -216,7 +216,7 @@ int main()
         {
             if(cont_principal == 0)
             {
-                message_error("ERRO SINTÁTICO: Módulo principal inexistente", &line_number);
+                printf("\n\nERRO SINTÁTICO: Módulo principal inexistente\n\n");
                 fclose(file); return 1;
             }
             printf("Análise léxica e sintática ok\n\n");
