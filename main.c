@@ -4509,6 +4509,11 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 pos += 2;
                 float valor_float = strtof(one->valor, NULL);
                 operando = valor_float;
+
+                /*Okay, agora temos que atualizar valor da variavel pra que haja o incremento eu acho*/
+                char* incrOrdec = double_para_string_manual(valor_float+1.0);
+                raiz = alterar_no(raiz, one->nome, one->nome, one->tipo, one->tamanho, incrOrdec);
+
             }
             else if (pos + 1 < len && line[pos] == '-' && line[pos+1] == '-') {
                 /*printf("%s\n", var_name);*/
@@ -4516,6 +4521,9 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 pos += 2;
                 float valor_float = strtof(one->valor, NULL);
                 operando = valor_float;
+                /*Okay, agora temos que atualizar valor da variavel pra que haja o incremento eu acho*/
+                char* incrOrdec = double_para_string_manual(valor_float-1.0);
+                raiz = alterar_no(raiz, one->nome, one->nome, one->tipo, one->tamanho, incrOrdec);
             }
             else {
                 /*printf("%s\n", var_name);*/
@@ -4608,8 +4616,8 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
                 z = z * 10 + (A[x] - '0');
                 x++;
             }
-            /*2. somar 1 na parte inteira*/
-            z = z + 1;
+            /*2. diminuir 1 na parte inteira*/
+            z = z - 1;
             /* 3. converter parte inteira de volta para string*/
             int tempp = z, start = 0;
             do {
@@ -4798,13 +4806,19 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             break;
         }
     }
-    if (line[pos]!=';'){
-        pos = pos-2;
-        if (line[pos]!=';'){
-            message_error("ERRO SINTÁTICO: Cadê o ponto e vírgula?", line_number);
-            deuErro = 1;
-        }
+
+    size_t lenS = strlen(line);
+
+    if (lenS > 0 && line[lenS - 2] == ';' && lenS > 0 && line[lenS-1] == '\n') {
+        /*printf("O último caractere é ';'\n");*/
+    } else if (lenS > 0 && line[lenS - 2] == ';' && lenS > 0 && line[lenS-1] == '\0') {
+        /*printf("O último caractere é ';'\n");*/
+    } else{
+        /*printf("O último caractere é %c %c\n", line[lenS-1], line[lenS-2]);*/
+        message_error("ERRO SINTÁTICO: Cadê o ponto e vírgula?", line_number);
+        deuErro = 1;
     }
+
      /*Assim, teria que fazer mais verificações sobre, mas acho que isso já é bastante.
      Para o código a linha acaba depois do ';', correto? então foda-se se tiver algo depois.
      Não acho que vale a pena avaliar.*/
