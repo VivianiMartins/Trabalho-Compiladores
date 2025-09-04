@@ -1578,10 +1578,10 @@ int verificarVariavelInteira(char line[], int posicao, int *line_number)
     for (int i = posicao; line[i] != '\0'; i++)
     {
         char c = line[i];
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
-if (memory == -1){
-    return 1;
-}
+        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
+        if (memory == -1){
+            return 1;
+        }
         memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(c));
         if (memory == -1){
                 return 1;
@@ -1594,10 +1594,10 @@ if (memory == -1){
         {
             i++;
             int j = i;
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
-if (memory == -1){
-    return 1;
-}
+            memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(j));
+            if (memory == -1){
+                return 1;
+            }
             if (line[i] >= 'a' && line[i] <= 'z')
             {
                 while (isalnum((unsigned char)line[i]))
@@ -1607,10 +1607,10 @@ if (memory == -1){
                 if (line[i] == ',' && (isspace(line[i + 1])))
                 { /*tem mais parâmetros que precisam ser verificados*/
                     int len = (i - j);              /* tamanho da substring*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                    if (memory == -1){
+                        return 1;
+                    }
                     char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1627,10 +1627,10 @@ if (memory == -1){
                 else if (line[i] == ';' && line[i + 1] == '\0')
                 {
                     int len = (i - j);              /* tamanho da substring*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                    if (memory == -1){
+                        return 1;
+                    }
                     char *extraida = malloc(len + 1); /* +1 para o terminador '\0'*/
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1646,10 +1646,10 @@ if (memory == -1){
                 else if (line[i] == ';' && line[i + 1] == '\n')
                 {
                     int len = (i - j);              // tamanho da substring
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                    if (memory == -1){
+                        return 1;
+                    }
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1665,10 +1665,10 @@ if (memory == -1){
                 else if (line[i] == ';' && isspace(line[i + 1]))
                 { /*tô ignorando espaços que aparecem depois*/
                     int len = (i - j);              // tamanho da substring
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+                    memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                    if (memory == -1){
+                        return 1;
+                    }
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1684,10 +1684,11 @@ if (memory == -1){
                 else if (isspace(line[i]))
                 {
                     int len = (i - j);              // tamanho da substring
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
-if (memory == -1){
-    return 1;
-}
+
+                memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(len));
+                if (memory == -1){
+                    return 1;
+                }
                     char *extraida = malloc(len + 1); // +1 para o terminador '\0'
                     if (extraida == NULL) {
                         message_error("Erro ao alocar memória", line_number);
@@ -1709,11 +1710,12 @@ if (memory == -1){
                         {
                             i++;
                         } while (isspace(line[i]));
+
                         int result = verificarOperacaoMatematica(line, i, line_number, 0); /*Aqui dentro vai realizar a atualização dos valores*/
-memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(result));
-if (memory == -1){
-    return 1;
-}
+                        memory = carregarNaMemoria(memory, MAX_MEMORY_BYTES, sizeof(result));
+                        if (memory == -1){
+                            return 1;
+                        }
                         if(result == 1)
                         {
                             return 1;
@@ -2350,7 +2352,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
-                                int temp = validarExpressao(line, i, line_number);
+                                int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
                                 }
