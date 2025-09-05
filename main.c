@@ -2352,6 +2352,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -2384,6 +2391,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -2408,6 +2422,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -2432,6 +2453,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -2500,11 +2528,18 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                 message_error("ERRO SEMÂNTICO:  Só aceitamos números decimais. O único número que pode começar com zero é zero.\n", line_number);
                 return 1;
             }
+            char *poS = strrchr(line, ';');
+            if (poS != NULL) {
+                                        memmove(poS + 2, poS, strlen(poS) + 1);
+                                        memcpy(poS, "+0", 2); 
+            }
 
+            printf("LINHA MODIFICADA: %s", line);
             while (line[i] != ';' && line[i] != '\0' && line[i] != '\n')
             {
                 if (!isdigit(line[i]))
                 {
+                    
                     if(line[i]=='.'){
                         flagTemPonto = 1;
                         i++;
@@ -2545,6 +2580,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -2596,6 +2638,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -2621,6 +2670,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -2647,6 +2703,13 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                     i--;
                                 }
                                 i++;
+                                char *poS = strrchr(line, ';');
+                                if (poS != NULL) {
+                                        memmove(poS + 4, poS, strlen(poS) + 1);
+                                        memcpy(poS, " + 0", 4); 
+                                }
+
+                                /*printf("LINHA MODIFICADA: %s", line);*/
                                 int temp = validarExpressao(line, &i, line_number);
                                 if (deuErro == 1){
                                     return 1;
@@ -4473,14 +4536,6 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             pos++;
             int old_pos = pos;
             double sub_resultado = validarExpressao(line, &pos, line_number);
-
-            /* Verificar se encontrou o parêntese de fechamento*/
-            if (pos >= len || line[pos] != ']') {
-                message_error("ERRO SINTÁTICO: Parêntese não balanceado", line_number);
-                *posicao_atual = pos;
-                deuErro = 1;
-                return 0;
-            }
             pos++; /* pular o ']'*/
             operando = sub_resultado;
         }
@@ -4666,12 +4721,6 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
             if (pos < len && line[pos] == '[') {
                 pos++;
                 double sub_resultado = validarExpressao(line, &pos, line_number);
-                if (pos >= len || line[pos] != ']') {
-                    message_error("ERRO SINTÁTICO: Parêntese não balanceado", line_number);
-                    *posicao_atual = pos;
-                    deuErro = 1;
-                    return 0;
-                }
                 pos++;
                 operando = -sub_resultado;
             }
