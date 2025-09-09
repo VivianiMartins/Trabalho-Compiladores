@@ -1,7 +1,8 @@
 principal(){
  inteiro !a, !b2 = 7; 
-inteiro !d; 
+decimal !d[1.1]; 
 escreva(“Escreva um número ”);
 leia (!a); 
-d = !a+!b2; 
+!d = 9+ !a;
+inteiro !c = !b2++;
 }

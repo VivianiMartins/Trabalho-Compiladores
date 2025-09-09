@@ -4863,8 +4863,10 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
         /*printf("O último caractere é ';'\n");*/
     } else{
         /*printf("O último caractere é %c %c\n", line[lenS-1], line[lenS-2]);*/
-        message_error("ERRO SINTÁTICO: Cadê o ponto e vírgula?", line_number);
-        deuErro = 1;
+        if (!isspace(line[lenS - 2])){
+            message_error("ERRO SINTÁTICO: Cadê o ponto e vírgula?", line_number);
+            deuErro = 1;
+            }
     }
 
      /*Assim, teria que fazer mais verificações sobre, mas acho que isso já é bastante.
