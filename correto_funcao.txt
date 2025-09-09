@@ -1,0 +1,13 @@
+principal(){
+inteiro !a, !b2 = 7; 
+inteiro !d; 
+escreva(“Escreva um número ”);
+leia (!a); 
+__soma (!a, !b2);
+}
+
+﻿funcao __soma ( !a, !b2){ 
+inteiro !num;
+!num = !a + !b2; 
+retorno !num; 
+}

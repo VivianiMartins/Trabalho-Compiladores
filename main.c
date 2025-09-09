@@ -108,7 +108,7 @@ int deuErro = 0;
 int main()
 {
     /*carregar documento de entrada e pré-processando*/
-    FILE *file = fopen("exemplo_correto.txt", "r");
+    FILE *file = fopen("correto_funcao.txt", "r");
     /*
     char *exemploFormatado = garantir_quebra_linha_apos_ponto_virgula("exemplo_correto.txt");
     if (exemploFormatado == NULL) {
@@ -2355,7 +2355,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -2394,7 +2394,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -2425,7 +2425,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -2456,7 +2456,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -2531,14 +2531,14 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
             char *poS = strrchr(line, ';');
             if (poS != NULL) {
                                         memmove(poS + 2, poS, strlen(poS) + 1);
-                                        memcpy(poS, "+0", 2); 
+                                        memcpy(poS, "+0", 2);
             }
         /*printf("LINHA MODIFICADA: %s", line);*/
             while (line[i] != ';' && line[i] != '\0' && line[i] != '\n')
             {
                 if (!isdigit(line[i]))
                 {
-                    
+
                     if(line[i]=='.'){
                         flagTemPonto = 1;
                         i++;
@@ -2582,7 +2582,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -2640,7 +2640,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -2672,7 +2672,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -2705,7 +2705,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                 char *poS = strrchr(line, ';');
                                 if (poS != NULL) {
                                         memmove(poS + 4, poS, strlen(poS) + 1);
-                                        memcpy(poS, " + 0", 4); 
+                                        memcpy(poS, " + 0", 4);
                                 }
 
                                 /*printf("LINHA MODIFICADA: %s", line);*/
@@ -4857,7 +4857,7 @@ double validarExpressao(char *line, int *posicao_atual, int *line_number) {
 
     size_t lenS = strlen(line);
 
-    if (lenS > 0 && line[lenS - 2] == ';' && lenS > 0 && line[lenS-1] == '\n') {
+    if ((lenS > 0 && line[lenS - 2] == ';' && lenS > 0 && line[lenS-1] == '\n') || (lenS > 0 && line[lenS - 3] == ';' && lenS > 0 && line[lenS-1] == '\n')) {
         /*printf("O último caractere é ';'\n");*/
     } else if (lenS > 0 && line[lenS - 2] == ';' && lenS > 0 && line[lenS-1] == '\0') {
         /*printf("O último caractere é ';'\n");*/
