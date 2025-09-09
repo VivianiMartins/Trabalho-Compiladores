@@ -2533,8 +2533,7 @@ int verificarOperacaoMatematica(char line[], int posicao, int *line_number, int 
                                         memmove(poS + 2, poS, strlen(poS) + 1);
                                         memcpy(poS, "+0", 2); 
             }
-
-            printf("LINHA MODIFICADA: %s", line);
+        /*printf("LINHA MODIFICADA: %s", line);*/
             while (line[i] != ';' && line[i] != '\0' && line[i] != '\n')
             {
                 if (!isdigit(line[i]))
