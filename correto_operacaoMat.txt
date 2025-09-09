@@ -3,5 +3,6 @@ principal(){
 inteiro !d; 
 escreva(“Escreva um número ”);
 leia (!a); 
-!d = !a+!b2; 
+!d = 9+ !a;
+inteiro !c = !b2++;
 }
