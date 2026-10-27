@@ -3,6 +3,7 @@
 Este repositório contém o trabalho prático desenvolvido para a disciplina de Gramáticas e Compiladores. O projeto consiste na implementação de um compilador em linguagem C para uma linguagem de programação customizada, abordando as fases de análise léxica, sintática e semântica.
 
 **Especificações do Compilador Desenvolvido**
+
 O software foi construído seguindo restrições estritas de desenvolvimento, incluindo alocação dinâmica de memória com limite de 2048 KB e execução nativa sem dependência de plugins externos. As principais características e regras da linguagem implementada incluem:
     - Estrutura do Programa: Suporte a funções customizadas (funcao()) e exigência de uma função principal obrigatória (principal()).
     - Tipagem e Variáveis: Declaração de variáveis globais e locais dos tipos inteiro, texto e decimal, que devem ser obrigatoriamente iniciadas com o marcador ! (ex: !variavel).
