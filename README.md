@@ -5,6 +5,7 @@ Este repositório contém o trabalho prático desenvolvido para a disciplina de 
 **Especificações do Compilador Desenvolvido**
 
 O software foi construído seguindo restrições estritas de desenvolvimento, incluindo alocação dinâmica de memória com limite de 2048 KB e execução nativa sem dependência de plugins externos. As principais características e regras da linguagem implementada incluem:
+
     - Estrutura do Programa: Suporte a funções customizadas (funcao()) e exigência de uma função principal obrigatória (principal()).
     - Tipagem e Variáveis: Declaração de variáveis globais e locais dos tipos inteiro, texto e decimal, que devem ser obrigatoriamente iniciadas com o marcador ! (ex: !variavel).
     - Controle de Fluxo e I/O: Suporte a laços de repetição (para()), estruturas condicionais (se / senao) e comandos nativos de entrada e saída (leia() / escreva()).
